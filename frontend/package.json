@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Frontend Application",
   "private": true,
+  "type": "module",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
