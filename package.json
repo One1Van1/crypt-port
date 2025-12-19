@@ -1,0 +1,16 @@
+{
+  "name": "srm",
+  "version": "1.0.0",
+  "description": "SRM Fullstack Application",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start:front": "cd frontend && yarn dev",
+    "start:back": "cd backend && yarn start:dev",
+    "dev": "concurrently \"yarn start:back\" \"yarn start:front\"",
+    "install:all": "yarn install && cd backend && yarn install && cd ../frontend && yarn install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
