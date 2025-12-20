@@ -1,39 +1,15 @@
-# SRM Project
+# CRM P2P Processing System
 
-Fullstack приложение на NestJS и React с TypeScript
-
-## Структура проекта
-
-```
-srm/
-├── backend/          # NestJS Backend
-│   ├── src/
-│   │   ├── main.ts
-│   │   ├── app.module.ts
-│   │   ├── app.controller.ts
-│   │   └── app.service.ts
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── nest-cli.json
-│
-└── frontend/         # React Frontend
-    ├── src/
-    │   ├── main.tsx
-    │   ├── App.tsx
-    │   ├── App.css
-    │   └── index.css
-    ├── index.html
-    ├── package.json
-    ├── tsconfig.json
-    └── vite.config.ts
-```
+Fullstack приложение для управления P2P-платежами на NestJS и React с TypeScript
 
 ## Технологии
 
 ### Backend
 - NestJS
 - TypeScript
-- Express
+- TypeORM
+- PostgreSQL
+- Swagger / OpenAPI
 
 ### Frontend
 - React
@@ -42,19 +18,36 @@ srm/
 
 ## Установка
 
-Установка зависимостей уже выполнена. Если нужно переустановить:
+### 1. Клонирование репозитория
+```bash
+git clone https://github.com/One1Van1/crypt-port.git
+cd crypt-port
+```
 
-### Backend
+### 2. Установка зависимостей
+
+#### Backend
 ```bash
 cd backend
 yarn install
+cp .env.example .env
 ```
 
-### Frontend
+#### Frontend
 ```bash
 cd frontend
 yarn install
 ```
+
+### 3. Запуск базы данных
+
+**Docker (рекомендуется):**
+```bash
+docker-compose up -d
+```
+
+**Или локальная установка PostgreSQL:**
+См. [DATABASE_SETUP.md](DATABASE_SETUP.md)
 
 ## Запуск
 
@@ -87,6 +80,11 @@ yarn dev
 ```
 
 📖 Подробная инструкция: см. [QUICK_START.md](QUICK_START.md)
+
+## API Documentation
+
+После запуска backend, Swagger документация доступна по адресу:
+**http://localhost:3000/api/docs**
 
 ## Сборка production
 
