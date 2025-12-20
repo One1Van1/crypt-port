@@ -4,19 +4,19 @@ import { UserRole, UserStatus } from '../common/enums/user.enum';
 
 @Entity('users')
 export class User extends BaseEntity {
-  @Column()
+  @Column({ unique: true, nullable: true })
+  username: string;
+
+  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
-  @Column()
-  name: string;
-
   @Column({
     type: 'enum',
     enum: UserRole,
-    default: UserRole.OPERATOR,
+    default: UserRole.PENDING,
   })
   role: UserRole;
 
@@ -26,4 +26,10 @@ export class User extends BaseEntity {
     default: UserStatus.ACTIVE,
   })
   status: UserStatus;
+
+  @Column({ nullable: true })
+  twoFactorSecret: string;
+
+  @Column({ default: false })
+  twoFactorEnabled: boolean;
 }
