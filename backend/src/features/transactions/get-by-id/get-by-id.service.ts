@@ -1,0 +1,26 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Transaction } from '../../../entities/transaction.entity';
+import { GetTransactionByIdResponseDto } from './get-by-id.response.dto';
+
+@Injectable()
+export class GetTransactionByIdService {
+  constructor(
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
+  ) {}
+
+  async execute(id: string): Promise<GetTransactionByIdResponseDto> {
+    const transaction = await this.transactionRepository.findOne({
+      where: { id },
+      relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'operator'],
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    return new GetTransactionByIdResponseDto(transaction);
+  }
+}

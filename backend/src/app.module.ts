@@ -6,6 +6,15 @@ import { AppService } from './app.service';
 import { getDatabaseConfig } from './config/database.config';
 import { AuthModule } from './modules/auth.module';
 import { AdminModule } from './modules/admin.module';
+import { BanksModule } from './modules/banks.module';
+import { DropsModule } from './modules/drops.module';
+import { PlatformsModule } from './modules/platforms.module';
+import { BankAccountsModule } from './modules/bank-accounts.module';
+import { ShiftsModule } from './modules/shifts.module';
+import { TransactionsModule } from './modules/transactions.module';
+import { BalancesModule } from './modules/balances.module';
+import { UsersModule } from './modules/users.module';
+import { AnalyticsModule } from './modules/analytics.module';
 
 @Module({
   imports: [
@@ -20,6 +29,15 @@ import { AdminModule } from './modules/admin.module';
     }),
     AuthModule,
     AdminModule,
+    BanksModule,
+    DropsModule,
+    PlatformsModule,
+    BankAccountsModule,
+    ShiftsModule,
+    TransactionsModule,
+    BalancesModule,
+    UsersModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

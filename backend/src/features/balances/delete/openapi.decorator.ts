@@ -1,0 +1,16 @@
+import { applyDecorators } from '@nestjs/common';
+import { ApiOperation, ApiNoContentResponse, ApiNotFoundResponse } from '@nestjs/swagger';
+
+export const ApiDeleteBalance = () =>
+  applyDecorators(
+    ApiOperation({ 
+      summary: 'Delete balance (Admin only)',
+      description: 'Soft deletes balance record',
+    }),
+    ApiNoContentResponse({
+      description: 'Balance deleted successfully',
+    }),
+    ApiNotFoundResponse({
+      description: 'Balance not found',
+    }),
+  );

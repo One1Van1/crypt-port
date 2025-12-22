@@ -1,0 +1,42 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Platform } from '../entities/platform.entity';
+
+// Create
+import { CreatePlatformController } from '../features/platforms/create/create.controller';
+import { CreatePlatformService } from '../features/platforms/create/create.service';
+
+// Get All
+import { GetAllPlatformsController } from '../features/platforms/get-all/get-all.controller';
+import { GetAllPlatformsService } from '../features/platforms/get-all/get-all.service';
+
+// Get By ID
+import { GetPlatformByIdController } from '../features/platforms/get-by-id/get-by-id.controller';
+import { GetPlatformByIdService } from '../features/platforms/get-by-id/get-by-id.service';
+
+// Update
+import { UpdatePlatformController } from '../features/platforms/update/update.controller';
+import { UpdatePlatformService } from '../features/platforms/update/update.service';
+
+// Update Status
+import { UpdatePlatformStatusController } from '../features/platforms/update-status/update-status.controller';
+import { UpdatePlatformStatusService } from '../features/platforms/update-status/update-status.service';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Platform])],
+  controllers: [
+    CreatePlatformController,
+    GetAllPlatformsController,
+    GetPlatformByIdController,
+    UpdatePlatformController,
+    UpdatePlatformStatusController,
+  ],
+  providers: [
+    CreatePlatformService,
+    GetAllPlatformsService,
+    GetPlatformByIdService,
+    UpdatePlatformService,
+    UpdatePlatformStatusService,
+  ],
+})
+export class PlatformsModule {}
