@@ -5,7 +5,7 @@ import { UpdateTransactionStatusResponseDto } from './update-status.response.dto
 export const ApiUpdateTransactionStatus = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Update transaction status',
+      summary: '🟡 [ADMIN, TEAMLEAD] Update transaction status',
       description: 'Updates transaction status. If cancelled from PENDING, returns balance to bank account',
     }),
     ApiOkResponse({

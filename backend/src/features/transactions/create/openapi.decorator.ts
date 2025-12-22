@@ -5,7 +5,7 @@ import { CreateTransactionResponseDto } from './create.response.dto';
 export const ApiCreateTransaction = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Create new withdrawal transaction (Operator only)',
+      summary: '🟢 [OPERATOR] Create new withdrawal transaction',
       description: 'Creates transaction, selects bank account with priority, updates balances and shift statistics',
     }),
     ApiCreatedResponse({

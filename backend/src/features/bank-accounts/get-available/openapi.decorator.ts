@@ -5,7 +5,7 @@ import { GetAvailableBankAccountResponseDto } from './get-available.response.dto
 export const ApiGetAvailableBankAccount = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Get available bank account for withdrawal based on priority and limits',
+      summary: '⚪ [ANY] Get available bank account for withdrawal based on priority and limits',
       description:
         'Returns the best available bank account considering: ' +
         '1) Only WORKING status accounts, ' +

@@ -5,7 +5,7 @@ import { GetAllShiftsResponseDto } from './get-all.response.dto';
 export const ApiGetAllShifts = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get all shifts with filters (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get all shifts with filters',
       description: 'Returns list of shifts with filtering by status, operator, platform, and date range',
     }),
     ApiOkResponse({

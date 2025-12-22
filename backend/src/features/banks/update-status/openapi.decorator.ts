@@ -4,7 +4,10 @@ import { UpdateBankStatusResponseDto } from './update-status.response.dto';
 
 export const ApiUpdateBankStatus = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Update bank status (activate/deactivate)' }),
+    ApiOperation({ 
+      summary: '🔴 [ADMIN] Update bank status (activate/deactivate)',
+      description: 'Only ADMIN can update bank status'
+    }),
     ApiOkResponse({
       description: 'Bank status successfully updated',
       type: UpdateBankStatusResponseDto,

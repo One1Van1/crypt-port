@@ -5,7 +5,7 @@ import { GetShiftByIdResponseDto } from './get-by-id.response.dto';
 export const ApiGetShiftById = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get shift by ID with transactions (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get shift by ID with transactions',
       description: 'Returns detailed shift information including all transactions',
     }),
     ApiOkResponse({

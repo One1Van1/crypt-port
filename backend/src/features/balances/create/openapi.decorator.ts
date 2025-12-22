@@ -5,7 +5,7 @@ import { CreateBalanceResponseDto } from './create.response.dto';
 export const ApiCreateBalance = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Create new balance (Admin only)',
+      summary: '🔴 [ADMIN] Create new balance',
       description: 'Creates balance for platform. Each platform can have one balance per type',
     }),
     ApiCreatedResponse({

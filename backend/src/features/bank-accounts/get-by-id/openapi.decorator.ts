@@ -4,7 +4,7 @@ import { GetBankAccountByIdResponseDto } from './get-by-id.response.dto';
 
 export const ApiGetBankAccountById = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Get bank account by ID with full details' }),
+    ApiOperation({ summary: '⚪ [ANY] Get bank account by ID with full details' }),
     ApiOkResponse({
       description: 'Bank account found',
       type: GetBankAccountByIdResponseDto,

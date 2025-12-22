@@ -1,5 +1,5 @@
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateBankService } from './create.service';
 import { CreateBankRequestDto } from './create.request.dto';
 import { CreateBankResponseDto } from './create.response.dto';
@@ -12,6 +12,7 @@ import { UserRole } from '../../../common/enums/user.enum';
 @Controller('banks')
 @ApiTags('Banks')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class CreateBankController {
   constructor(private readonly service: CreateBankService) {}
 

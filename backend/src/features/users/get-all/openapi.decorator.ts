@@ -5,7 +5,7 @@ import { GetAllUsersResponseDto } from './get-all.response.dto';
 export const ApiGetAllUsers = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get all users (Admin/Teamlead only)',
+      summary: '🔴 [ADMIN] Get all users',
       description: 'Returns list of all users with optional filters',
     }),
     ApiOkResponse({

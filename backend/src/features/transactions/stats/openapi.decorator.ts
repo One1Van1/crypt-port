@@ -5,7 +5,7 @@ import { GetTransactionsStatsResponseDto } from './stats.response.dto';
 export const ApiGetTransactionsStats = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get transactions statistics (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get transactions statistics',
       description: 'Returns aggregated statistics for transactions with optional filters',
     }),
     ApiOkResponse({

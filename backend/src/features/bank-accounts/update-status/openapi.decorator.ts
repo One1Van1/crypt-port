@@ -5,7 +5,7 @@ import { UpdateBankAccountStatusResponseDto } from './update-status.response.dto
 export const ApiUpdateBankAccountStatus = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Update bank account status - working/not-working/blocked (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Update bank account status - working/not-working/blocked',
     }),
     ApiOkResponse({
       description: 'Bank account status successfully updated',

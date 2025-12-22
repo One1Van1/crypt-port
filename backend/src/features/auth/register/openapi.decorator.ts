@@ -5,7 +5,7 @@ import { RegisterResponseDto } from './register.response.dto';
 export const ApiRegister = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Register new user',
+      summary: '🔓 [PUBLIC] Register new user',
       description: 'Register a new user with PENDING role. User must wait for admin approval.',
     }),
     ApiCreatedResponse({

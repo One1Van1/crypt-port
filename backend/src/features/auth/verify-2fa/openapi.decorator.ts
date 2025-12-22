@@ -5,7 +5,7 @@ import { Verify2faResponseDto } from './verify-2fa.response.dto';
 export const ApiVerify2fa = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Verify 2FA code and complete login',
+      summary: '🔓 [PUBLIC] Verify 2FA code and complete login',
       description: 'Second step of authentication. Verify Google Authenticator code and receive access/refresh tokens.',
     }),
     ApiOkResponse({

@@ -4,7 +4,7 @@ import { CreateBankAccountResponseDto } from './create.response.dto';
 
 export const ApiCreateBankAccount = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Create a new bank account (Admin/Teamlead only)' }),
+    ApiOperation({ summary: '🟡 [ADMIN, TEAMLEAD] Create a new bank account' }),
     ApiCreatedResponse({
       description: 'Bank account successfully created',
       type: CreateBankAccountResponseDto,

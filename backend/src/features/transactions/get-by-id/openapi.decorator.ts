@@ -5,7 +5,7 @@ import { GetTransactionByIdResponseDto } from './get-by-id.response.dto';
 export const ApiGetTransactionById = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get transaction by ID (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get transaction by ID',
       description: 'Returns detailed transaction information',
     }),
     ApiOkResponse({

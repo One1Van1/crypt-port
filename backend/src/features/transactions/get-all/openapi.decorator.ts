@@ -5,7 +5,7 @@ import { GetAllTransactionsResponseDto } from './get-all.response.dto';
 export const ApiGetAllTransactions = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get all transactions (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get all transactions',
       description: 'Returns list of all transactions with comprehensive filters',
     }),
     ApiOkResponse({

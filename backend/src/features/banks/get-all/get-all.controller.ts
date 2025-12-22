@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GetAllBanksService } from './get-all.service';
 import { GetAllBanksQueryDto } from './get-all.query.dto';
 import { GetAllBanksResponseDto } from './get-all.response.dto';
@@ -9,6 +9,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 @Controller('banks')
 @ApiTags('Banks')
 @UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class GetAllBanksController {
   constructor(private readonly service: GetAllBanksService) {}
 

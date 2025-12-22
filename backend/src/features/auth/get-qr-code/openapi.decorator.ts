@@ -4,7 +4,7 @@ import { ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiUnauthorizedRespon
 export const ApiGetQrCode = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Get QR code for 2FA setup',
+      summary: '⚪ [ANY] Get QR code for 2FA setup',
       description: 'Get QR code image using temporary token from registration. Token expires in 10 minutes. Returns PNG image that can be scanned with Google Authenticator.',
     }),
     ApiQuery({

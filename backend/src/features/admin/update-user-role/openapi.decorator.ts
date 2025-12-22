@@ -5,7 +5,7 @@ import { UpdateUserRoleResponseDto } from './update-user-role.response.dto';
 export const ApiUpdateUserRole = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Update user role',
+      summary: '🔴 [ADMIN] Update user role',
       description: 'Update user role. Only accessible by admins.',
     }),
     ApiBearerAuth(),

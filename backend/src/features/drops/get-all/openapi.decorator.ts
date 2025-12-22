@@ -4,7 +4,7 @@ import { GetAllDropsResponseDto } from './get-all.response.dto';
 
 export const ApiGetAllDrops = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Get all drops with optional filters' }),
+    ApiOperation({ summary: '⚪ [ANY] Get all drops with optional filters' }),
     ApiOkResponse({
       description: 'List of drops',
       type: GetAllDropsResponseDto,

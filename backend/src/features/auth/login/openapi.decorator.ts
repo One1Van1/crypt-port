@@ -5,7 +5,7 @@ import { LoginResponseDto } from './login.response.dto';
 export const ApiLogin = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Login with username and password',
+      summary: '🔓 [PUBLIC] Login with username and password',
       description: 'First step of authentication. Returns temporary token for 2FA verification.',
     }),
     ApiOkResponse({

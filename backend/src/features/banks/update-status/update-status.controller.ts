@@ -1,5 +1,5 @@
 import { Controller, Patch, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateBankStatusService } from './update-status.service';
 import { UpdateBankStatusRequestDto } from './update-status.request.dto';
 import { UpdateBankStatusResponseDto } from './update-status.response.dto';
@@ -12,6 +12,7 @@ import { UserRole } from '../../../common/enums/user.enum';
 @Controller('banks')
 @ApiTags('Banks')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class UpdateBankStatusController {
   constructor(private readonly service: UpdateBankStatusService) {}
 

@@ -4,7 +4,7 @@ import { CreateDropResponseDto } from './create.response.dto';
 
 export const ApiCreateDrop = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Create a new drop (Admin/Teamlead only)' }),
+    ApiOperation({ summary: '🟡 [ADMIN, TEAMLEAD] Create a new drop' }),
     ApiCreatedResponse({
       description: 'Drop successfully created',
       type: CreateDropResponseDto,

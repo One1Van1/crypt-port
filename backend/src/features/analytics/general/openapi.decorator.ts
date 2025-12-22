@@ -5,7 +5,7 @@ import { GetGeneralStatsResponseDto } from './general.response.dto';
 export const ApiGetGeneralStats = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get general system statistics (Admin/Teamlead only)',
+      summary: '🔴 [ADMIN] Get general system statistics',
       description: 'Returns overall system statistics',
     }),
     ApiOkResponse({

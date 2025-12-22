@@ -4,7 +4,7 @@ import { ApiOperation, ApiNoContentResponse, ApiNotFoundResponse } from '@nestjs
 export const ApiDeleteBalance = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Delete balance (Admin only)',
+      summary: '🔴 [ADMIN] Delete balance',
       description: 'Soft deletes balance record',
     }),
     ApiNoContentResponse({

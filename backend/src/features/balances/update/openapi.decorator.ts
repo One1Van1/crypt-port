@@ -5,7 +5,7 @@ import { UpdateBalanceResponseDto } from './update.response.dto';
 export const ApiUpdateBalance = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Update balance amount (Admin only)',
+      summary: '🔴 [ADMIN] Update balance amount',
       description: 'Updates balance amount manually',
     }),
     ApiOkResponse({

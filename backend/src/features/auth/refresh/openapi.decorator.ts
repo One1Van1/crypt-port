@@ -5,7 +5,7 @@ import { RefreshResponseDto } from './refresh.response.dto';
 export const ApiRefresh = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Refresh access token',
+      summary: '⚪ [ANY] Refresh access token',
       description: 'Get new access and refresh tokens using refresh token',
     }),
     ApiOkResponse({

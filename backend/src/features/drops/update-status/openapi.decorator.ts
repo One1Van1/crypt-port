@@ -4,7 +4,7 @@ import { UpdateDropStatusResponseDto } from './update-status.response.dto';
 
 export const ApiUpdateDropStatus = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Update drop status - activate/freeze (Admin/Teamlead only)' }),
+    ApiOperation({ summary: '🟡 [ADMIN, TEAMLEAD] Update drop status - activate/freeze' }),
     ApiOkResponse({
       description: 'Drop status successfully updated',
       type: UpdateDropStatusResponseDto,

@@ -4,7 +4,7 @@ import { StartShiftResponseDto } from './start.response.dto';
 
 export const ApiStartShift = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Start a new shift (Operator only)' }),
+    ApiOperation({ summary: '🟢 [OPERATOR] Start a new shift' }),
     ApiCreatedResponse({
       description: 'Shift successfully started',
       type: StartShiftResponseDto,

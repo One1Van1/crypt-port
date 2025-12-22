@@ -5,7 +5,7 @@ import { GetOperatorsAnalyticsResponseDto } from './operators.response.dto';
 export const ApiGetOperatorsAnalytics = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get operators analytics (Admin/Teamlead only)',
+      summary: '🔴 [ADMIN] Get operators analytics',
       description: 'Returns detailed statistics for all operators',
     }),
     ApiOkResponse({

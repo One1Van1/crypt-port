@@ -5,7 +5,7 @@ import { BlockBankAccountResponseDto } from './block.response.dto';
 export const ApiBlockBankAccount = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Block bank account with reason (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Block bank account with reason',
     }),
     ApiOkResponse({
       description: 'Bank account successfully blocked',

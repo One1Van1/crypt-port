@@ -4,7 +4,7 @@ import { ApiOperation, ApiNoContentResponse, ApiNotFoundResponse } from '@nestjs
 export const ApiDeleteUser = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Delete user (Admin only)',
+      summary: '🔴 [ADMIN] Delete user',
       description: 'Soft deletes user',
     }),
     ApiNoContentResponse({

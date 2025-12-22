@@ -5,7 +5,7 @@ import { MeResponseDto } from './me.response.dto';
 export const ApiMe = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Get current user info',
+      summary: '⚪ [ANY] Get current user info',
       description: 'Get information about currently authenticated user',
     }),
     ApiBearerAuth(),

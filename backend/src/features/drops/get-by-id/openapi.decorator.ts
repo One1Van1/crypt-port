@@ -4,7 +4,7 @@ import { GetDropByIdResponseDto } from './get-by-id.response.dto';
 
 export const ApiGetDropById = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Get drop by ID with bank accounts' }),
+    ApiOperation({ summary: '⚪ [ANY] Get drop by ID with bank accounts' }),
     ApiOkResponse({
       description: 'Drop found',
       type: GetDropByIdResponseDto,

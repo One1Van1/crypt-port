@@ -4,7 +4,7 @@ import { UpdatePlatformResponseDto } from './update.response.dto';
 
 export const ApiUpdatePlatform = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Update platform information (Admin only)' }),
+    ApiOperation({ summary: '🔴 [ADMIN] Update platform information' }),
     ApiOkResponse({
       description: 'Platform successfully updated',
       type: UpdatePlatformResponseDto,

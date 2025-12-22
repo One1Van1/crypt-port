@@ -5,7 +5,7 @@ import { GetShiftsStatisticsResponseDto } from './statistics.response.dto';
 export const ApiGetShiftsStatistics = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get shifts statistics (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Get shifts statistics',
       description: 'Returns aggregated statistics for completed shifts with optional filters',
     }),
     ApiOkResponse({

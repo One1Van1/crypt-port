@@ -5,7 +5,7 @@ import { UpdateBankAccountPriorityResponseDto } from './update-priority.response
 export const ApiUpdateBankAccountPriority = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Update bank account priority for distribution (Admin/Teamlead only)',
+      summary: '🟡 [ADMIN, TEAMLEAD] Update bank account priority for distribution',
     }),
     ApiOkResponse({
       description: 'Bank account priority successfully updated',

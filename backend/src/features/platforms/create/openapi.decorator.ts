@@ -4,7 +4,7 @@ import { CreatePlatformResponseDto } from './create.response.dto';
 
 export const ApiCreatePlatform = () =>
   applyDecorators(
-    ApiOperation({ summary: 'Create a new platform (Admin only)' }),
+    ApiOperation({ summary: '🔴 [ADMIN] Create a new platform' }),
     ApiCreatedResponse({
       description: 'Platform successfully created',
       type: CreatePlatformResponseDto,

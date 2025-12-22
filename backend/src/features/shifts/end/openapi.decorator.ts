@@ -4,7 +4,7 @@ import { EndShiftResponseDto } from './end.response.dto';
 
 export const ApiEndShift = () =>
   applyDecorators(
-    ApiOperation({ summary: 'End active shift (Operator only)' }),
+    ApiOperation({ summary: '🟢 [OPERATOR] End active shift' }),
     ApiOkResponse({
       description: 'Shift successfully ended',
       type: EndShiftResponseDto,

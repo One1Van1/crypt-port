@@ -5,7 +5,7 @@ import { LogoutResponseDto } from './logout.response.dto';
 export const ApiLogout = () =>
   applyDecorators(
     ApiOperation({
-      summary: 'Logout user',
+      summary: '⚪ [ANY] Logout user',
       description: 'Logout current user (client should discard tokens)',
     }),
     ApiBearerAuth(),

@@ -5,7 +5,7 @@ import { GetUserByIdResponseDto } from './get-by-id.response.dto';
 export const ApiGetUserById = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Get user by ID (Admin/Teamlead only)',
+      summary: '🔴 [ADMIN] Get user by ID',
       description: 'Returns detailed user information',
     }),
     ApiOkResponse({

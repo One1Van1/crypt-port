@@ -5,7 +5,7 @@ import { UpdateUserResponseDto } from './update.response.dto';
 export const ApiUpdateUser = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: 'Update user (Admin only)',
+      summary: '🔴 [ADMIN] Update user',
       description: 'Updates user username and/or password',
     }),
     ApiOkResponse({
