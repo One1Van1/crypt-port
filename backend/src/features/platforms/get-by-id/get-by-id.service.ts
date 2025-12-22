@@ -11,7 +11,7 @@ export class GetPlatformByIdService {
     private readonly platformRepository: Repository<Platform>,
   ) {}
 
-  async execute(id: string): Promise<GetPlatformByIdResponseDto> {
+  async execute(id: number): Promise<GetPlatformByIdResponseDto> {
     const platform = await this.platformRepository.findOne({ where: { id } });
 
     if (!platform) {

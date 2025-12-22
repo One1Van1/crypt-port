@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { BlockBankAccountService } from './block.service';
 import { BlockBankAccountRequestDto } from './block.request.dto';
@@ -20,7 +20,7 @@ export class BlockBankAccountController {
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiBlockBankAccount()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: BlockBankAccountRequestDto,
   ): Promise<BlockBankAccountResponseDto> {
     return this.service.execute(id, dto);

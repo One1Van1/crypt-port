@@ -6,7 +6,7 @@ import { TransactionStatus } from '../../../common/enums/transaction.enum';
 
 class TransactionItemDto {
   @ApiProperty({ description: 'Transaction ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Amount' })
   amount: number;
@@ -39,7 +39,7 @@ class TransactionItemDto {
 
 export class GetShiftByIdResponseDto {
   @ApiProperty({ description: 'Shift ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Shift start time' })
   startTime: Date;
@@ -64,13 +64,13 @@ export class GetShiftByIdResponseDto {
   operationsCount: number;
 
   @ApiProperty({ description: 'Operator ID' })
-  operatorId: string;
+  operatorId: number;
 
   @ApiProperty({ description: 'Operator username' })
   operatorUsername: string;
 
   @ApiProperty({ description: 'Platform ID' })
-  platformId: string;
+  platformId: number;
 
   @ApiProperty({ description: 'Platform name' })
   platformName: string;

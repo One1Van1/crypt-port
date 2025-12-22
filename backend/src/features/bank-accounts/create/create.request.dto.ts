@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsNumber, IsOptional, Length, Matches, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Length, Matches, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBankAccountRequestDto {
@@ -24,17 +24,17 @@ export class CreateBankAccountRequestDto {
 
   @ApiProperty({
     description: 'Bank ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: 1,
   })
-  @IsUUID()
-  bankId: string;
+  @IsNumber()
+  bankId: number;
 
   @ApiProperty({
     description: 'Drop ID',
-    example: '550e8400-e29b-41d4-a716-446655440001',
+    example: 1,
   })
-  @IsUUID()
-  dropId: string;
+  @IsNumber()
+  dropId: number;
 
   @ApiProperty({
     description: 'Withdrawal limit',

@@ -13,7 +13,7 @@ export class EndShiftService {
     private readonly shiftRepository: Repository<Shift>,
   ) {}
 
-  async execute(id: string, user: User): Promise<EndShiftResponseDto> {
+  async execute(id: number, user: User): Promise<EndShiftResponseDto> {
     // Находим смену
     const shift = await this.shiftRepository.findOne({
       where: { id },

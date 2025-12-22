@@ -13,7 +13,7 @@ export class UpdateBankAccountPriorityService {
   ) {}
 
   async execute(
-    id: string,
+    id: number,
     dto: UpdateBankAccountPriorityRequestDto,
   ): Promise<UpdateBankAccountPriorityResponseDto> {
     const bankAccount = await this.bankAccountRepository.findOne({

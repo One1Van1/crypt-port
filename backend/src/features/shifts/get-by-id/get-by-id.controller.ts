@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GetShiftByIdService } from './get-by-id.service';
 import { GetShiftByIdResponseDto } from './get-by-id.response.dto';
@@ -18,7 +18,7 @@ export class GetShiftByIdController {
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetShiftById()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<GetShiftByIdResponseDto> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<GetShiftByIdResponseDto> {
     return this.service.execute(id);
   }
 }

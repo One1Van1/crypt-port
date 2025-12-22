@@ -10,7 +10,7 @@ export class DeleteBalanceService {
     private readonly balanceRepository: Repository<Balance>,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: number): Promise<void> {
     const balance = await this.balanceRepository.findOne({
       where: { id },
     });

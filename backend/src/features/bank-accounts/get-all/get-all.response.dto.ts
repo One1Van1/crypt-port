@@ -4,7 +4,7 @@ import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
 
 class BankAccountItemDto {
   @ApiProperty({ description: 'Bank account ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'CBU (22 digits)' })
   cbu: string;

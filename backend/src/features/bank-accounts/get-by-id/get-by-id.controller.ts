@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GetBankAccountByIdService } from './get-by-id.service';
 import { GetBankAccountByIdResponseDto } from './get-by-id.response.dto';
@@ -14,7 +14,7 @@ export class GetBankAccountByIdController {
 
   @Get(':id')
   @ApiGetBankAccountById()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<GetBankAccountByIdResponseDto> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<GetBankAccountByIdResponseDto> {
     return this.service.execute(id);
   }
 }

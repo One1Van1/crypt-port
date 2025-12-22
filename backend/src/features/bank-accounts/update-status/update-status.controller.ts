@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateBankAccountStatusService } from './update-status.service';
 import { UpdateBankAccountStatusRequestDto } from './update-status.request.dto';
@@ -20,7 +20,7 @@ export class UpdateBankAccountStatusController {
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiUpdateBankAccountStatus()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBankAccountStatusRequestDto,
   ): Promise<UpdateBankAccountStatusResponseDto> {
     return this.service.execute(id, dto);

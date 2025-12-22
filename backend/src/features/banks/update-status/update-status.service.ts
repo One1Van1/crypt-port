@@ -12,7 +12,7 @@ export class UpdateBankStatusService {
     private readonly bankRepository: Repository<Bank>,
   ) {}
 
-  async execute(id: string, dto: UpdateBankStatusRequestDto): Promise<UpdateBankStatusResponseDto> {
+  async execute(id: number, dto: UpdateBankStatusRequestDto): Promise<UpdateBankStatusResponseDto> {
     const bank = await this.bankRepository.findOne({ where: { id } });
 
     if (!bank) {

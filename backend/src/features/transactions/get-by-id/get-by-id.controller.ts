@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GetTransactionByIdService } from './get-by-id.service';
 import { GetTransactionByIdResponseDto } from './get-by-id.response.dto';
@@ -18,7 +18,7 @@ export class GetTransactionByIdController {
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetTransactionById()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<GetTransactionByIdResponseDto> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<GetTransactionByIdResponseDto> {
     return this.service.execute(id);
   }
 }

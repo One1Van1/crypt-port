@@ -3,7 +3,7 @@ import { BankAccount } from '../../../entities/bank-account.entity';
 
 export class GetAvailableBankAccountResponseDto {
   @ApiProperty({ description: 'Bank account ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'CBU (22 digits)' })
   cbu: string;
@@ -18,13 +18,13 @@ export class GetAvailableBankAccountResponseDto {
   priority: number;
 
   @ApiProperty({ description: 'Bank ID' })
-  bankId: string;
+  bankId: number;
 
   @ApiProperty({ description: 'Bank name' })
   bankName: string;
 
   @ApiProperty({ description: 'Drop ID' })
-  dropId: string;
+  dropId: number;
 
   @ApiProperty({ description: 'Drop name' })
   dropName: string;

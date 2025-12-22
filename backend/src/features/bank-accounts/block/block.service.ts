@@ -13,7 +13,7 @@ export class BlockBankAccountService {
     private readonly bankAccountRepository: Repository<BankAccount>,
   ) {}
 
-  async execute(id: string, dto: BlockBankAccountRequestDto): Promise<BlockBankAccountResponseDto> {
+  async execute(id: number, dto: BlockBankAccountRequestDto): Promise<BlockBankAccountResponseDto> {
     const bankAccount = await this.bankAccountRepository.findOne({
       where: { id },
       relations: ['bank', 'drop'],

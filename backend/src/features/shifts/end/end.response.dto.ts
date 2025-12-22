@@ -4,7 +4,7 @@ import { ShiftStatus } from '../../../common/enums/shift.enum';
 
 export class EndShiftResponseDto {
   @ApiProperty({ description: 'Shift ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Shift start time' })
   startTime: Date;

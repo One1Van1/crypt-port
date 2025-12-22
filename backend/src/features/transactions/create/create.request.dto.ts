@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID, Min } from 'class-validator';
+import { IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTransactionRequestDto {
@@ -13,8 +13,8 @@ export class CreateTransactionRequestDto {
 
   @ApiProperty({
     description: 'Platform ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: 1,
   })
-  @IsUUID()
-  platformId: string;
+  @IsNumber()
+  platformId: number;
 }

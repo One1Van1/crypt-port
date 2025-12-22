@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class PlatformBalanceDto {
   @ApiProperty({ description: 'Platform ID' })
-  platformId: string;
+  platformId: number;
 
   @ApiProperty({ description: 'Platform name' })
   platformName: string;
@@ -16,7 +16,7 @@ export class PlatformBalanceDto {
   @ApiProperty({ description: 'Total balance' })
   totalBalance: number;
 
-  constructor(platformId: string, platformName: string, main: number, reserve: number) {
+  constructor(platformId: number, platformName: string, main: number, reserve: number) {
     this.platformId = platformId;
     this.platformName = platformName;
     this.mainBalance = Math.round(main * 100) / 100;

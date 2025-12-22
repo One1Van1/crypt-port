@@ -1,4 +1,4 @@
-import { IsNumber, IsUUID, IsEnum, Min } from 'class-validator';
+import { IsNumber, IsEnum, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { BalanceType } from '../../../common/enums/balance.enum';
 
@@ -23,8 +23,8 @@ export class CreateBalanceRequestDto {
 
   @ApiProperty({
     description: 'Platform ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: 1,
   })
-  @IsUUID()
-  platformId: string;
+  @IsNumber()
+  platformId: number;
 }

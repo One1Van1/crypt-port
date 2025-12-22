@@ -4,7 +4,7 @@ import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
 
 export class UpdateBankAccountPriorityResponseDto {
   @ApiProperty({ description: 'Bank account ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'CBU (22 digits)' })
   cbu: string;

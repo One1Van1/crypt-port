@@ -3,7 +3,7 @@ import { UserRole, UserStatus } from '../../../common/enums/user.enum';
 
 export class RegisterAdminResponseDto {
   @ApiProperty({ description: 'Admin ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Username' })
   username: string;

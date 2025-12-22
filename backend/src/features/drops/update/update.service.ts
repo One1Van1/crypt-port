@@ -12,7 +12,7 @@ export class UpdateDropService {
     private readonly dropRepository: Repository<Drop>,
   ) {}
 
-  async execute(id: string, dto: UpdateDropRequestDto): Promise<UpdateDropResponseDto> {
+  async execute(id: number, dto: UpdateDropRequestDto): Promise<UpdateDropResponseDto> {
     const drop = await this.dropRepository.findOne({ where: { id } });
 
     if (!drop) {

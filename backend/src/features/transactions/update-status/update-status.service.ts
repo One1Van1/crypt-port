@@ -17,7 +17,7 @@ export class UpdateTransactionStatusService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(id: string, dto: UpdateTransactionStatusRequestDto): Promise<UpdateTransactionStatusResponseDto> {
+  async execute(id: number, dto: UpdateTransactionStatusRequestDto): Promise<UpdateTransactionStatusResponseDto> {
     const transaction = await this.transactionRepository.findOne({
       where: { id },
       relations: ['bankAccount', 'shift', 'platform', 'operator', 'bankAccount.bank', 'bankAccount.drop'],

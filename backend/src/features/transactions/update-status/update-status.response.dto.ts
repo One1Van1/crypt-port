@@ -4,7 +4,7 @@ import { TransactionStatus } from '../../../common/enums/transaction.enum';
 
 export class UpdateTransactionStatusResponseDto {
   @ApiProperty({ description: 'Transaction ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Amount' })
   amount: number;
@@ -17,7 +17,7 @@ export class UpdateTransactionStatusResponseDto {
   status: TransactionStatus;
 
   @ApiProperty({ description: 'Shift ID' })
-  shiftId: string;
+  shiftId: number;
 
   @ApiProperty({ description: 'Bank account CBU' })
   bankAccountCbu: string;

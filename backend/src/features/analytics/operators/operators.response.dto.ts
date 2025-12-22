@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class OperatorStatsDto {
   @ApiProperty({ description: 'Operator ID' })
-  operatorId: string;
+  operatorId: number;
 
   @ApiProperty({ description: 'Operator username' })
   operatorUsername: string;
@@ -38,7 +38,7 @@ export class OperatorStatsDto {
   avgTransactionsPerShift: number;
 
   constructor(data: {
-    operatorId: string;
+    operatorId: number;
     operatorUsername: string;
     totalShifts: number;
     totalDuration: number;

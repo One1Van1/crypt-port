@@ -11,7 +11,7 @@ export class GetUserByIdService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async execute(id: string): Promise<GetUserByIdResponseDto> {
+  async execute(id: number): Promise<GetUserByIdResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id },
     });

@@ -99,11 +99,11 @@ export class GetAllUsersController {
 async handle(@Query() query: QueryDto): Promise<ResponseDto>
 
 // GET с path параметрами
-async handle(@Param('id', ParseUUIDPipe) id: string): Promise<ResponseDto>
+async handle(@Param('id', ParseIntPipe) id: number): Promise<ResponseDto>
 
 // GET с обоими
 async handle(
-  @Param('userId', ParseUUIDPipe) userId: string,
+  @Param('userId', ParseIntPipe) userId: number,
   @Query() query: QueryDto
 ): Promise<ResponseDto>
 
@@ -118,12 +118,12 @@ async handle(
 
 // PATCH
 async handle(
-  @Param('id', ParseUUIDPipe) id: string,
+  @Param('id', ParseIntPipe) id: number,
   @Body() dto: UpdateDto
 ): Promise<ResponseDto>
 
 // DELETE
-async handle(@Param('id', ParseUUIDPipe) id: string): Promise<void>
+async handle(@Param('id', ParseIntPipe) id: number): Promise<void>
 ```
 
 **❌ ЗАПРЕЩЕНО:**
@@ -134,7 +134,7 @@ async handle(@Param('id', ParseUUIDPipe) id: string): Promise<void>
 - Использовать `any` в типах
 
 **✅ ОБЯЗАТЕЛЬНО:**
-- ParseUUIDPipe для UUID параметров
+- ParseIntPipe для ID параметров
 - Явный return type
 - @ApiTags декоратор
 
@@ -334,7 +334,7 @@ export const ApiGetAllUsers = () =>
 - ❌ Shared DTOs между actions
 - ❌ Создавать index.ts файлы
 - ❌ Использовать нетипизированные параметры
-- ❌ Забывать ParseUUIDPipe
+- ❌ Забывать ParseIntPipe
 - ❌ Массивы строк вместо enums
 
 ---
@@ -345,7 +345,7 @@ export const ApiGetAllUsers = () =>
 - ☑️ Controller с @ApiTags и одним методом handle()
 - ☑️ Явный return type в controller
 - ☑️ Все параметры типизированы
-- ☑️ ParseUUIDPipe для UUID параметров
+- ☑️ ParseIntPipe для ID параметров
 - ☑️ Service с методом execute()
 - ☑️ Уникальные DTOs
 - ☑️ OpenAPI decorator

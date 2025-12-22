@@ -4,7 +4,7 @@ import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
 
 export class CreateBankAccountResponseDto {
   @ApiProperty({ description: 'Bank account ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'CBU (22 digits)' })
   cbu: string;
@@ -29,13 +29,13 @@ export class CreateBankAccountResponseDto {
   priority: number;
 
   @ApiProperty({ description: 'Bank ID' })
-  bankId: string;
+  bankId: number;
 
   @ApiProperty({ description: 'Bank name' })
   bankName: string;
 
   @ApiProperty({ description: 'Drop ID' })
-  dropId: string;
+  dropId: number;
 
   @ApiProperty({ description: 'Drop name' })
   dropName: string;

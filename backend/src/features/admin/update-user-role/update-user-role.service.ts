@@ -12,7 +12,7 @@ export class UpdateUserRoleService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async execute(userId: string, dto: UpdateUserRoleRequestDto): Promise<UpdateUserRoleResponseDto> {
+  async execute(userId: number, dto: UpdateUserRoleRequestDto): Promise<UpdateUserRoleResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });

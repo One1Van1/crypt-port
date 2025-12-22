@@ -12,7 +12,7 @@ export class UpdateBalanceService {
     private readonly balanceRepository: Repository<Balance>,
   ) {}
 
-  async execute(id: string, dto: UpdateBalanceRequestDto): Promise<UpdateBalanceResponseDto> {
+  async execute(id: number, dto: UpdateBalanceRequestDto): Promise<UpdateBalanceResponseDto> {
     const balance = await this.balanceRepository.findOne({
       where: { id },
       relations: ['platform'],

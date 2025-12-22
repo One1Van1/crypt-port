@@ -11,7 +11,7 @@ export class GetDropByIdService {
     private readonly dropRepository: Repository<Drop>,
   ) {}
 
-  async execute(id: string): Promise<GetDropByIdResponseDto> {
+  async execute(id: number): Promise<GetDropByIdResponseDto> {
     const drop = await this.dropRepository.findOne({
       where: { id },
       relations: ['bankAccounts', 'bankAccounts.bank'],

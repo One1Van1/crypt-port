@@ -1,4 +1,4 @@
-import { Controller, Delete, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { DeleteUserService } from './delete.service';
 import { ApiDeleteUser } from './openapi.decorator';
@@ -17,7 +17,7 @@ export class DeleteUserController {
   @Delete(':id')
   @Roles(UserRole.ADMIN)
   @ApiDeleteUser()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.service.execute(id);
   }
 }

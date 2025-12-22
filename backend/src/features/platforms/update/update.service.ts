@@ -12,7 +12,7 @@ export class UpdatePlatformService {
     private readonly platformRepository: Repository<Platform>,
   ) {}
 
-  async execute(id: string, dto: UpdatePlatformRequestDto): Promise<UpdatePlatformResponseDto> {
+  async execute(id: number, dto: UpdatePlatformRequestDto): Promise<UpdatePlatformResponseDto> {
     const platform = await this.platformRepository.findOne({ where: { id } });
 
     if (!platform) {

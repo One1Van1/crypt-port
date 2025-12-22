@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, ParseUUIDPipe, Body, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, ParseIntPipe, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateBalanceService } from './update.service';
 import { UpdateBalanceRequestDto } from './update.request.dto';
@@ -20,7 +20,7 @@ export class UpdateBalanceController {
   @Roles(UserRole.ADMIN)
   @ApiUpdateBalance()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBalanceRequestDto,
   ): Promise<UpdateBalanceResponseDto> {
     return this.service.execute(id, dto);

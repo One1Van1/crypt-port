@@ -13,7 +13,7 @@ export class UpdateUserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async execute(id: string, dto: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
+  async execute(id: number, dto: UpdateUserRequestDto): Promise<UpdateUserResponseDto> {
     const user = await this.userRepository.findOne({
       where: { id },
     });

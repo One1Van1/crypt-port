@@ -11,7 +11,7 @@ export class GetTransactionByIdService {
     private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
-  async execute(id: string): Promise<GetTransactionByIdResponseDto> {
+  async execute(id: number): Promise<GetTransactionByIdResponseDto> {
     const transaction = await this.transactionRepository.findOne({
       where: { id },
       relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'operator'],

@@ -18,7 +18,7 @@ export class GetBalancesSummaryService {
     });
 
     // Группируем по площадкам
-    const platformMap = new Map<string, { platformId: string; platformName: string; main: number; reserve: number }>();
+    const platformMap = new Map<number, { platformId: number; platformName: string; main: number; reserve: number }>();
 
     balances.forEach((balance) => {
       const platformId = balance.platform?.id;

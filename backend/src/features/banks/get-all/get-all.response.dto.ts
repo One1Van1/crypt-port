@@ -4,7 +4,7 @@ import { BankStatus } from '../../../common/enums/bank.enum';
 
 class BankItemDto {
   @ApiProperty({ description: 'Bank ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Bank name' })
   name: string;

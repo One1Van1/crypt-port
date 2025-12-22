@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateDropService } from './update.service';
 import { UpdateDropRequestDto } from './update.request.dto';
@@ -20,7 +20,7 @@ export class UpdateDropController {
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiUpdateDrop()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateDropRequestDto,
   ): Promise<UpdateDropResponseDto> {
     return this.service.execute(id, dto);

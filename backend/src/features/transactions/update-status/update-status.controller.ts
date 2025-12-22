@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, ParseUUIDPipe, Body, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, ParseIntPipe, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdateTransactionStatusService } from './update-status.service';
 import { UpdateTransactionStatusRequestDto } from './update-status.request.dto';
@@ -20,7 +20,7 @@ export class UpdateTransactionStatusController {
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD, UserRole.OPERATOR)
   @ApiUpdateTransactionStatus()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTransactionStatusRequestDto,
   ): Promise<UpdateTransactionStatusResponseDto> {
     return this.service.execute(id, dto);

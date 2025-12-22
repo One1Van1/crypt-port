@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Patch, Param, Body, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UpdatePlatformStatusService } from './update-status.service';
 import { UpdatePlatformStatusRequestDto } from './update-status.request.dto';
@@ -20,7 +20,7 @@ export class UpdatePlatformStatusController {
   @Roles(UserRole.ADMIN)
   @ApiUpdatePlatformStatus()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePlatformStatusRequestDto,
   ): Promise<UpdatePlatformStatusResponseDto> {
     return this.service.execute(id, dto);

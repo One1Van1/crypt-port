@@ -1,4 +1,4 @@
-import { Controller, Patch, Param, Body, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Patch, Param, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { UpdateUserRoleService } from './update-user-role.service';
 import { UpdateUserRoleRequestDto } from './update-user-role.request.dto';
@@ -19,7 +19,7 @@ export class UpdateUserRoleController {
   @Roles(UserRole.ADMIN)
   @ApiUpdateUserRole()
   async handle(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserRoleRequestDto,
   ): Promise<UpdateUserRoleResponseDto> {
     return this.service.execute(id, dto);

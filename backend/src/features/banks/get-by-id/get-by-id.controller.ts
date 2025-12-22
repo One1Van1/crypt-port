@@ -1,17 +1,19 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GetBankByIdService } from './get-by-id.service';
 import { GetBankByIdResponseDto } from './get-by-id.response.dto';
 import { ApiGetBankById } from './openapi.decorator';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
 @Controller('banks')
 @ApiTags('Banks')
+@UseGuards(JwtAuthGuard)
 export class GetBankByIdController {
   constructor(private readonly service: GetBankByIdService) {}
 
   @Get(':id')
   @ApiGetBankById()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<GetBankByIdResponseDto> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<GetBankByIdResponseDto> {
     return this.service.execute(id);
   }
 }

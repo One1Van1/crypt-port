@@ -4,7 +4,7 @@ import { PlatformStatus } from '../../../common/enums/platform.enum';
 
 export class CreatePlatformResponseDto {
   @ApiProperty({ description: 'Platform ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Platform name' })
   name: string;

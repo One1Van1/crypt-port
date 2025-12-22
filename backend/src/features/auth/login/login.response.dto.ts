@@ -5,7 +5,7 @@ export class LoginResponseDto {
   tempToken: string;
 
   @ApiProperty({ description: 'User ID' })
-  userId: string;
+  userId: number;
 
   @ApiProperty({ description: 'Message for user' })
   message: string;
@@ -13,7 +13,7 @@ export class LoginResponseDto {
   @ApiProperty({ description: 'Indicates if 2FA is enabled' })
   requires2FA: boolean;
 
-  constructor(tempToken: string, userId: string, requires2FA: boolean) {
+  constructor(tempToken: string, userId: number, requires2FA: boolean) {
     this.tempToken = tempToken;
     this.userId = userId;
     this.requires2FA = requires2FA;

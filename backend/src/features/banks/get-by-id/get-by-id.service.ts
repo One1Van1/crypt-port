@@ -11,7 +11,7 @@ export class GetBankByIdService {
     private readonly bankRepository: Repository<Bank>,
   ) {}
 
-  async execute(id: string): Promise<GetBankByIdResponseDto> {
+  async execute(id: number): Promise<GetBankByIdResponseDto> {
     const bank = await this.bankRepository.findOne({ where: { id } });
 
     if (!bank) {

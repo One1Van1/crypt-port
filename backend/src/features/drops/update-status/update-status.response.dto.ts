@@ -4,7 +4,7 @@ import { DropStatus } from '../../../common/enums/drop.enum';
 
 export class UpdateDropStatusResponseDto {
   @ApiProperty({ description: 'Drop ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Drop name' })
   name: string;

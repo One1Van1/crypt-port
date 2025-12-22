@@ -4,7 +4,7 @@ import { TransactionStatus } from '../../../common/enums/transaction.enum';
 
 export class GetTransactionByIdResponseDto {
   @ApiProperty({ description: 'Transaction ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Amount' })
   amount: number;
@@ -17,28 +17,28 @@ export class GetTransactionByIdResponseDto {
   status: TransactionStatus;
 
   @ApiProperty({ description: 'Shift ID' })
-  shiftId: string;
+  shiftId: number;
 
   @ApiProperty({ description: 'Bank account ID' })
-  bankAccountId: string;
+  bankAccountId: number;
 
   @ApiProperty({ description: 'Bank account CBU' })
   bankAccountCbu: string;
 
   @ApiProperty({ description: 'Bank ID' })
-  bankId: string;
+  bankId: number;
 
   @ApiProperty({ description: 'Bank name' })
   bankName: string;
 
   @ApiProperty({ description: 'Drop ID' })
-  dropId: string;
+  dropId: number;
 
   @ApiProperty({ description: 'Drop full name' })
   dropName: string;
 
   @ApiProperty({ description: 'Operator ID' })
-  operatorId: string;
+  operatorId: number;
 
   @ApiProperty({ description: 'Operator username' })
   operatorUsername: string;

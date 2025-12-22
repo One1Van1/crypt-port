@@ -13,7 +13,7 @@ export class UpdateBankAccountStatusService {
   ) {}
 
   async execute(
-    id: string,
+    id: number,
     dto: UpdateBankAccountStatusRequestDto,
   ): Promise<UpdateBankAccountStatusResponseDto> {
     const bankAccount = await this.bankAccountRepository.findOne({

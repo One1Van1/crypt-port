@@ -4,7 +4,7 @@ import { BalanceType } from '../../../common/enums/balance.enum';
 
 export class CreateBalanceResponseDto {
   @ApiProperty({ description: 'Balance ID' })
-  id: string;
+  id: number;
 
   @ApiProperty({ description: 'Balance amount' })
   amount: number;
@@ -17,7 +17,7 @@ export class CreateBalanceResponseDto {
   type: BalanceType;
 
   @ApiProperty({ description: 'Platform ID' })
-  platformId: string;
+  platformId: number;
 
   @ApiProperty({ description: 'Platform name' })
   platformName: string;

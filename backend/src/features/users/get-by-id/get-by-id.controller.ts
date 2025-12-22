@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { GetUserByIdService } from './get-by-id.service';
 import { GetUserByIdResponseDto } from './get-by-id.response.dto';
@@ -18,7 +18,7 @@ export class GetUserByIdController {
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetUserById()
-  async handle(@Param('id', ParseUUIDPipe) id: string): Promise<GetUserByIdResponseDto> {
+  async handle(@Param('id', ParseIntPipe) id: number): Promise<GetUserByIdResponseDto> {
     return this.service.execute(id);
   }
 }
