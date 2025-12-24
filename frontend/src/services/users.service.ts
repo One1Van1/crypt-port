@@ -1,11 +1,12 @@
 import { apiClient } from './api';
-import { UserRole } from '../types/user.types';
+import { UserRole, UserStatus } from '../types/user.types';
 
 export interface User {
   id: string;
   username: string;
   email: string;
   role: UserRole | string;  // Backend returns string, but it should be UserRole value
+  status: UserStatus | string;  // Backend returns string, but it should be UserStatus value
   phone?: string;
   telegram?: string;
   createdAt: string;
@@ -50,6 +51,16 @@ class UsersService {
 
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/users/${id}`);
+  }
+
+  async updateRole(id: string, role: string): Promise<User> {
+    const response = await apiClient.patch<User>(`/admin/users/${id}/role`, { role });
+    return response.data;
+  }
+
+  async updateStatus(id: string, status: string): Promise<User> {
+    const response = await apiClient.patch<User>(`/users/${id}`, { status });
+    return response.data;
   }
 }
 

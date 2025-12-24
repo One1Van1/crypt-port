@@ -42,6 +42,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "users": "Users",
     "drops": "Drops",
     "withdraw": "Withdraw",
     "analytics": "Analytics",
@@ -94,6 +95,49 @@
     "active": "Active",
     "inactive": "Inactive",
     "addAccount": "Add Account"
+  },
+  "users": {
+    "title": "Users Management",
+    "subtitle": "Manage system users roles and statuses",
+    "searchPlaceholder": "Search by name, email, phone...",
+    "noUsers": "No users found",
+    "noUsername": "No username",
+    "noContact": "No contacts",
+    "confirmRoleChange": "Are you sure you want to change user role?",
+    "confirmStatusChange": "Are you sure you want to change user status?",
+    "filters": {
+      "allRoles": "All Roles",
+      "allStatuses": "All Statuses"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "teamlead": "Team Lead",
+      "operator": "Operator",
+      "pending": "Pending"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "stats": {
+      "total": "Total Users",
+      "operators": "Operators",
+      "pending": "Pending Approval",
+      "active": "Active Users"
+    },
+    "table": {
+      "user": "User",
+      "contact": "Contacts",
+      "role": "Role",
+      "status": "Status",
+      "registered": "Registered",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "View Profile",
+      "edit": "Edit",
+      "delete": "Delete"
+    }
   },
   "operators": {
     "title": "Operators & Bank Accounts",
