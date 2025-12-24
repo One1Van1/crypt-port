@@ -95,6 +95,24 @@
     "inactive": "Inactive",
     "addAccount": "Add Account"
   },
+  "operators": {
+    "title": "Operators & Bank Accounts",
+    "subtitle": "Manage operators and their payment requisites",
+    "addOperator": "Add Operator",
+    "searchPlaceholder": "Search operators...",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "bankAccounts": "Bank Accounts",
+    "addAccount": "Add Account",
+    "noOperators": "No operators found",
+    "noOperatorsText": "Create your first operator to get started",
+    "noAccounts": "No bank accounts yet",
+    "role": "Role",
+    "roleOperator": "Operator",
+    "roleTeamlead": "Team Lead",
+    "create": "Create"
+  },
   "theme": {
     "light": "Light",
     "dark": "Dark",

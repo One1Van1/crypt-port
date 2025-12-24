@@ -9,12 +9,21 @@ export class UserItemDto {
   @ApiProperty({ description: 'Username' })
   username: string;
 
+  @ApiProperty({ description: 'Email' })
+  email: string;
+
   @ApiProperty({
     enum: UserRole,
     enumName: 'UserRole',
     description: 'User role',
   })
   role: UserRole;
+
+  @ApiProperty({ description: 'Phone number', required: false })
+  phone?: string;
+
+  @ApiProperty({ description: 'Telegram username', required: false })
+  telegram?: string;
 
   @ApiProperty({ description: '2FA enabled' })
   twoFactorEnabled: boolean;
@@ -25,7 +34,10 @@ export class UserItemDto {
   constructor(user: User) {
     this.id = user.id;
     this.username = user.username;
+    this.email = user.email;
     this.role = user.role;
+    this.phone = user.phone;
+    this.telegram = user.telegram;
     this.twoFactorEnabled = user.twoFactorEnabled;
     this.createdAt = user.createdAt;
   }

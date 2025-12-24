@@ -6,7 +6,8 @@ import {
   BarChart3, 
   CreditCard, 
   ArrowUpCircle, 
-  Clock 
+  Clock,
+  Users
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -16,13 +17,18 @@ export default function Sidebar() {
   const user = useAuthStore((state) => state.user);
 
   const navItems = [
-    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
-    { to: '/drops', icon: Droplet, label: t('nav.drops') },
-    { to: '/analytics', icon: BarChart3, label: t('nav.analytics') },
-    { to: '/bank-accounts', icon: CreditCard, label: t('nav.bankAccounts') },
-    { to: '/transactions', icon: ArrowUpCircle, label: t('nav.transactions') },
-    { to: '/shifts', icon: Clock, label: t('nav.shifts') },
+    { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
+    { to: '/operators', icon: Users, label: t('nav.operators'), roles: ['admin'] },
+    { to: '/drops', icon: Droplet, label: t('nav.drops'), roles: ['admin', 'teamlead', 'operator'] },
+    { to: '/analytics', icon: BarChart3, label: t('nav.analytics'), roles: ['admin', 'teamlead'] },
+    { to: '/bank-accounts', icon: CreditCard, label: t('nav.bankAccounts'), roles: ['admin', 'teamlead', 'operator'] },
+    { to: '/transactions', icon: ArrowUpCircle, label: t('nav.transactions'), roles: ['admin', 'teamlead', 'operator'] },
+    { to: '/shifts', icon: Clock, label: t('nav.shifts'), roles: ['admin', 'teamlead', 'operator'] },
   ];
+
+  const visibleNavItems = navItems.filter(item => 
+    item.roles.includes(user?.role || '')
+  );
 
   return (
     <aside className="sidebar">
@@ -34,7 +40,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

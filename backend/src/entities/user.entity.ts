@@ -32,4 +32,10 @@ export class User extends BaseEntity {
 
   @Column({ default: false })
   twoFactorEnabled: boolean;
+
+  @Column({ nullable: true })
+  phone: string;
+
+  @Column({ nullable: true })
+  telegram: string;
 }

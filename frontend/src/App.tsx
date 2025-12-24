@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Drops from './pages/Drops/Drops';
 import Analytics from './pages/Analytics/Analytics';
 import BankAccounts from './pages/BankAccounts/BankAccounts';
+import Operators from './pages/Operators/Operators';
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/operators" element={<Operators />} />
                   <Route path="/drops" element={<Drops />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />
