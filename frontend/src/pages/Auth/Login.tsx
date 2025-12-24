@@ -202,10 +202,12 @@ export default function Login() {
               <button 
                 type="button" 
                 className="btn-back"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   setStep('login');
                   setError('');
                   setCode('');
+                  setTempToken('');
                 }}
               >
                 ← {t('common.cancel')}
