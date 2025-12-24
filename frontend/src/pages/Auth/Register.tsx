@@ -86,7 +86,7 @@ export default function Register() {
                   <div className="logo-circle" style={logoStyle}>
                     {isAdminMode ? <Crown size={32} /> : <Shield size={32} />}
                   </div>
-                  <h1>CRM Pro</h1>
+                  <h1>Crypto Port</h1>
                 </div>
 
                 <h2>{isAdminMode ? t('auth.registerAdmin') : t('auth.register')}</h2>

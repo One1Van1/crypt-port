@@ -86,7 +86,7 @@ export default function Login() {
             <div className="logo-circle">
               <Shield size={32} />
             </div>
-            <h1>CRM Pro</h1>
+            <h1>Crypto Port</h1>
           </div>
 
           {step === 'login' ? (

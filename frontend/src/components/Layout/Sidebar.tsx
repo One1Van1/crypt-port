@@ -29,7 +29,7 @@ export default function Sidebar() {
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <Droplet size={32} color="#5b6cf5" />
-          <span>CRM Pro</span>
+          <span>Crypto Port</span>
         </div>
       </div>
 
