@@ -64,9 +64,9 @@ export class GetBankAccountByIdResponseDto {
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
     this.blockReason = bankAccount.blockReason;
-    this.limit = Number(bankAccount.limit);
+    this.limit = Number(bankAccount.limitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.availableAmount = Number(bankAccount.limit) - Number(bankAccount.withdrawnAmount);
+    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
     this.priority = bankAccount.priority;
     this.lastUsedAt = bankAccount.lastUsedAt;
     this.bankId = bankAccount.bank?.id;

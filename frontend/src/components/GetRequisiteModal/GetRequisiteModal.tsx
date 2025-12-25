@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { 
   Copy, 
@@ -26,6 +27,7 @@ interface GetRequisiteModalProps {
 type Step = 'loading' | 'display' | 'amount' | 'success';
 
 export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetRequisiteModalProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>('loading');
   const [requisite, setRequisite] = useState<BankAccount | null>(null);
@@ -220,7 +222,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                   <Building size={20} />
                   <div>
                     <span className="label">Банк</span>
-                    <span className="value">{requisite.bank?.name || 'Unknown Bank'}</span>
+                    <span className="value">{requisite.bank?.name || t('common.unknownBank')}</span>
                   </div>
                 </div>
 

@@ -13,7 +13,9 @@
     "filter": "Фильтр",
     "export": "Экспорт",
     "refresh": "Обновить",
-    "view": "Просмотр"
+    "view": "Просмотр",
+    "unknownBank": "Неизвестный банк",
+    "unknownPlatform": "Неизвестная площадка"
   },
   "auth": {
     "login": "Войти",
@@ -41,7 +43,7 @@
     "loginError": "Ошибка входа"
   },
   "nav": {
-    "dashboard": "Панель управления",
+    "dashboard": "Главная",
     "users": "Пользователи",
     "drops": "Дропы",
     "withdraw": "Вывод средств",
@@ -52,6 +54,30 @@
     "shifts": "Смены",
     "settings": "Настройки",
     "profile": "Профиль"
+  },
+  "transactions": {
+    "title": "Мои операции",
+    "subtitle": "История всех выполненных операций",
+    "searchPlaceholder": "Поиск по банку, CBU, Alias...",
+    "totalOperations": "Всего операций",
+    "refresh": "Обновить",
+    "noTransactions": "Операции не найдены"
+  },
+  "dashboard": {
+    "title": "Главная",
+    "subtitle": "Рабочая панель оператора",
+    "systemOverview": "Обзор системы",
+    "activeShift": "Активная смена",
+    "noActiveShift": "Нет активной смены",
+    "noActiveShiftMessage": "Начните смену, чтобы получать реквизиты и выполнять операции",
+    "startShift": "Начать смену",
+    "getRequisite": "Получить реквизит",
+    "duration": "Длительность",
+    "withdrawalAmount": "Сумма выводов",
+    "operations": "Операций",
+    "recentTransactions": "Последние операции",
+    "viewAll": "Смотреть все",
+    "noTransactionsYet": "Пока нет операций за эту смену"
   },
   "analytics": {
     "title": "Аналитика",
@@ -86,7 +112,10 @@
     "inactive": "Неактивен",
     "paused": "Приостановлен",
     "savings": "Накопительный",
-    "checking": "Расчётный"
+    "checking": "Расчётный",
+    "confirmStatusChange": "Вы уверены, что хотите изменить статус дропа?",
+    "confirmFreeze": "заморозить",
+    "confirmActivate": "активировать"
   },
   "bankAccounts": {
     "title": "Операторы и банковские счета",
@@ -94,7 +123,8 @@
     "all": "Все",
     "active": "Активные",
     "inactive": "Неактивные",
-    "addAccount": "Добавить счёт"
+    "addAccount": "Добавить счёт",
+    "confirmStatusChange": "Изменить статус на"
   },
   "operators": {
     "title": "Операторы и банковские счета",
@@ -172,7 +202,29 @@
     "choosePlatform": "Выберите площадку",
     "selectPlatform": "Выберите площадку...",
     "confirmStart": "Вы уверены, что хотите начать смену?",
-    "confirmEnd": "Вы уверены, что хотите завершить смену?"
+    "confirmEnd": "Вы уверены, что хотите завершить смену?",
+    "confirmStartTitle": "Подтверждение начала смены",
+    "confirmStartMessage": "Вы уверены, что хотите начать смену на",
+    "confirmEndTitle": "Подтверждение окончания смены",
+    "confirmEndMessage": "Вы уверены, что хотите завершить текущую смену на",
+    "cannotUndo": "Это действие нельзя отменить.",
+    "starting": "Начинаем...",
+    "yesStart": "Да, начать смену",
+    "ending": "Завершаем...",
+    "yesEnd": "Да, завершить смену",
+    "newShift": "Новая смена",
+    "refresh": "Обновить",
+    "allShifts": "Все смены",
+    "active": "Активные",
+    "completed": "Завершённые",
+    "noShiftsFound": "Смены не найдены",
+    "searchPlaceholder": "Поиск по площадке, оператору...",
+    "activeShiftOn": "Активная смена на",
+    "duration": "Длительность",
+    "amount": "Сумма",
+    "started": "Начало",
+    "ended": "Окончание",
+    "startNewShift": "Начать новую смену"
   },
   "theme": {
     "light": "Светлая",

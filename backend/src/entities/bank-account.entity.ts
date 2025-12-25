@@ -23,8 +23,8 @@ export class BankAccount extends BaseEntity {
   @Column({ nullable: true })
   blockReason: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2 })
-  limit: number;
+  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'limitAmount' })
+  limitAmount: number;
 
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
   withdrawnAmount: number;

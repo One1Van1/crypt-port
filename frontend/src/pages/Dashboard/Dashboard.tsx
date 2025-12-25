@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { 
   CreditCard, 
   Clock, 
@@ -18,6 +19,7 @@ import GetRequisiteModal from '../../components/GetRequisiteModal/GetRequisiteMo
 import './Dashboard.css';
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -77,9 +79,9 @@ export default function Dashboard() {
     <div className="dashboard-page">
       <div className="dashboard-header">
         <div>
-          <h1 className="dashboard-title">Dashboard</h1>
+          <h1 className="dashboard-title">{t('nav.dashboard')}</h1>
           <p className="dashboard-subtitle">
-            {isOperator ? 'Рабочая панель оператора' : 'Обзор системы'}
+            {isOperator ? t('dashboard.subtitle') : t('dashboard.systemOverview')}
           </p>
         </div>
       </div>
@@ -93,10 +95,10 @@ export default function Dashboard() {
               <div className="shift-header">
                 <div className="shift-status">
                   <span className="pulse-dot"></span>
-                  <span>Активная смена</span>
+                  <span>{t('dashboard.activeShift')}</span>
                 </div>
                 <div className="shift-platform">
-                  {currentShift.platform?.name || 'Unknown Platform'}
+                  {currentShift.platform?.name || t('common.unknownPlatform')}
                 </div>
               </div>
 
@@ -104,7 +106,7 @@ export default function Dashboard() {
                 <div className="shift-stat">
                   <Clock size={24} />
                   <div>
-                    <div className="stat-label">Длительность</div>
+                    <div className="stat-label">{t('dashboard.duration')}</div>
                     <div className="stat-value time-value">
                       {`${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`}
                     </div>
@@ -114,7 +116,7 @@ export default function Dashboard() {
                 <div className="shift-stat">
                   <TrendingUp size={24} />
                   <div>
-                    <div className="stat-label">Сумма выводов</div>
+                    <div className="stat-label">{t('dashboard.withdrawalAmount')}</div>
                     <div className="stat-value">{formatCurrency(currentShift.totalAmount || 0)}</div>
                   </div>
                 </div>
@@ -122,7 +124,7 @@ export default function Dashboard() {
                 <div className="shift-stat">
                   <Hash size={24} />
                   <div>
-                    <div className="stat-label">Операций</div>
+                    <div className="stat-label">{t('dashboard.operations')}</div>
                     <div className="stat-value">{currentShift.operationsCount || 0}</div>
                   </div>
                 </div>
@@ -133,19 +135,19 @@ export default function Dashboard() {
                 onClick={() => setIsRequisiteModalOpen(true)}
               >
                 <CreditCard size={20} />
-                Получить реквизит
+                {t('dashboard.getRequisite')}
               </button>
             </div>
           ) : (
             <div className="no-shift-widget">
               <PlayCircle size={48} />
-              <h3>Нет активной смены</h3>
-              <p>Начните смену, чтобы получать реквизиты и выполнять операции</p>
+              <h3>{t('dashboard.noActiveShift')}</h3>
+              <p>{t('dashboard.noActiveShiftMessage')}</p>
               <button 
                 className="btn-primary"
                 onClick={() => navigate('/shifts')}
               >
-                Начать смену
+                {t('dashboard.startShift')}
               </button>
             </div>
           )}
@@ -153,18 +155,18 @@ export default function Dashboard() {
           {/* Recent Transactions */}
           <div className="recent-transactions-section">
             <div className="section-header">
-              <h2>Последние операции</h2>
+              <h2>{t('dashboard.recentTransactions')}</h2>
               <button 
                 className="btn-link"
                 onClick={() => navigate('/transactions')}
               >
-                Смотреть все →
+                {t('dashboard.viewAll')} →
               </button>
             </div>
 
             {recentTransactions.length === 0 ? (
               <div className="empty-transactions">
-                <p>Пока нет операций за эту смену</p>
+                <p>{t('dashboard.noTransactionsYet')}</p>
               </div>
             ) : (
               <div className="transactions-list">
@@ -175,7 +177,7 @@ export default function Dashboard() {
                     </div>
                     <div className="transaction-details">
                       <div className="transaction-bank">
-                        {transaction.bankAccount?.bank?.name || 'Unknown Bank'}
+                        {transaction.bankAccount?.bank?.name || t('common.unknownBank')}
                       </div>
                       <div className="transaction-meta">
                         <Calendar size={12} />

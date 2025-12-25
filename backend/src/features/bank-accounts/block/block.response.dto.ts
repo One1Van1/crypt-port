@@ -44,7 +44,7 @@ export class BlockBankAccountResponseDto {
     this.status = bankAccount.status;
     this.blockReason = bankAccount.blockReason;
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.limit = Number(bankAccount.limit);
+    this.limit = Number(bankAccount.limitAmount);
     this.bankName = bankAccount.bank?.name || 'Unknown';
     this.dropName = bankAccount.drop?.name || 'Unknown';
     this.updatedAt = bankAccount.updatedAt;

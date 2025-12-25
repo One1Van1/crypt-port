@@ -42,9 +42,9 @@ export class UpdateBankAccountResponseDto {
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
-    this.limit = Number(bankAccount.limit);
+    this.limit = Number(bankAccount.limitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.availableAmount = Number(bankAccount.limit) - Number(bankAccount.withdrawnAmount);
+    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
     this.bankName = bankAccount.bank?.name || 'Unknown';
     this.dropName = bankAccount.drop?.name || 'Unknown';
     this.updatedAt = bankAccount.updatedAt;

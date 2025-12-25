@@ -213,7 +213,7 @@ export default function Shifts() {
           {currentShift && (
             <div className="current-shift-badge">
               <span className="pulse-dot"></span>
-              Active shift on {currentShift.platform?.name}
+              {t('shifts.activeShiftOn')} {currentShift.platform?.name}
             </div>
           )}
         </div>
@@ -225,20 +225,20 @@ export default function Shifts() {
               disabled={endShiftMutation.isPending}
             >
               <Square size={18} />
-              End Current Shift
+              {t('shifts.endShift')}
             </button>
           )}
           {!currentShift && (
             <button className="btn-secondary" onClick={() => setIsCreateModalOpen(true)}>
               <Plus size={18} />
-              New Shift
+              {t('shifts.newShift')}
             </button>
           )}
           <button className="btn-secondary" onClick={() => {
             queryClient.invalidateQueries({ queryKey: ['my-shifts'] });
           }}>
             <RefreshCw size={18} />
-            Refresh
+            {t('shifts.refresh')}
           </button>
         </div>
       </div>
@@ -249,7 +249,7 @@ export default function Shifts() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Search by platform, operator..."
+            placeholder={t('shifts.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -260,19 +260,19 @@ export default function Shifts() {
             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            All Shifts <span className="count">{allShifts.length}</span>
+            {t('shifts.allShifts')} <span className="count">{allShifts.length}</span>
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
             onClick={() => setStatusFilter('active')}
           >
-            Active <span className="count">{activeShiftsCount}</span>
+            {t('shifts.active')} <span className="count">{activeShiftsCount}</span>
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'completed' ? 'active' : ''}`}
             onClick={() => setStatusFilter('completed')}
           >
-            Completed <span className="count">{completedShiftsCount}</span>
+            {t('shifts.completed')} <span className="count">{completedShiftsCount}</span>
           </button>
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function Shifts() {
         {filteredShifts.length === 0 ? (
           <div className="empty-state">
             <Clock size={48} />
-            <p>No shifts found</p>
+            <p>{t('shifts.noShiftsFound')}</p>
           </div>
         ) : (
           filteredShifts.map((shift: any) => {
@@ -309,10 +309,10 @@ export default function Shifts() {
                     {isActive ? (
                       <>
                         <div className="pulse-dot"></div>
-                        Active
+                        {t('shifts.active')}
                       </>
                     ) : (
-                      'Completed'
+                      t('shifts.completed')
                     )}
                   </span>
                 </div>
@@ -332,28 +332,28 @@ export default function Shifts() {
                         <div className="stat-value">
                           {`${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`}
                         </div>
-                        <div className="stat-label">Duration</div>
+                        <div className="stat-label">{t('shifts.duration')}</div>
                       </div>
                     </div>
                     <div className="shift-stat">
                       <TrendingUp size={16} />
                       <div>
                         <div className="stat-value">${shift.totalAmount || 0}</div>
-                        <div className="stat-label">Total Amount</div>
+                        <div className="stat-label">{t('shifts.amount')}</div>
                       </div>
                     </div>
                     <div className="shift-stat">
                       <Hash size={16} />
                       <div>
                         <div className="stat-value">{shift.operationsCount || 0}</div>
-                        <div className="stat-label">Operations</div>
+                        <div className="stat-label">{t('shifts.operations')}</div>
                       </div>
                     </div>
                   </div>
 
                   <div className="shift-time-info">
-                    <span>Started: {formatTime(shift.startTime)}</span>
-                    {shift.endTime && <span>Ended: {formatTime(shift.endTime)}</span>}
+                    <span>{t('shifts.started')}: {formatTime(shift.startTime)}</span>
+                    {shift.endTime && <span>{t('shifts.ended')}: {formatTime(shift.endTime)}</span>}
                   </div>
                 </div>
 
@@ -365,7 +365,7 @@ export default function Shifts() {
                       disabled={endShiftMutation.isPending}
                     >
                       <Square size={14} />
-                      End Shift
+                      {t('shifts.endShift')}
                     </button>
                   </div>
                 )}
@@ -380,12 +380,12 @@ export default function Shifts() {
         <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Start New Shift</h2>
+              <h2>{t('shifts.startNewShift')}</h2>
               <button className="modal-close" onClick={() => setIsCreateModalOpen(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="platform-select-section">
-                <label className="platform-label">Choose Platform</label>
+                <label className="platform-label">{t('shifts.choosePlatform')}</label>
                 <div className="custom-select-wrapper">
                   <button
                     className="custom-select-button"
@@ -446,10 +446,10 @@ export default function Shifts() {
         }}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-modal-header">
-              <h3>Confirm Start Shift</h3>
+              <h3>{t('shifts.confirmStartTitle')}</h3>
             </div>
             <div className="confirm-modal-body">
-              <p>Are you sure you want to start shift on <strong>{selectedPlatformObj?.name}</strong>?</p>
+              <p>{t('shifts.confirmStartMessage')} <strong>{selectedPlatformObj?.name}</strong>?</p>
               {errorMessage && (
                 <div className="error-message">
                   {errorMessage}
@@ -465,7 +465,7 @@ export default function Shifts() {
                 }}
                 disabled={startShiftMutation.isPending}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 className="btn-confirm"
@@ -473,7 +473,7 @@ export default function Shifts() {
                 disabled={startShiftMutation.isPending}
               >
                 <Play size={18} />
-                {startShiftMutation.isPending ? 'Starting...' : 'Yes, Start Shift'}
+                {startShiftMutation.isPending ? t('shifts.starting') : t('shifts.yesStart')}
               </button>
             </div>
           </div>
@@ -485,12 +485,12 @@ export default function Shifts() {
         <div className="modal-overlay" onClick={() => setIsConfirmEndModalOpen(false)}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-modal-header">
-              <h3>Confirm End Shift</h3>
+              <h3>{t('shifts.confirmEndTitle')}</h3>
             </div>
             <div className="confirm-modal-body">
-              <p>Are you sure you want to end your current shift on <strong>{currentShift?.platform?.name}</strong>?</p>
+              <p>{t('shifts.confirmEndMessage')} <strong>{currentShift?.platform?.name}</strong>?</p>
               <p style={{ marginTop: '12px', fontSize: '14px', color: 'var(--text-tertiary)' }}>
-                This action cannot be undone.
+                {t('shifts.cannotUndo')}
               </p>
             </div>
             <div className="confirm-modal-footer">
@@ -499,7 +499,7 @@ export default function Shifts() {
                 onClick={() => setIsConfirmEndModalOpen(false)}
                 disabled={endShiftMutation.isPending}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button 
                 className="btn-end-shift"
@@ -507,7 +507,7 @@ export default function Shifts() {
                 disabled={endShiftMutation.isPending}
               >
                 <Square size={18} />
-                {endShiftMutation.isPending ? 'Ending...' : 'Yes, End Shift'}
+                {endShiftMutation.isPending ? t('shifts.ending') : t('shifts.yesEnd')}
               </button>
             </div>
           </div>

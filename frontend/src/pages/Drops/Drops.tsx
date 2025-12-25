@@ -132,7 +132,8 @@ export default function Drops() {
 
   const handleToggleStatus = (drop: Drop) => {
     const newStatus = drop.status === DropStatus.ACTIVE ? DropStatus.FROZEN : DropStatus.ACTIVE;
-    if (confirm(`Are you sure you want to ${newStatus === DropStatus.FROZEN ? 'freeze' : 'activate'} this drop?`)) {
+    const action = newStatus === DropStatus.FROZEN ? t('drops.confirmFreeze') : t('drops.confirmActivate');
+    if (confirm(`${t('drops.confirmStatusChange')} (${action})?`)) {
       updateStatusMutation.mutate({ id: drop.id, status: newStatus });
     }
   };

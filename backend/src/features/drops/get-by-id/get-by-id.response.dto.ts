@@ -37,7 +37,7 @@ class BankAccountItemDto {
     this.status = bankAccount.status;
     this.bankName = bankAccount.bank?.name || 'Unknown';
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.limit = Number(bankAccount.limit);
+    this.limit = Number(bankAccount.limitAmount);
   }
 }
 

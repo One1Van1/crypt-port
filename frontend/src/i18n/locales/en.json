@@ -13,7 +13,9 @@
     "filter": "Filter",
     "export": "Export",
     "refresh": "Refresh",
-    "view": "View"
+    "view": "View",
+    "unknownBank": "Unknown Bank",
+    "unknownPlatform": "Unknown Platform"
   },
   "auth": {
     "login": "Login",
@@ -41,7 +43,7 @@
     "loginError": "Login failed"
   },
   "nav": {
-    "dashboard": "Dashboard",
+    "dashboard": "Home",
     "users": "Users",
     "drops": "Drops",
     "withdraw": "Withdraw",
@@ -52,6 +54,30 @@
     "shifts": "Shifts",
     "settings": "Settings",
     "profile": "Profile"
+  },
+  "transactions": {
+    "title": "My Transactions",
+    "subtitle": "History of all completed operations",
+    "searchPlaceholder": "Search by bank, CBU, Alias...",
+    "totalOperations": "Total operations",
+    "refresh": "Refresh",
+    "noTransactions": "No transactions found"
+  },
+  "dashboard": {
+    "title": "Home",
+    "subtitle": "Operator workspace",
+    "systemOverview": "System overview",
+    "activeShift": "Active Shift",
+    "noActiveShift": "No Active Shift",
+    "noActiveShiftMessage": "Start a shift to get requisites and perform operations",
+    "startShift": "Start Shift",
+    "getRequisite": "Get Requisite",
+    "duration": "Duration",
+    "withdrawalAmount": "Withdrawal Amount",
+    "operations": "Operations",
+    "recentTransactions": "Recent Transactions",
+    "viewAll": "View All",
+    "noTransactionsYet": "No transactions for this shift yet"
   },
   "analytics": {
     "title": "Analytics",
@@ -86,7 +112,10 @@
     "inactive": "Inactive",
     "paused": "Paused",
     "savings": "Savings",
-    "checking": "Checking"
+    "checking": "Checking",
+    "confirmStatusChange": "Are you sure you want to change drop status?",
+    "confirmFreeze": "freeze",
+    "confirmActivate": "activate"
   },
   "bankAccounts": {
     "title": "Operators & Bank Accounts",
@@ -94,7 +123,8 @@
     "all": "All",
     "active": "Active",
     "inactive": "Inactive",
-    "addAccount": "Add Account"
+    "addAccount": "Add Account",
+    "confirmStatusChange": "Change status to"
   },
   "users": {
     "title": "Users Management",
@@ -154,7 +184,29 @@
     "choosePlatform": "Choose Platform",
     "selectPlatform": "Select platform...",
     "confirmStart": "Are you sure you want to start shift?",
-    "confirmEnd": "Are you sure you want to end shift?"
+    "confirmEnd": "Are you sure you want to end shift?",
+    "confirmStartTitle": "Confirm Start Shift",
+    "confirmStartMessage": "Are you sure you want to start shift on",
+    "confirmEndTitle": "Confirm End Shift",
+    "confirmEndMessage": "Are you sure you want to end your current shift on",
+    "cannotUndo": "This action cannot be undone.",
+    "starting": "Starting...",
+    "yesStart": "Yes, Start Shift",
+    "ending": "Ending...",
+    "yesEnd": "Yes, End Shift",
+    "newShift": "New Shift",
+    "refresh": "Refresh",
+    "allShifts": "All Shifts",
+    "active": "Active",
+    "completed": "Completed",
+    "noShiftsFound": "No shifts found",
+    "searchPlaceholder": "Search by platform, operator...",
+    "activeShiftOn": "Active shift on",
+    "duration": "Duration",
+    "amount": "Amount",
+    "started": "Started",
+    "ended": "Ended",
+    "startNewShift": "Start New Shift"
   },
   "operators": {
     "title": "Operators & Bank Accounts",

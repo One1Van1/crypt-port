@@ -50,7 +50,7 @@ export class CreateBankAccountService {
     const bankAccount = this.bankAccountRepository.create({
       cbu: dto.cbu,
       alias: dto.alias,
-      limit: dto.limit,
+      limitAmount: dto.limit,
       priority: dto.priority || 1,
       bank,
       drop,

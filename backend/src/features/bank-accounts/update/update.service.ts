@@ -29,7 +29,7 @@ export class UpdateBankAccountService {
 
     // Обновляем только переданные поля
     if (dto.alias !== undefined) bankAccount.alias = dto.alias;
-    if (dto.limit !== undefined) bankAccount.limit = dto.limit;
+    if (dto.limit !== undefined) bankAccount.limitAmount = dto.limit;
 
     const updatedAccount = await this.bankAccountRepository.save(bankAccount);
 

@@ -36,7 +36,7 @@ export class GetAvailableBankAccountResponseDto {
     this.id = bankAccount.id;
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
-    this.availableAmount = Number(bankAccount.limit) - Number(bankAccount.withdrawnAmount);
+    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
     this.priority = bankAccount.priority;
     this.bankId = bankAccount.bank?.id;
     this.bankName = bankAccount.bank?.name || 'Unknown';

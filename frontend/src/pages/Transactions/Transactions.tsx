@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { 
   Search, 
   RefreshCw, 
@@ -12,12 +13,13 @@ import { transactionsService } from '../../services/transactions.service';
 import './Transactions.css';
 
 export default function Transactions() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const limit = 20;
 
   // Fetch transactions
-  const { data, isLoading, refetch } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['my-transactions', page, searchQuery],
     queryFn: () => transactionsService.getMy({ 
       page, 
@@ -59,23 +61,12 @@ export default function Transactions() {
     );
   });
 
-  if (isLoading) {
-    return (
-      <div className="transactions-page">
-        <div className="loading-state">
-          <RefreshCw size={32} className="spin" />
-          <p>Загрузка...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="transactions-page">
       <div className="transactions-header">
         <div>
-          <h1 className="transactions-title">Мои операции</h1>
-          <p className="transactions-subtitle">История всех выполненных операций</p>
+          <h1 className="transactions-title">{t('transactions.title')}</h1>
+          <p className="transactions-subtitle">{t('transactions.subtitle')}</p>
         </div>
       </div>
 
@@ -84,7 +75,7 @@ export default function Transactions() {
           <Search size={18} />
           <input
             type="text"
-            placeholder="Поиск по банку, CBU, Alias..."
+            placeholder={t('transactions.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -93,20 +84,20 @@ export default function Transactions() {
         <div className="transactions-stats">
           <span className="stat-item">
             <Hash size={16} />
-            Всего операций: <strong>{total}</strong>
+            {t('transactions.totalOperations')}: <strong>{total}</strong>
           </span>
         </div>
 
         <button className="btn-secondary" onClick={() => refetch()}>
           <RefreshCw size={18} />
-          Обновить
+          {t('transactions.refresh')}
         </button>
       </div>
 
       {filteredTransactions.length === 0 ? (
         <div className="empty-state">
           <Building size={48} />
-          <p>Операции не найдены</p>
+          <p>{t('transactions.noTransactions')}</p>
         </div>
       ) : (
         <>
@@ -120,7 +111,7 @@ export default function Transactions() {
                     </div>
                     <div>
                       <h3 className="bank-name">
-                        {transaction.bankAccount?.bank?.name || 'Unknown Bank'}
+                        {transaction.bankAccount?.bank?.name || t('common.unknownBank')}
                       </h3>
                       <div className="bank-details">
                         <span>CBU: ...{transaction.bankAccount?.cbu?.slice(-4)}</span>

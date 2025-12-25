@@ -243,7 +243,7 @@ export default function BankAccounts() {
   };
 
   const handleStatusChange = (account: BankAccount, newStatus: string) => {
-    if (confirm(`Change status to ${newStatus}?`)) {
+    if (confirm(`${t('bankAccounts.confirmStatusChange')} ${newStatus}?`)) {
       updateStatusMutation.mutate({ id: account.id, status: newStatus });
     }
   };

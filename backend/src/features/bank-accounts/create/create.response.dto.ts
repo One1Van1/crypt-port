@@ -48,7 +48,7 @@ export class CreateBankAccountResponseDto {
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
-    this.limit = Number(bankAccount.limit);
+    this.limit = Number(bankAccount.limitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
     this.priority = bankAccount.priority;
     this.bankId = bankAccount.bank?.id;
