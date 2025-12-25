@@ -15,6 +15,8 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
+      skipMissingProperties: false,
+      forbidUnknownValues: false,
     }),
   );
 

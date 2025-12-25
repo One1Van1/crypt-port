@@ -1,26 +1,27 @@
-import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { IsOptional, IsInt, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class GetAvailableBankAccountQueryDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Required withdrawal amount (optional, for filtering)',
     example: 10000,
-    minimum: 1,
-    required: false,
+    type: Number,
   })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
+  @IsInt()
   @Min(1)
   amount?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Filter by specific bank ID (optional)',
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    required: false,
+    example: 6,
+    type: Number,
   })
   @IsOptional()
-  @IsUUID()
-  bankId?: string;
+  @Transform(({ value }) => value ? parseInt(value, 10) : undefined)
+  @IsInt()
+  @Min(1)
+  bankId?: number;
 }

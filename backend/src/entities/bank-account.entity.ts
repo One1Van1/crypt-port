@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { BankAccountStatus } from '../common/enums/bank-account.enum';
 import { Bank } from './bank.entity';
@@ -20,25 +20,33 @@ export class BankAccount extends BaseEntity {
   })
   status: BankAccountStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'block_reason' })
   blockReason: string;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'limitAmount' })
+  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'limit_amount' })
   limitAmount: number;
 
-  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0, name: 'withdrawn_amount' })
   withdrawnAmount: number;
 
   @Column({ default: 1 })
   priority: number;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamp', nullable: true, name: 'last_used_at' })
   lastUsedAt: Date;
 
+  @Column({ name: 'bank_id' })
+  bankId: number;
+
   @ManyToOne(() => Bank)
+  @JoinColumn({ name: 'bank_id' })
   bank: Bank;
 
+  @Column({ name: 'drop_id' })
+  dropId: number;
+
   @ManyToOne(() => Drop, (drop) => drop.bankAccounts)
+  @JoinColumn({ name: 'drop_id' })
   drop: Drop;
 
   @OneToMany(() => Transaction, (transaction) => transaction.bankAccount)

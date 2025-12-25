@@ -29,19 +29,15 @@ export class GetAvailableBankAccountResponseDto {
   @ApiProperty({ description: 'Drop name' })
   dropName: string;
 
-  @ApiProperty({ description: 'Last used date', required: false })
-  lastUsedAt: Date | null;
-
   constructor(bankAccount: BankAccount) {
     this.id = bankAccount.id;
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
-    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
+    this.availableAmount = bankAccount.limitAmount - bankAccount.withdrawnAmount;
     this.priority = bankAccount.priority;
-    this.bankId = bankAccount.bank?.id;
-    this.bankName = bankAccount.bank?.name || 'Unknown';
-    this.dropId = bankAccount.drop?.id;
-    this.dropName = bankAccount.drop?.name || 'Unknown';
-    this.lastUsedAt = bankAccount.lastUsedAt;
+    this.bankId = bankAccount.bankId;
+    this.bankName = bankAccount.bank?.name || '';
+    this.dropId = bankAccount.dropId;
+    this.dropName = bankAccount.drop?.name || '';
   }
 }

@@ -27,10 +27,10 @@ export class User extends BaseEntity {
   })
   status: UserStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'two_factor_secret' })
   twoFactorSecret: string;
 
-  @Column({ default: false })
+  @Column({ default: false, name: 'two_factor_enabled' })
   twoFactorEnabled: boolean;
 
   @Column({ nullable: true })

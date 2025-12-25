@@ -19,11 +19,11 @@ export class Drop extends BaseEntity {
   })
   status: DropStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, name: 'user_id' })
   userId: number;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @OneToMany(() => BankAccount, (bankAccount) => bankAccount.drop)

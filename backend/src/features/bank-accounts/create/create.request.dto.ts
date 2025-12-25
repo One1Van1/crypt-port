@@ -43,7 +43,7 @@ export class CreateBankAccountRequestDto {
   })
   @IsNumber()
   @Min(0)
-  limit: number;
+  limitAmount: number;
 
   @ApiProperty({
     description: 'Priority (lower number = higher priority)',
