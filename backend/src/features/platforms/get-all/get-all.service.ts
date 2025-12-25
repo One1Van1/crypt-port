@@ -27,6 +27,12 @@ export class GetAllPlatformsService {
 
     queryBuilder.orderBy('platform.createdAt', 'DESC');
 
+    // Pagination
+    const page = query.page || 1;
+    const limit = query.limit || 10;
+    queryBuilder.skip((page - 1) * limit);
+    queryBuilder.take(limit);
+
     const [items, total] = await queryBuilder.getManyAndCount();
 
     return new GetAllPlatformsResponseDto(items, total);

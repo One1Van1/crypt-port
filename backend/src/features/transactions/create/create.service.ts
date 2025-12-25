@@ -86,6 +86,14 @@ export class CreateTransactionService {
       // 6. Обновляем баланс банковского аккаунта
       bankAccount.withdrawnAmount = Number(bankAccount.withdrawnAmount) + dto.amount;
       bankAccount.lastUsedAt = new Date();
+      
+      // Auto-blocking: если достигнут лимит, блокируем счет
+      const newAvailableAmount = bankAccount.limitAmount - bankAccount.withdrawnAmount;
+      if (newAvailableAmount <= 0) {
+        bankAccount.status = BankAccountStatus.BLOCKED;
+        bankAccount.blockReason = 'Достигнут лимит вывода';
+      }
+      
       await queryRunner.manager.save(bankAccount);
 
       // 7. Обновляем статистику смены

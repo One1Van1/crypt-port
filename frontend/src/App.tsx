@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './store/appStore';
 import { useAuthStore } from './store/authStore';
 import Layout from './components/Layout/Layout';
@@ -13,6 +14,8 @@ import Analytics from './pages/Analytics/Analytics';
 import BankAccounts from './pages/BankAccounts/BankAccounts';
 import Operators from './pages/Operators/Operators';
 import Users from './pages/Users/Users';
+import Shifts from './pages/Shifts/Shifts';
+import Transactions from './pages/Transactions/Transactions';
 
 const queryClient = new QueryClient();
 
@@ -32,6 +35,29 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-color)',
+          },
+          success: {
+            iconTheme: {
+              primary: 'var(--success)',
+              secondary: 'white',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: 'var(--danger)',
+              secondary: 'white',
+            },
+          },
+        }}
+      />
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -47,6 +73,8 @@ function App() {
                   <Route path="/drops" element={<Drops />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />
+                  <Route path="/shifts" element={<Shifts />} />
+                  <Route path="/transactions" element={<Transactions />} />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Layout>

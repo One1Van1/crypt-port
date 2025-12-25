@@ -17,9 +17,9 @@ export class GetMyTransactionsService {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.shift', 'shift')
+      .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
-      .leftJoinAndSelect('transaction.platform', 'platform')
       .where('transaction.operatorId = :operatorId', { operatorId: operator.id });
 
     // Фильтр по статусу

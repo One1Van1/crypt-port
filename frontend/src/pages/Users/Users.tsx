@@ -8,13 +8,11 @@ import {
   Mail, 
   Phone, 
   MessageSquare,
-  Shield,
   CheckCircle,
   XCircle,
   RefreshCw,
-  ChevronDown
 } from 'lucide-react';
-import { usersService, User } from '../../services/users.service';
+import { usersService } from '../../services/users.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole, UserStatus } from '../../types/user.types';
 import './Users.css';
@@ -98,9 +96,6 @@ export default function Users() {
     }
   };
 
-  const getRoleLabel = (role: string) => {
-    return t(`users.roles.${role}`) || role;
-  };
 
   const getStatusBadgeClass = (status: string) => {
     return status === UserStatus.ACTIVE ? 'status-active' : 'status-inactive';
@@ -144,7 +139,6 @@ export default function Users() {
   const allCount = filteredUsers.length;
   const operatorsCount = filteredUsers.filter(u => u.role === UserRole.OPERATOR).length;
   const pendingCount = filteredUsers.filter(u => u.role === UserRole.PENDING).length;
-  const activeCount = filteredUsers.filter(u => u.status === UserStatus.ACTIVE).length;
 
   if (isLoading) {
     return (

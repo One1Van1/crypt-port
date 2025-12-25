@@ -69,6 +69,11 @@ class BankAccountsService {
     return response.data;
   }
 
+  async getAvailable(params?: { amount?: number; bankId?: string }): Promise<BankAccount> {
+    const response = await apiClient.get<BankAccount>('/bank-accounts/available', { params });
+    return response.data;
+  }
+
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/bank-accounts/${id}`);
   }

@@ -157,6 +157,23 @@
       "delete": "Удалить"
     }
   },
+  "shifts": {
+    "title": "Мои смены",
+    "subtitle": "Управление рабочими сменами",
+    "activeShift": "Активная смена",
+    "noActiveShift": "Нет активной смены",
+    "selectPlatformToStart": "Выберите площадку, чтобы начать смену",
+    "startShift": "Начать смену",
+    "endShift": "Завершить смену",
+    "platform": "Площадка",
+    "startTime": "Время начала",
+    "totalAmount": "Всего выведено",
+    "operations": "Операций",
+    "choosePlatform": "Выберите площадку",
+    "selectPlatform": "Выберите площадку...",
+    "confirmStart": "Вы уверены, что хотите начать смену?",
+    "confirmEnd": "Вы уверены, что хотите завершить смену?"
+  },
   "theme": {
     "light": "Светлая",
     "dark": "Тёмная",

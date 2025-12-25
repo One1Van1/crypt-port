@@ -19,6 +19,10 @@ import { GetMyCurrentShiftService } from '../features/shifts/get-my-current/get-
 import { GetAllShiftsController } from '../features/shifts/get-all/get-all.controller';
 import { GetAllShiftsService } from '../features/shifts/get-all/get-all.service';
 
+// Get My Shifts
+import { GetMyShiftsController } from '../features/shifts/get-my-shifts/get-my-shifts.controller';
+import { GetMyShiftsService } from '../features/shifts/get-my-shifts/get-my-shifts.service';
+
 // Get Shift By ID
 import { GetShiftByIdController } from '../features/shifts/get-by-id/get-by-id.controller';
 import { GetShiftByIdService } from '../features/shifts/get-by-id/get-by-id.service';
@@ -34,6 +38,7 @@ import { GetShiftsStatisticsService } from '../features/shifts/statistics/statis
     EndShiftController,
     GetMyCurrentShiftController,
     GetAllShiftsController,
+    GetMyShiftsController,
     GetShiftByIdController,
     GetShiftsStatisticsController,
   ],
@@ -42,6 +47,7 @@ import { GetShiftsStatisticsService } from '../features/shifts/statistics/statis
     EndShiftService,
     GetMyCurrentShiftService,
     GetAllShiftsService,
+    GetMyShiftsService,
     GetShiftByIdService,
     GetShiftsStatisticsService,
   ],

@@ -4,14 +4,16 @@ import { Type } from 'class-transformer';
 
 export class GetAvailableBankAccountQueryDto {
   @ApiProperty({
-    description: 'Required withdrawal amount',
+    description: 'Required withdrawal amount (optional, for filtering)',
     example: 10000,
     minimum: 1,
+    required: false,
   })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  amount: number;
+  amount?: number;
 
   @ApiProperty({
     description: 'Filter by specific bank ID (optional)',

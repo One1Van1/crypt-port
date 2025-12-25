@@ -21,7 +21,7 @@ class PlatformDto {
   name: string;
 }
 
-class ShiftItemDto {
+class MyShiftItemDto {
   @ApiProperty({ description: 'Shift ID' })
   id: number;
 
@@ -77,15 +77,15 @@ class ShiftItemDto {
   }
 }
 
-export class GetAllShiftsResponseDto {
-  @ApiProperty({ description: 'List of shifts', type: [ShiftItemDto] })
-  items: ShiftItemDto[];
+export class GetMyShiftsResponseDto {
+  @ApiProperty({ description: 'List of my shifts', type: [MyShiftItemDto] })
+  items: MyShiftItemDto[];
 
   @ApiProperty({ description: 'Total count' })
   total: number;
 
   constructor(shifts: Shift[], total: number) {
-    this.items = shifts.map((shift) => new ShiftItemDto(shift));
+    this.items = shifts.map((shift) => new MyShiftItemDto(shift));
     this.total = total;
   }
 }

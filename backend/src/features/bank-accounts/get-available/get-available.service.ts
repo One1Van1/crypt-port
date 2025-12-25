@@ -14,20 +14,25 @@ export class GetAvailableBankAccountService {
   ) {}
 
   async execute(query: GetAvailableBankAccountQueryDto): Promise<GetAvailableBankAccountResponseDto> {
-    const requiredAmount = query.amount;
-
     // Получаем доступные аккаунты с приоритетом
     const queryBuilder = this.bankAccountRepository
       .createQueryBuilder('bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .where('bankAccount.status = :status', { status: BankAccountStatus.WORKING })
-      .andWhere('(bankAccount.limit - bankAccount.withdrawnAmount) >= :amount', {
-        amount: requiredAmount,
+      .andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) > :minAmount', {
+        minAmount: 0,
       })
-      // Сортировка: сначала по приоритету (меньше = выше), затем по дате последнего использования
-      .orderBy('bankAccount.priority', 'ASC')
-      .addOrderBy('bankAccount.lastUsedAt', 'ASC', 'NULLS FIRST');
+      // Сортировка: сначала по приоритету (выше = важнее), затем по дате последнего использования
+      .orderBy('bankAccount.priority', 'DESC')
+      .addOrderBy('COALESCE(bankAccount.lastUsedAt, bankAccount.createdAt)', 'ASC');
+
+    // Фильтр по сумме (если указана)
+    if (query.amount) {
+      queryBuilder.andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) >= :amount', {
+        amount: query.amount,
+      });
+    }
 
     // Фильтр по банку (если указан)
     if (query.bankId) {
@@ -39,9 +44,13 @@ export class GetAvailableBankAccountService {
 
     if (!bankAccount) {
       throw new NotFoundException(
-        'No available bank account found with sufficient balance for the requested amount',
+        'Нет доступных реквизитов для вывода. Проверьте статус счетов или обратитесь к администратору.',
       );
     }
+
+    // Обновляем время последнего использования
+    bankAccount.lastUsedAt = new Date();
+    await this.bankAccountRepository.save(bankAccount);
 
     return new GetAvailableBankAccountResponseDto(bankAccount);
   }

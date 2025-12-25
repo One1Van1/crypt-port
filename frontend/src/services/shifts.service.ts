@@ -7,9 +7,9 @@ export interface Shift {
   duration?: number;
   totalAmount: number;
   operationsCount: number;
-  status: 'active' | 'ended';
+  status: 'active' | 'completed';
   operator: {
-    id: string;
+    id: number;
     username: string;
     email: string;
   };
@@ -52,6 +52,13 @@ class ShiftsService {
     status?: string;
   }): Promise<GetAllShiftsResponse> {
     const response = await apiClient.get<GetAllShiftsResponse>('/shifts', { params });
+    console.log('Shifts API response:', response.data);
+    return response.data;
+  }
+
+  async getMyShifts(): Promise<GetAllShiftsResponse> {
+    const response = await apiClient.get<GetAllShiftsResponse>('/shifts/my-shifts');
+    console.log('My shifts API response:', response.data);
     return response.data;
   }
 

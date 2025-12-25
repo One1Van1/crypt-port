@@ -139,6 +139,23 @@
       "delete": "Delete"
     }
   },
+  "shifts": {
+    "title": "My Shifts",
+    "subtitle": "Manage your work shifts",
+    "activeShift": "Active Shift",
+    "noActiveShift": "No Active Shift",
+    "selectPlatformToStart": "Select a platform to start your shift",
+    "startShift": "Start Shift",
+    "endShift": "End Shift",
+    "platform": "Platform",
+    "startTime": "Start Time",
+    "totalAmount": "Total Withdrawn",
+    "operations": "Operations",
+    "choosePlatform": "Choose Platform",
+    "selectPlatform": "Select platform...",
+    "confirmStart": "Are you sure you want to start shift?",
+    "confirmEnd": "Are you sure you want to end shift?"
+  },
   "operators": {
     "title": "Operators & Bank Accounts",
     "subtitle": "Manage operators and their payment requisites",
