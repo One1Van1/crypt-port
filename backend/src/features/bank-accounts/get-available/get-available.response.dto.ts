@@ -33,7 +33,14 @@ export class GetAvailableBankAccountResponseDto {
     this.id = bankAccount.id;
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
-    this.availableAmount = bankAccount.limitAmount - bankAccount.withdrawnAmount;
+    // Преобразуем decimal (string) в number
+    const limitAmount = typeof bankAccount.limitAmount === 'string' 
+      ? parseFloat(bankAccount.limitAmount) 
+      : bankAccount.limitAmount;
+    const withdrawnAmount = typeof bankAccount.withdrawnAmount === 'string'
+      ? parseFloat(bankAccount.withdrawnAmount)
+      : bankAccount.withdrawnAmount;
+    this.availableAmount = limitAmount - withdrawnAmount;
     this.priority = bankAccount.priority;
     this.bankId = bankAccount.bankId;
     this.bankName = bankAccount.bank?.name || '';

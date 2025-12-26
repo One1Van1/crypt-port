@@ -1,22 +1,28 @@
 import { apiClient } from './api';
 
 export interface BankAccount {
-  id: string;
-  userId: string;
-  bankId: string;
+  id: number;
   cbu: string;
   alias: string;
-  accountType: string;
   status: string;
   priority: number;
   limitAmount: number;
   withdrawnAmount: number;
-  createdAt: string;
-  updatedAt: string;
+  availableAmount?: number;
+  bankId: number;
+  bankName?: string;
+  dropId: number;
+  dropName?: string;
+  createdAt?: string;
+  updatedAt?: string;
   bank?: {
-    id: string;
+    id: number;
     name: string;
-    code: string;
+    code?: string;
+  };
+  drop?: {
+    id: number;
+    name: string;
   };
 }
 
@@ -69,7 +75,7 @@ class BankAccountsService {
     return response.data;
   }
 
-  async getAvailable(params?: { amount?: number; bankId?: string }): Promise<BankAccount> {
+  async getAvailable(params?: { amount?: number; bankId?: number }): Promise<BankAccount> {
     const response = await apiClient.get<BankAccount>('/bank-accounts/available', { params });
     return response.data;
   }

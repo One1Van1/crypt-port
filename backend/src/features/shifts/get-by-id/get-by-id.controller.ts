@@ -15,7 +15,7 @@ import { UserRole } from '../../../common/enums/user.enum';
 export class GetShiftByIdController {
   constructor(private readonly service: GetShiftByIdService) {}
 
-  @Get(':id')
+  @Get('by-id/:id')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetShiftById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetShiftByIdResponseDto> {

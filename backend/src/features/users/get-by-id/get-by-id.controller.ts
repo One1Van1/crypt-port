@@ -15,7 +15,7 @@ import { UserRole } from '../../../common/enums/user.enum';
 export class GetUserByIdController {
   constructor(private readonly service: GetUserByIdService) {}
 
-  @Get(':id')
+  @Get('by-id/:id')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetUserById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetUserByIdResponseDto> {

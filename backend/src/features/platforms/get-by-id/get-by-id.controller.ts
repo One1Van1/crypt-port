@@ -12,7 +12,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 export class GetPlatformByIdController {
   constructor(private readonly service: GetPlatformByIdService) {}
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiGetPlatformById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetPlatformByIdResponseDto> {
     return this.service.execute(id);

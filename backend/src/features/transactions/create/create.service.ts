@@ -55,20 +55,26 @@ export class CreateTransactionService {
     await queryRunner.startTransaction();
 
     try {
-      // 4. Получаем доступный банковский аккаунт с блокировкой
-      const bankAccount = await queryRunner.manager
-        .createQueryBuilder(BankAccount, 'bankAccount')
-        .leftJoinAndSelect('bankAccount.bank', 'bank')
-        .leftJoinAndSelect('bankAccount.drop', 'drop')
-        .where('bankAccount.status = :status', { status: BankAccountStatus.WORKING })
-        .andWhere('(bankAccount.limit - bankAccount.withdrawnAmount) >= :amount', { amount: dto.amount })
-        .orderBy('bankAccount.priority', 'ASC')
-        .addOrderBy('bankAccount.lastUsedAt', 'ASC', 'NULLS FIRST')
-        .setLock('pessimistic_write')
-        .getOne();
+      // 4. Получаем доступный банковский аккаунт
+      const bankAccount = await queryRunner.manager.findOne(BankAccount, {
+        where: {
+          status: BankAccountStatus.WORKING,
+        },
+        relations: ['bank', 'drop'],
+        order: {
+          priority: 'ASC',
+          lastUsedAt: 'ASC',
+        },
+      });
 
       if (!bankAccount) {
-        throw new BadRequestException('No available bank accounts with sufficient balance');
+        throw new BadRequestException('No available bank accounts');
+      }
+
+      // Проверяем доступный баланс
+      const availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
+      if (availableAmount < dto.amount) {
+        throw new BadRequestException(`Insufficient balance. Available: ${availableAmount}, Required: ${dto.amount}`);
       }
 
       // 5. Создаем транзакцию
@@ -103,13 +109,9 @@ export class CreateTransactionService {
 
       await queryRunner.commitTransaction();
 
-      // 8. Загружаем полную транзакцию с relations
-      const savedTransaction = await this.transactionRepository.findOne({
-        where: { id: transaction.id },
-        relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'operator'],
-      });
-
-      return new CreateTransactionResponseDto(savedTransaction);
+      // 8. Возвращаем DTO с данными из уже загруженных relations
+      // Relations уже загружены в transaction объекте из queryRunner
+      return new CreateTransactionResponseDto(transaction);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

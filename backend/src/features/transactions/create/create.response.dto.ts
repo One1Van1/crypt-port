@@ -38,6 +38,10 @@ export class CreateTransactionResponseDto {
   createdAt: Date;
 
   constructor(transaction: Transaction) {
+    if (!transaction) {
+      throw new Error('Transaction is null or undefined');
+    }
+    
     this.id = transaction.id;
     this.amount = Number(transaction.amount);
     this.status = transaction.status;

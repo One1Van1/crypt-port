@@ -50,10 +50,8 @@ export interface GetTransactionsResponse {
 }
 
 export interface CreateTransactionRequest {
-  bankAccountId: string;
   amount: number;
-  comment?: string;
-  shiftId: string;
+  platformId: number;
 }
 
 export interface CreateTransactionResponse {

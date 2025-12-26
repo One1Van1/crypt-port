@@ -5,20 +5,23 @@ export interface Shift {
   startTime: string;
   endTime?: string;
   duration?: number;
+  currentDuration?: number;
   totalAmount: number;
   operationsCount: number;
   status: 'active' | 'completed';
-  operator: {
+  platformId: number;
+  platformName: string;
+  operator?: {
     id: number;
     username: string;
     email: string;
   };
-  platform: {
+  platform?: {
     id: number;
     name: string;
   };
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface StartShiftRequest {

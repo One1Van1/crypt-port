@@ -12,7 +12,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 export class GetBankByIdController {
   constructor(private readonly service: GetBankByIdService) {}
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiGetBankById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetBankByIdResponseDto> {
     return this.service.execute(id);

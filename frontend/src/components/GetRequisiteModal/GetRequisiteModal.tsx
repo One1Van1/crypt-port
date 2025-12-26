@@ -46,11 +46,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
   // Получить доступный реквизит
   const { refetch: fetchRequisite, isFetching } = useQuery({
     queryKey: ['available-requisite'],
-    queryFn: async () => {
-      const account = await bankAccountsService.getAvailable();
-      const availableAmount = account.limitAmount - account.withdrawnAmount;
-      return { ...account, availableAmount };
-    },
+    queryFn: () => bankAccountsService.getAvailable(),
     enabled: false,
     retry: false,
   });
@@ -61,6 +57,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-shift'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['my-transactions-recent'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setStep('success');
       toast.success('Транзакция успешно создана!');
@@ -124,7 +121,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     if (!requisite || !currentShift) return;
 
     const amountNum = parseFloat(amount);
-    const availableAmount = requisite.limitAmount - requisite.withdrawnAmount;
+    const availableAmount = requisite.availableAmount || 0;
 
     // Валидация
     if (!amount || amountNum <= 0) {
@@ -139,10 +136,8 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
 
     setError('');
     createTransaction.mutate({
-      bankAccountId: requisite.id,
       amount: amountNum,
-      comment: comment || undefined,
-      shiftId: currentShift.id.toString(),
+      platformId: currentShift.platformId,
     });
   };
 
@@ -162,7 +157,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
 
   if (!isOpen) return null;
 
-  const availableAmount = requisite ? requisite.limitAmount - requisite.withdrawnAmount : 0;
+  const availableAmount = requisite?.availableAmount || 0;
   const isLowBalance = availableAmount > 0 && availableAmount < 50000;
 
   return (
@@ -222,7 +217,15 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                   <Building size={20} />
                   <div>
                     <span className="label">Банк</span>
-                    <span className="value">{requisite.bank?.name || t('common.unknownBank')}</span>
+                    <span className="value">{requisite.bankName || requisite.bank?.name || t('common.unknownBank')}</span>
+                  </div>
+                </div>
+
+                <div className="info-row">
+                  <Tag size={20} />
+                  <div>
+                    <span className="label">Владелец (Дроп)</span>
+                    <span className="value">{requisite.dropName || requisite.drop?.name || 'Неизвестный'}</span>
                   </div>
                 </div>
 
@@ -290,7 +293,8 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
           {step === 'amount' && requisite && (
             <div className="step-amount">
               <div className="requisite-summary">
-                <p><strong>Реквизит:</strong> {requisite.bank?.name}</p>
+                <p><strong>Реквизит:</strong> {requisite.bankName || requisite.bank?.name}</p>
+                <p><strong>Владелец:</strong> {requisite.dropName || requisite.drop?.name}</p>
                 <p><small>CBU: ...{requisite.cbu.slice(-4)} | Alias: {requisite.alias}</small></p>
               </div>
 
@@ -354,7 +358,11 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                 </div>
                 <div className="detail-item">
                   <span className="label">Реквизит</span>
-                  <span className="value">{requisite.bank?.name}</span>
+                  <span className="value">{requisite.bankName || requisite.bank?.name}</span>
+                </div>
+                <div className="detail-item">
+                  <span className="label">Владелец</span>
+                  <span className="value">{requisite.dropName || requisite.drop?.name}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Остаток на реквизите</span>

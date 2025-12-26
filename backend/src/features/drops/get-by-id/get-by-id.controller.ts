@@ -12,7 +12,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 export class GetDropByIdController {
   constructor(private readonly service: GetDropByIdService) {}
 
-  @Get(':id')
+  @Get('by-id/:id')
   @ApiGetDropById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetDropByIdResponseDto> {
     return this.service.execute(id);

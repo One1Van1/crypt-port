@@ -41,12 +41,12 @@ import { GetAvailableBankAccountService } from '../features/bank-accounts/get-av
   controllers: [
     CreateBankAccountController,
     GetAllBankAccountsController,
+    GetAvailableBankAccountController,
     GetBankAccountByIdController,
     UpdateBankAccountController,
     UpdateBankAccountStatusController,
     UpdateBankAccountPriorityController,
     BlockBankAccountController,
-    GetAvailableBankAccountController,
   ],
   providers: [
     CreateBankAccountService,
