@@ -37,12 +37,16 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Toaster
         position="top-right"
+        containerStyle={{
+          zIndex: 99999,
+        }}
         toastOptions={{
           duration: 3000,
           style: {
             background: 'var(--bg-secondary)',
             color: 'var(--text-primary)',
             border: '1px solid var(--border-color)',
+            zIndex: 99999,
           },
           success: {
             iconTheme: {

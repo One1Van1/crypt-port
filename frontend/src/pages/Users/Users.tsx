@@ -121,7 +121,7 @@ export default function Users() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, {
+    return new Date(dateString).toLocaleDateString(t('common.locale'), {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

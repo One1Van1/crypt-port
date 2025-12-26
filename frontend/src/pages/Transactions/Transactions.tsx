@@ -13,11 +13,13 @@ import {
 } from 'lucide-react';
 import { transactionsService } from '../../services/transactions.service';
 import { shiftsService } from '../../services/shifts.service';
+import { useAppStore } from '../../store/appStore';
 import CustomSelect from '../../components/CustomSelect/CustomSelect';
 import './Transactions.css';
 
 export default function Transactions() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const timeFormat = useAppStore((state) => state.timeFormat);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
@@ -62,12 +64,13 @@ export default function Transactions() {
   const totalPages = Math.ceil(total / limit);
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleString(undefined, {
+    return new Date(date).toLocaleString(i18n.language, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: timeFormat === '12h',
     });
   };
 
@@ -166,11 +169,6 @@ export default function Transactions() {
             {t('transactions.totalOperations')}: <strong>{filteredTransactions.length}</strong>
           </span>
         </div>
-
-        <button className="btn-secondary" onClick={() => refetch()}>
-          <RefreshCw size={18} />
-          {t('transactions.refresh')}
-        </button>
       </div>
 
       {showFilters && (
@@ -184,7 +182,7 @@ export default function Transactions() {
                 { value: '', label: 'Все смены' },
                 ...shifts.map((shift) => ({
                   value: String(shift.id),
-                  label: `${shift.platform?.name || shift.platformName} - ${new Date(shift.startTime).toLocaleDateString()}`
+                  label: `${shift.platform?.name || shift.platformName} - ${new Date(shift.startTime).toLocaleDateString(i18n.language)}`
                 }))
               ]}
               placeholder="Все смены"

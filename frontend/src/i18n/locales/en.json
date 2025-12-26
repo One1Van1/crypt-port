@@ -1,5 +1,6 @@
 {
   "common": {
+    "locale": "en",
     "welcome": "Welcome",
     "loading": "Loading...",
     "error": "Error",
@@ -235,5 +236,8 @@
     "en": "English",
     "ru": "Russian",
     "toggle": "Change language"
+  },
+  "timeFormat": {
+    "toggle": "Toggle time format (12/24 hours)"
   }
 }

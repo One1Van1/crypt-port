@@ -14,14 +14,16 @@ import {
 import { shiftsService } from '../../services/shifts.service';
 import { transactionsService } from '../../services/transactions.service';
 import { useAuthStore } from '../../store/authStore';
+import { useAppStore } from '../../store/appStore';
 import { UserRole } from '../../types/user.types';
 import GetRequisiteModal from '../../components/GetRequisiteModal/GetRequisiteModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const timeFormat = useAppStore((state) => state.timeFormat);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRequisiteModalOpen, setIsRequisiteModalOpen] = useState(false);
 
@@ -62,9 +64,10 @@ export default function Dashboard() {
   };
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString(undefined, {
+    return new Date(date).toLocaleTimeString(i18n.language, {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: timeFormat === '12h',
     });
   };
 
@@ -98,7 +101,7 @@ export default function Dashboard() {
                   <span>{t('dashboard.activeShift')}</span>
                 </div>
                 <div className="shift-platform">
-                  {currentShift.platform?.name || t('common.unknownPlatform')}
+                  {currentShift.platformName || t('common.unknownPlatform')}
                 </div>
               </div>
 

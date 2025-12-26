@@ -5,8 +5,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Clock, 
   Play, 
-  Square,
-  RefreshCw,
   TrendingUp,
   Hash,
   Timer,
@@ -18,14 +16,16 @@ import {
 import { shiftsService } from '../../services/shifts.service';
 import { platformsService } from '../../services/platforms.service';
 import { useAuthStore } from '../../store/authStore';
+import { useAppStore } from '../../store/appStore';
 import { UserRole } from '../../types/user.types';
 import './Shifts.css';
 
 export default function Shifts() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
+  const timeFormat = useAppStore((state) => state.timeFormat);
   const [selectedPlatform, setSelectedPlatform] = useState<number | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
@@ -161,14 +161,15 @@ export default function Shifts() {
   };
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString(undefined, {
+    return new Date(date).toLocaleTimeString(i18n.language, {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: timeFormat === '12h',
     });
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString(undefined, {
+    return new Date(date).toLocaleDateString(i18n.language, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -233,12 +234,6 @@ export default function Shifts() {
               {t('shifts.newShift')}
             </button>
           )}
-          <button className="btn-secondary" onClick={() => {
-            queryClient.invalidateQueries({ queryKey: ['my-shifts'] });
-          }}>
-            <RefreshCw size={18} />
-            {t('shifts.refresh')}
-          </button>
         </div>
       </div>
 
@@ -504,7 +499,6 @@ export default function Shifts() {
                 onClick={handleConfirmEndShift}
                 disabled={endShiftMutation.isPending}
               >
-                <Square size={18} />
                 {endShiftMutation.isPending ? t('shifts.ending') : t('shifts.yesEnd')}
               </button>
             </div>

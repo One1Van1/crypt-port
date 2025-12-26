@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Sun, Moon, Globe, LogOut, Bell } from 'lucide-react';
+import { Sun, Moon, Globe, LogOut, Bell, Clock } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { useAuthStore } from '../../store/authStore';
 import './Header.css';
@@ -7,7 +7,9 @@ import './Header.css';
 export default function Header() {
   const { t, i18n } = useTranslation();
   const theme = useAppStore((state) => state.theme);
+  const timeFormat = useAppStore((state) => state.timeFormat);
   const toggleTheme = useAppStore((state) => state.toggleTheme);
+  const toggleTimeFormat = useAppStore((state) => state.toggleTimeFormat);
   const setLanguage = useAppStore((state) => state.setLanguage);
   const logout = useAuthStore((state) => state.logout);
 
@@ -26,6 +28,11 @@ export default function Header() {
         <button className="icon-button" title={t('language.toggle')} onClick={handleLanguageToggle}>
           <Globe size={20} />
           <span className="button-label">{i18n.language.toUpperCase()}</span>
+        </button>
+
+        <button className="icon-button" title={t('timeFormat.toggle')} onClick={toggleTimeFormat}>
+          <Clock size={20} />
+          <span className="button-label">{timeFormat === '24h' ? '24' : '12'}</span>
         </button>
 
         <button className="icon-button" title={t('theme.toggle')} onClick={toggleTheme}>

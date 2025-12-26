@@ -21,6 +21,7 @@ import { dropsService, Drop } from '../../services/drops.service';
 import { banksService, Bank } from '../../services/banks.service';
 import { usersService, User } from '../../services/users.service';
 import { useAuthStore } from '../../store/authStore';
+import { useAppStore } from '../../store/appStore';
 import { UserRole } from '../../types/user.types';
 import './BankAccounts.css';
 
@@ -39,6 +40,7 @@ export default function BankAccounts() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
+  const timeFormat = useAppStore((state) => state.timeFormat);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -279,12 +281,13 @@ export default function BankAccounts() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, {
+    return new Date(dateString).toLocaleDateString(t('common.locale'), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      hour12: timeFormat === '12h',
     });
   };
 
