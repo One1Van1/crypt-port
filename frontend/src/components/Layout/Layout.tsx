@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import './Layout.css';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,7 +13,7 @@ export default function Layout({ children }: LayoutProps) {
       <Sidebar />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Header />
-        <main style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+        <main className="page-content" style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
           {children}
         </main>
       </div>
