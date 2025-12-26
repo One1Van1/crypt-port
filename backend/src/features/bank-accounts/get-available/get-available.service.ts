@@ -22,8 +22,8 @@ export class GetAvailableBankAccountService {
       .andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) > :minAmount', {
         minAmount: 0,
       })
-      .orderBy('bankAccount.priority', 'DESC')
-      .addOrderBy('COALESCE(bankAccount.lastUsedAt, bankAccount.createdAt)', 'ASC');
+      .orderBy('bankAccount.priority', 'ASC')
+      .addOrderBy('bankAccount.lastUsedAt', 'ASC', 'NULLS FIRST');
 
     if (query.amount) {
       queryBuilder.andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) >= :amount', {
@@ -42,9 +42,6 @@ export class GetAvailableBankAccountService {
         'Нет доступных реквизитов для вывода. Проверьте статус счетов или обратитесь к администратору.',
       );
     }
-
-    bankAccount.lastUsedAt = new Date();
-    await this.bankAccountRepository.save(bankAccount);
 
     return new GetAvailableBankAccountResponseDto(bankAccount);
   }

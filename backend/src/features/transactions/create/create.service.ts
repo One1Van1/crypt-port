@@ -55,27 +55,29 @@ export class CreateTransactionService {
     await queryRunner.startTransaction();
 
     try {
-      // 4. Получаем доступный банковский аккаунт
-      const bankAccount = await queryRunner.manager.findOne(BankAccount, {
-        where: {
-          status: BankAccountStatus.WORKING,
-        },
-        relations: ['bank', 'drop'],
-        order: {
-          priority: 'ASC',
-          lastUsedAt: 'ASC',
-        },
-      });
+      // 4. Получаем доступный банковский аккаунт с правильной сортировкой
+      const query = queryRunner.manager
+        .createQueryBuilder(BankAccount, 'ba')
+        .leftJoinAndSelect('ba.bank', 'bank')
+        .leftJoinAndSelect('ba.drop', 'drop')
+        .where('ba.status = :status', { status: BankAccountStatus.WORKING })
+        .andWhere('(ba.limit_amount - ba.withdrawn_amount) >= :amount', { amount: dto.amount })
+        .orderBy('ba.priority', 'ASC')
+        .addOrderBy('ba.last_used_at', 'ASC', 'NULLS FIRST')
+        .limit(1);
+      
+      // Логируем SQL для отладки
+      console.log('=== GET BANK ACCOUNT SQL ===');
+      console.log(query.getSql());
+      console.log('Parameters:', { status: BankAccountStatus.WORKING, amount: dto.amount });
+      
+      const bankAccounts = await query.getMany();
 
-      if (!bankAccount) {
-        throw new BadRequestException('No available bank accounts');
+      if (!bankAccounts || bankAccounts.length === 0) {
+        throw new BadRequestException('No available bank accounts with sufficient balance');
       }
 
-      // Проверяем доступный баланс
-      const availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
-      if (availableAmount < dto.amount) {
-        throw new BadRequestException(`Insufficient balance. Available: ${availableAmount}, Required: ${dto.amount}`);
-      }
+      const bankAccount = bankAccounts[0];
 
       // 5. Создаем транзакцию
       const transaction = queryRunner.manager.create(Transaction, {
