@@ -213,7 +213,7 @@ export default function Shifts() {
           {currentShift && (
             <div className="current-shift-badge">
               <span className="pulse-dot"></span>
-              {t('shifts.activeShiftOn')} {currentShift.platform?.name}
+              {t('shifts.activeShiftOn')} {currentShift.platformName}
             </div>
           )}
         </div>
@@ -224,7 +224,6 @@ export default function Shifts() {
               onClick={handleEndShift}
               disabled={endShiftMutation.isPending}
             >
-              <Square size={18} />
               {t('shifts.endShift')}
             </button>
           )}
@@ -364,7 +363,6 @@ export default function Shifts() {
                       onClick={handleEndShift}
                       disabled={endShiftMutation.isPending}
                     >
-                      <Square size={14} />
                       {t('shifts.endShift')}
                     </button>
                   </div>
