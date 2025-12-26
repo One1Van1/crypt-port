@@ -28,6 +28,11 @@ export class GetMyTransactionsService {
       queryBuilder.andWhere('transaction.status = :status', { status: query.status });
     }
 
+    // Фильтр по смене
+    if (query.shiftId) {
+      queryBuilder.andWhere('transaction.shiftId = :shiftId', { shiftId: query.shiftId });
+    }
+
     // Фильтр по дате
     if (query.startDate && query.endDate) {
       queryBuilder.andWhere('transaction.createdAt BETWEEN :startDate AND :endDate', {

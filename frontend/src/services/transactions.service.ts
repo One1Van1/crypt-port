@@ -21,6 +21,10 @@ export interface Transaction {
   type: TransactionType;
   status: TransactionStatus;
   comment?: string;
+  // Плоские поля от API
+  bankName?: string;
+  bankAccountCbu?: string;
+  // Вложенные объекты (не всегда присутствуют)
   bankAccount?: {
     id: string;
     cbu: string;
@@ -68,11 +72,17 @@ class TransactionsService {
   async getMy(params?: {
     page?: number;
     limit?: number;
-    shiftId?: string;
+    shiftId?: number;
     dateFrom?: string;
     dateTo?: string;
   }): Promise<GetTransactionsResponse> {
     const response = await apiClient.get<GetTransactionsResponse>('/transactions/my', { params });
+    return response.data;
+  }
+
+  // Получить список банков из моих транзакций
+  async getMyBanks(): Promise<{ items: { id: string; name: string }[] }> {
+    const response = await apiClient.get<{ items: { id: string; name: string }[] }>('/transactions/my-banks');
     return response.data;
   }
 

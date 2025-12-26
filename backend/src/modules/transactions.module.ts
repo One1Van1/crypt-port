@@ -13,6 +13,10 @@ import { CreateTransactionService } from '../features/transactions/create/create
 import { GetMyTransactionsController } from '../features/transactions/get-my/get-my.controller';
 import { GetMyTransactionsService } from '../features/transactions/get-my/get-my.service';
 
+// Get My Banks
+import { GetMyBanksController } from '../features/transactions/get-my-banks/get-my-banks.controller';
+import { GetMyBanksService } from '../features/transactions/get-my-banks/get-my-banks.service';
+
 // Get All Transactions
 import { GetAllTransactionsController } from '../features/transactions/get-all/get-all.controller';
 import { GetAllTransactionsService } from '../features/transactions/get-all/get-all.service';
@@ -34,6 +38,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
   controllers: [
     CreateTransactionController,
     GetMyTransactionsController,
+    GetMyBanksController,
     GetAllTransactionsController,
     GetTransactionByIdController,
     UpdateTransactionStatusController,
@@ -42,6 +47,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
   providers: [
     CreateTransactionService,
     GetMyTransactionsService,
+    GetMyBanksService,
     GetAllTransactionsService,
     GetTransactionByIdService,
     UpdateTransactionStatusService,

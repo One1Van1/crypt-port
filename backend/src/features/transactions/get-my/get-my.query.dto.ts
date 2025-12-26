@@ -57,4 +57,14 @@ export class GetMyTransactionsQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @ApiProperty({
+    description: 'Filter by shift ID',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  shiftId?: number;
 }
