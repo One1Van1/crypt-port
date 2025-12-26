@@ -109,9 +109,13 @@ export class CreateTransactionService {
 
       await queryRunner.commitTransaction();
 
-      // 8. Возвращаем DTO с данными из уже загруженных relations
-      // Relations уже загружены в transaction объекте из queryRunner
-      return new CreateTransactionResponseDto(transaction);
+      // 8. Загружаем созданную транзакцию со всеми relations для DTO
+      const savedTransaction = await this.transactionRepository.findOne({
+        where: { id: transaction.id },
+        relations: ['bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'shift', 'operator'],
+      });
+
+      return new CreateTransactionResponseDto(savedTransaction);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

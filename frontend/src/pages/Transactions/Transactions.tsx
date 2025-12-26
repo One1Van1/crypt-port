@@ -50,14 +50,12 @@ export default function Transactions() {
     if (!searchQuery) return true;
     
     const searchLower = searchQuery.toLowerCase();
-    const bankName = transaction.bankAccount?.bank?.name?.toLowerCase() || '';
-    const cbu = transaction.bankAccount?.cbu || '';
-    const alias = transaction.bankAccount?.alias?.toLowerCase() || '';
+    const bankName = transaction.bankName?.toLowerCase() || '';
+    const cbu = transaction.bankAccountCbu || '';
     
     return (
       bankName.includes(searchLower) ||
-      cbu.includes(searchLower) ||
-      alias.includes(searchLower)
+      cbu.includes(searchLower)
     );
   });
 
@@ -111,12 +109,10 @@ export default function Transactions() {
                     </div>
                     <div>
                       <h3 className="bank-name">
-                        {transaction.bankAccount?.bank?.name || t('common.unknownBank')}
+                        {transaction.bankName || t('common.unknownBank')}
                       </h3>
                       <div className="bank-details">
-                        <span>CBU: ...{transaction.bankAccount?.cbu?.slice(-4)}</span>
-                        <span>•</span>
-                        <span>Alias: {transaction.bankAccount?.alias}</span>
+                        <span>CBU: ...{transaction.bankAccountCbu?.slice(-4)}</span>
                       </div>
                     </div>
                   </div>

@@ -177,7 +177,7 @@ export default function Dashboard() {
                     </div>
                     <div className="transaction-details">
                       <div className="transaction-bank">
-                        {transaction.bankAccount?.bank?.name || t('common.unknownBank')}
+                        {transaction.bankName || t('common.unknownBank')}
                       </div>
                       <div className="transaction-meta">
                         <Calendar size={12} />

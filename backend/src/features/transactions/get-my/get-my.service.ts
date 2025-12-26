@@ -20,6 +20,7 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
+      .leftJoinAndSelect('bankAccount.drop', 'drop')
       .where('transaction.operatorId = :operatorId', { operatorId: operator.id });
 
     // Фильтр по статусу
