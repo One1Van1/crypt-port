@@ -198,6 +198,8 @@
 .transactions-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: column;
+  grid-template-rows: repeat(5, auto);
   gap: 1rem;
 }
 

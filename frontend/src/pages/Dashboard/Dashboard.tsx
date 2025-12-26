@@ -43,7 +43,7 @@ export default function Dashboard() {
   // Fetch recent transactions
   const { data: transactionsData } = useQuery({
     queryKey: ['my-transactions-recent'],
-    queryFn: () => transactionsService.getMy({ limit: 5 }),
+    queryFn: () => transactionsService.getMy({ limit: 10 }),
     enabled: user?.role === UserRole.OPERATOR,
   });
 
@@ -169,7 +169,7 @@ export default function Dashboard() {
                 <p>{t('dashboard.noTransactionsYet')}</p>
               </div>
             ) : (
-              <div className="transactions-list">
+              <div className="dashboard-transactions-list">
                 {recentTransactions.map((transaction) => (
                   <div key={transaction.id} className="transaction-item">
                     <div className="transaction-icon">
