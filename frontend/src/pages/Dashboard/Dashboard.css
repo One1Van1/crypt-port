@@ -218,72 +218,75 @@
 
 .transaction-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  gap: 0.75rem;
+  padding: 1.25rem;
   background: var(--bg-tertiary);
-  border-radius: 8px;
+  border-radius: 12px;
   transition: all 0.2s;
+  text-align: center;
 }
 
 .transaction-item:hover {
   background: var(--bg-primary);
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
 .transaction-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   flex-shrink: 0;
+  margin-bottom: 0.25rem;
 }
 
 .transaction-details {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .transaction-bank {
   font-weight: 600;
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .transaction-meta {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.8rem;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
 .transaction-comment-text {
   font-size: 0.85rem;
   color: var(--text-tertiary);
-  font-style: italic;
-  margin-top: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
+  margin-top: 0.15rem;
 }
 
 .transaction-comment-text .comment-label {
   font-style: normal;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text-secondary);
+  margin-right: 0.35rem;
 }
 
 .transaction-amount {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
+  margin-top: 0.25rem;
 }
 
 /* Admin Dashboard */

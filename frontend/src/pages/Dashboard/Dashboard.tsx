@@ -64,11 +64,31 @@ export default function Dashboard() {
   };
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleTimeString(i18n.language, {
+    const d = new Date(date);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const isToday = d.toDateString() === today.toDateString();
+    const isYesterday = d.toDateString() === yesterday.toDateString();
+
+    const time = d.toLocaleTimeString(i18n.language, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: timeFormat === '12h',
     });
+
+    if (isToday) {
+      return `Сегодня, ${time}`;
+    } else if (isYesterday) {
+      return `Вчера, ${time}`;
+    } else {
+      const dateStr = d.toLocaleDateString(i18n.language, {
+        day: 'numeric',
+        month: 'short',
+      });
+      return `${dateStr}, ${time}`;
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -176,25 +196,23 @@ export default function Dashboard() {
                 {recentTransactions.map((transaction) => (
                   <div key={transaction.id} className="transaction-item">
                     <div className="transaction-icon">
-                      <Building size={20} />
+                      <Building size={24} />
                     </div>
-                    <div className="transaction-details">
-                      <div className="transaction-bank">
-                        {transaction.bankName || t('common.unknownBank')}
-                      </div>
-                      <div className="transaction-meta">
-                        <Calendar size={12} />
-                        {formatTime(transaction.createdAt)}
-                      </div>
-                      {transaction.comment && (
-                        <div className="transaction-comment-text">
-                          <span className="comment-label">Комментарий:</span> {transaction.comment}
-                        </div>
-                      )}
+                    <div className="transaction-bank">
+                      {transaction.bankName || t('common.unknownBank')}
+                    </div>
+                    <div className="transaction-meta">
+                      <Calendar size={14} />
+                      {formatTime(transaction.createdAt)}
                     </div>
                     <div className="transaction-amount">
                       {formatCurrency(transaction.amount)}
                     </div>
+                    {transaction.comment && (
+                      <div className="transaction-comment-text">
+                        <span className="comment-label">Комментарий:</span> {transaction.comment}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
