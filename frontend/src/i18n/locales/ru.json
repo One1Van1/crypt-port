@@ -44,8 +44,10 @@
     "loginError": "Ошибка входа"
   },
   "nav": {
-    "dashboard": "Главная",
+    "dashboard": "Рабочая панель",
     "operatorDashboard": "Рабочая панель",
+    "operatorBanks": "Банки",
+    "operatorDrops": "Дропы",
     "users": "Пользователи",
     "drops": "Дропы",
     "withdraw": "Вывод средств",

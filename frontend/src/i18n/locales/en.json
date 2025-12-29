@@ -44,7 +44,11 @@
     "loginError": "Login failed"
   },
   "nav": {
-    "dashboard": "Home",    "operatorDashboard": "Workspace",    "users": "Users",
+    "dashboard": "Home",
+    "operatorDashboard": "Workspace",
+    "operatorBanks": "Banks",
+    "operatorDrops": "Drops",
+    "users": "Users",
     "drops": "Drops",
     "withdraw": "Withdraw",
     "analytics": "Analytics",

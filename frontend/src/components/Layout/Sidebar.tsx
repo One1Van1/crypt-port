@@ -9,7 +9,8 @@ import {
   Clock,
   Users,
   UserCog,
-  Briefcase
+  Building2,
+  UserSquare2
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -20,7 +21,8 @@ export default function Sidebar() {
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
-    { to: '/operator-dashboard', icon: Briefcase, label: t('nav.operatorDashboard'), roles: ['operator'] },
+    { to: '/operator-banks', icon: Building2, label: t('nav.operatorBanks'), roles: ['operator'] },
+    { to: '/operator-drops', icon: UserSquare2, label: t('nav.operatorDrops'), roles: ['operator'] },
     { to: '/users', icon: UserCog, label: t('nav.users'), roles: ['admin'] },
     { to: '/operators', icon: Users, label: t('nav.operators'), roles: ['admin'] },
     { to: '/drops', icon: Droplet, label: t('nav.drops'), roles: ['admin', 'teamlead'] },

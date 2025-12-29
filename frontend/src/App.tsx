@@ -17,6 +17,8 @@ import Users from './pages/Users/Users';
 import Shifts from './pages/Shifts/Shifts';
 import Transactions from './pages/Transactions/Transactions';
 import OperatorDashboard from './pages/OperatorDashboard/OperatorDashboard';
+import OperatorBanks from './pages/OperatorBanks/OperatorBanks';
+import OperatorDrops from './pages/OperatorDrops/OperatorDrops';
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,8 @@ function App() {
                   <Route path="/users" element={<Users />} />
                   <Route path="/operators" element={<Operators />} />
                   <Route path="/operator-dashboard" element={<OperatorDashboard />} />
+                  <Route path="/operator-banks" element={<OperatorBanks />} />
+                  <Route path="/operator-drops" element={<OperatorDrops />} />
                   <Route path="/drops" element={<Drops />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />
