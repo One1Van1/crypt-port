@@ -186,6 +186,11 @@ export default function Dashboard() {
                         <Calendar size={12} />
                         {formatTime(transaction.createdAt)}
                       </div>
+                      {transaction.comment && (
+                        <div className="transaction-comment-text">
+                          <span className="comment-label">Комментарий:</span> {transaction.comment}
+                        </div>
+                      )}
                     </div>
                     <div className="transaction-amount">
                       {formatCurrency(transaction.amount)}

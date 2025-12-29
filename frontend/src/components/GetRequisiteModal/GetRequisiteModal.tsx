@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -36,6 +36,48 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
   const [error, setError] = useState<string>('');
 
+  // Блокировка скролла body когда модалка открыта
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  // Блокировка событий клавиатуры на заднем фоне
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Убираем фокус с кнопки, которая открыла модальное окно
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Останавливаем всплытие событий клавиатуры
+      e.stopPropagation();
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // Останавливаем всплытие событий клавиатуры
+      e.stopPropagation();
+    };
+
+    // Добавляем обработчики в фазе захвата (capture phase)
+    document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keyup', handleKeyUp, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('keyup', handleKeyUp, true);
+    };
+  }, [isOpen]);
+
   // Получить текущую смену
   const { data: currentShift } = useQuery({
     queryKey: ['current-shift'],
@@ -43,13 +85,12 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     enabled: isOpen,
   });
 
-  // Получить доступный реквизит
-  const { refetch: fetchRequisite, isFetching } = useQuery({
-    queryKey: ['available-requisite'],
-    queryFn: () => bankAccountsService.getAvailable(),
-    enabled: false,
-    retry: false,
-  });
+  // Автоматически получаем реквизит при открытии модалки
+  useEffect(() => {
+    if (isOpen && currentShift && step === 'loading') {
+      handleGetRequisite();
+    }
+  }, [isOpen, currentShift]);
 
   // Создать транзакцию
   const createTransaction = useMutation({
@@ -61,9 +102,6 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setStep('success');
       toast.success('Транзакция успешно создана!');
-      setTimeout(() => {
-        onSuccess?.();
-      }, 2000);
     },
     onError: (error: any) => {
       const errorMsg = error?.response?.data?.message || 'Ошибка при создании транзакции';
@@ -84,17 +122,16 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     setStep('loading');
     
     try {
-      const result = await fetchRequisite();
-      if (result.data) {
-        setRequisite(result.data);
-        setStep('display');
-        toast.success('Реквизит успешно получен');
-      }
+      // Система автоматически подбирает оптимальный реквизит по приоритетам
+      const result = await bankAccountsService.getAvailable();
+      setRequisite(result);
+      setStep('display');
+      toast.success('Реквизит успешно получен');
     } catch (err: any) {
       const errorMsg = err?.response?.data?.message || err.message || 'Не удалось получить реквизит';
       setError(errorMsg);
       toast.error(errorMsg);
-      setStep('loading');
+      onClose();
     }
   };
 
@@ -138,6 +175,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     createTransaction.mutate({
       amount: amountNum,
       platformId: currentShift.platformId,
+      comment: comment?.trim() || undefined,
     });
   };
 
@@ -155,14 +193,26 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
     return `ARS ${value.toLocaleString('es-AR')}`;
   };
 
+  const handleModalClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleModalKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation();
+  };
+
   if (!isOpen) return null;
 
   const availableAmount = requisite?.availableAmount || 0;
   const isLowBalance = availableAmount > 0 && availableAmount < 50000;
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
-      <div className="modal-content get-requisite-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={handleClose} onKeyDown={handleModalKeyDown}>
+      <div 
+        className="modal-content get-requisite-modal" 
+        onClick={handleModalClick}
+        onKeyDown={handleModalKeyDown}
+      >
         {/* Header */}
         <div className="modal-header">
           <h2>
@@ -176,35 +226,16 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
 
         {/* Body */}
         <div className="modal-body">
-          {/* Step 1: Loading / Get Requisite */}
+          {/* Step: Loading / Get Requisite */}
           {step === 'loading' && (
             <div className="step-loading">
-              {isFetching ? (
-                <>
-                  <Loader size={48} className="spin" />
-                  <p>Подбираем оптимальный реквизит...</p>
-                </>
-              ) : (
-                <>
-                  <CreditCard size={48} />
-                  <p>Получите доступный реквизит для выполнения вывода</p>
-                  {error && (
-                    <div className="error-message">
-                      <AlertTriangle size={18} />
-                      {error}
-                    </div>
-                  )}
-                  <button 
-                    className="btn-primary btn-large" 
-                    onClick={handleGetRequisite}
-                    disabled={isFetching || !currentShift}
-                  >
-                    Получить реквизит
-                  </button>
-                  {!currentShift && (
-                    <p className="hint-text">Начните смену перед получением реквизита</p>
-                  )}
-                </>
+              <Loader size={48} className="spin" />
+              <p>Подбираем оптимальный реквизит по приоритетам...</p>
+              {error && (
+                <div className="error-message">
+                  <AlertTriangle size={18} />
+                  {error}
+                </div>
               )}
             </div>
           )}
@@ -368,6 +399,12 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                   <span className="label">Остаток на реквизите</span>
                   <span className="value">{formatCurrency(availableAmount - parseFloat(amount))}</span>
                 </div>
+                {comment && (
+                  <div className="detail-item comment-item">
+                    <span className="label">Комментарий</span>
+                    <span className="value">{comment}</span>
+                  </div>
+                )}
               </div>
 
               <div className="success-actions">

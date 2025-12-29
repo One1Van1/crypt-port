@@ -56,6 +56,7 @@ export interface GetTransactionsResponse {
 export interface CreateTransactionRequest {
   amount: number;
   platformId: number;
+  comment?: string;
 }
 
 export interface CreateTransactionResponse {

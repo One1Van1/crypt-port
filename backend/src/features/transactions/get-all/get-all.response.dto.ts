@@ -16,6 +16,9 @@ export class TransactionItemDto {
   })
   status: TransactionStatus;
 
+  @ApiProperty({ description: 'Comment', required: false })
+  comment?: string;
+
   @ApiProperty({ description: 'Shift ID' })
   shiftId: number;
 
@@ -41,6 +44,7 @@ export class TransactionItemDto {
     this.id = transaction.id;
     this.amount = Number(transaction.amount);
     this.status = transaction.status;
+    this.comment = transaction.comment;
     this.shiftId = transaction.shift?.id;
     this.bankAccountCbu = transaction.bankAccount?.cbu || 'Unknown';
     this.bankName = transaction.bankAccount?.bank?.name || 'Unknown';

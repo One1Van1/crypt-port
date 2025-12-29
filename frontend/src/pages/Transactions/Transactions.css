@@ -297,9 +297,9 @@
 }
 
 .comment-label {
-  font-weight: 600;
+  font-weight: 400;
   margin-right: 0.5rem;
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .empty-state {

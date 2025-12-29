@@ -264,6 +264,22 @@
   color: var(--text-secondary);
 }
 
+.transaction-comment-text {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+
+.transaction-comment-text .comment-label {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
 .transaction-amount {
   font-size: 1.1rem;
   font-weight: 700;

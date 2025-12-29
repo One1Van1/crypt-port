@@ -1,4 +1,4 @@
-import { IsNumber, Min } from 'class-validator';
+import { IsNumber, Min, IsString, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateTransactionRequestDto {
@@ -17,4 +17,13 @@ export class CreateTransactionRequestDto {
   })
   @IsNumber()
   platformId: number;
+
+  @ApiProperty({
+    description: 'Optional comment',
+    example: 'Client requested urgent withdrawal',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  comment?: string;
 }

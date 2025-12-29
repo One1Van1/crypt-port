@@ -83,6 +83,7 @@ export class CreateTransactionService {
       const transaction = queryRunner.manager.create(Transaction, {
         amount: dto.amount,
         status: TransactionStatus.PENDING,
+        comment: dto.comment,
         shift: activeShift,
         bankAccount: bankAccount,
         platform: platform,
