@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Bank } from '../entities/bank.entity';
+import { BankAccount } from '../entities/bank-account.entity';
+import { Transaction } from '../entities/transaction.entity';
 
 // Create
 import { CreateBankController } from '../features/banks/create/create.controller';
@@ -22,14 +24,24 @@ import { UpdateBankService } from '../features/banks/update/update.service';
 import { UpdateBankStatusController } from '../features/banks/update-status/update-status.controller';
 import { UpdateBankStatusService } from '../features/banks/update-status/update-status.service';
 
+// Get Operator Banks
+import { GetOperatorBanksController } from '../features/banks/get-operator-banks/get-operator-banks.controller';
+import { GetOperatorBanksService } from '../features/banks/get-operator-banks/get-operator-banks.service';
+
+// Get Bank Transactions For Operator
+import { GetBankTransactionsForOperatorController } from '../features/banks/get-bank-transactions-for-operator/get-bank-transactions-for-operator.controller';
+import { GetBankTransactionsForOperatorService } from '../features/banks/get-bank-transactions-for-operator/get-bank-transactions-for-operator.service';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Bank])],
+  imports: [TypeOrmModule.forFeature([Bank, BankAccount, Transaction])],
   controllers: [
     CreateBankController,
     GetAllBanksController,
     GetBankByIdController,
     UpdateBankController,
     UpdateBankStatusController,
+    GetOperatorBanksController,
+    GetBankTransactionsForOperatorController,
   ],
   providers: [
     CreateBankService,
@@ -37,6 +49,8 @@ import { UpdateBankStatusService } from '../features/banks/update-status/update-
     GetBankByIdService,
     UpdateBankService,
     UpdateBankStatusService,
+    GetOperatorBanksService,
+    GetBankTransactionsForOperatorService,
   ],
 })
 export class BanksModule {}

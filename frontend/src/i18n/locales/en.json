@@ -44,8 +44,7 @@
     "loginError": "Login failed"
   },
   "nav": {
-    "dashboard": "Home",
-    "users": "Users",
+    "dashboard": "Home",    "operatorDashboard": "Workspace",    "users": "Users",
     "drops": "Drops",
     "withdraw": "Withdraw",
     "analytics": "Analytics",
@@ -239,5 +238,17 @@
   },
   "timeFormat": {
     "toggle": "Toggle time format (12/24 hours)"
+  },
+  "statuses": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "working": "Working",
+    "not_working": "Not Working",
+    "blocked": "Blocked",
+    "pending": "Pending",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "idle": "Idle"
   }
 }

@@ -45,6 +45,7 @@
   },
   "nav": {
     "dashboard": "Главная",
+    "operatorDashboard": "Рабочая панель",
     "users": "Пользователи",
     "drops": "Дропы",
     "withdraw": "Вывод средств",
@@ -216,8 +217,8 @@
     "newShift": "Новая смена",
     "refresh": "Обновить",
     "allShifts": "Все смены",
-    "active": "Активные",
-    "completed": "Завершённые",
+    "active": "Активная",
+    "completed": "Завершённая",
     "noShiftsFound": "Смены не найдены",
     "searchPlaceholder": "Поиск по площадке, оператору...",
     "activeShiftOn": "Активная смена на",
@@ -239,5 +240,17 @@
   },
   "timeFormat": {
     "toggle": "Переключить формат времени (12/24 часа)"
+  },
+  "statuses": {
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "working": "Рабочий",
+    "not_working": "Нерабочий",
+    "blocked": "Заблокирован",
+    "pending": "Ожидание",
+    "completed": "Завершён",
+    "failed": "Ошибка",
+    "cancelled": "Отменён",
+    "idle": "Простой"
   }
 }
