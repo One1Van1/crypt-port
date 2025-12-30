@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Users, TrendingUp, Clock, Award } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
+import { usersService } from '../../services/users.service';
+import { shiftsService } from '../../services/shifts.service';
+import { bankAccountsService } from '../../services/bank-accounts.service';
+import { analyticsService } from '../../services/analytics.service';
 import './TeamLeadDashboard.css';
 
 export default function TeamLeadDashboard() {
@@ -79,11 +83,11 @@ function RequisitesSection() {
   const loadAccounts = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/bank-accounts?limit=100');
-      const data = await response.json();
+      const data = await bankAccountsService.getAll();
       setAccounts(data.items || []);
     } catch (error) {
       console.error('Failed to load accounts:', error);
+      setAccounts([]);
     } finally {
       setLoading(false);
     }
@@ -92,11 +96,7 @@ function RequisitesSection() {
   const handlePriorityChange = async (accountId: number, newPriority: number) => {
     setUpdating(accountId);
     try {
-      await fetch(`/api/bank-accounts/${accountId}/priority`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priority: newPriority }),
-      });
+      await bankAccountsService.updatePriority(accountId.toString(), newPriority);
       await loadAccounts();
     } catch (error) {
       console.error('Failed to update priority:', error);
@@ -151,13 +151,15 @@ function RequisitesSection() {
             <tbody>
               {accounts.map((account) => {
                 const status = getStatusBadge(account.status);
-                const available = account.limitAmount - account.withdrawnAmount;
+                const limitAmount = account.limitAmount || 0;
+                const withdrawnAmount = account.withdrawnAmount || 0;
+                const available = limitAmount - withdrawnAmount;
                 return (
                   <tr key={account.id}>
                     <td>
                       <input
                         type="number"
-                        value={account.priority}
+                        value={account.priority || 0}
                         onChange={(e) => handlePriorityChange(account.id, parseInt(e.target.value))}
                         disabled={updating === account.id}
                         className="priority-input"
@@ -166,15 +168,15 @@ function RequisitesSection() {
                       />
                     </td>
                     <td>{account.bank?.name || account.bankName || '-'}</td>
-                    <td className="cbu-cell">{account.cbu}</td>
-                    <td>{account.alias}</td>
+                    <td className="cbu-cell">{account.cbu || '-'}</td>
+                    <td>{account.alias || '-'}</td>
                     <td>
                       <span className={`status-badge ${status.className}`}>
                         {status.label}
                       </span>
                     </td>
                     <td className="amount-cell">
-                      ${available.toFixed(2)} / ${account.limitAmount.toFixed(2)}
+                      ${available.toFixed(2)} / ${limitAmount.toFixed(2)}
                     </td>
                     <td>
                       {updating === account.id ? (
@@ -208,13 +210,10 @@ function OperatorsSection() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [usersResponse, shiftsResponse] = await Promise.all([
-        fetch('/api/users?role=operator&limit=100'),
-        fetch('/api/shifts?status=active&limit=100'),
+      const [usersData, shiftsData] = await Promise.all([
+        usersService.getAll({ role: 'operator', limit: 100 }),
+        shiftsService.getAll({ status: 'active', limit: 100 }),
       ]);
-      
-      const usersData = await usersResponse.json();
-      const shiftsData = await shiftsResponse.json();
       
       setOperators(usersData.items || []);
       setShifts(shiftsData.items || []);
@@ -320,13 +319,13 @@ function AnalyticsSection() {
 
   useEffect(() => {
     loadAnalytics();
-  }, [period]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/analytics/operators?period=${period}`);
-      const data = await response.json();
+      const data = await analyticsService.getOperators();
       setAnalytics(data);
     } catch (error) {
       console.error('Failed to load analytics:', error);

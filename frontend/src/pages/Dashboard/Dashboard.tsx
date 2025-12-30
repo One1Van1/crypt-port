@@ -13,16 +13,13 @@ import {
 } from 'lucide-react';
 import { shiftsService } from '../../services/shifts.service';
 import { transactionsService } from '../../services/transactions.service';
-import { useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
-import { UserRole } from '../../types/user.types';
 import GetRequisiteModal from '../../components/GetRequisiteModal/GetRequisiteModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
   const timeFormat = useAppStore((state) => state.timeFormat);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isRequisiteModalOpen, setIsRequisiteModalOpen] = useState(false);
@@ -42,14 +39,12 @@ export default function Dashboard() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch recent transactions
+  // Fetch recent transactions (for all roles)
   const { data: transactionsData } = useQuery({
     queryKey: ['my-transactions-recent'],
     queryFn: () => transactionsService.getMy({ limit: 10 }),
-    enabled: user?.role === UserRole.OPERATOR,
   });
 
-  const isOperator = user?.role === UserRole.OPERATOR;
   const hasActiveShift = !!currentShift;
 
   const calculateDuration = () => {
@@ -104,130 +99,120 @@ export default function Dashboard() {
         <div>
           <h1 className="dashboard-title">{t('nav.dashboard')}</h1>
           <p className="dashboard-subtitle">
-            {isOperator ? t('dashboard.subtitle') : t('dashboard.systemOverview')}
+            {t('dashboard.subtitle')}
           </p>
         </div>
       </div>
 
-      {/* Operator Dashboard */}
-      {isOperator && (
-        <>
-          {/* Active Shift Widget */}
-          {hasActiveShift ? (
-            <div className="active-shift-widget">
-              <div className="shift-header">
-                <div className="shift-status">
-                  <span className="pulse-dot"></span>
-                  <span>{t('dashboard.activeShift')}</span>
-                </div>
-                <div className="shift-platform">
-                  {currentShift.platformName || t('common.unknownPlatform')}
-                </div>
+      {/* Dashboard Content - Same for all roles */}
+      <>
+        {/* Active Shift Widget */}
+        {hasActiveShift ? (
+          <div className="active-shift-widget">
+            <div className="shift-header">
+              <div className="shift-status">
+                <span className="pulse-dot"></span>
+                <span>{t('dashboard.activeShift')}</span>
               </div>
+              <div className="shift-platform">
+                {currentShift.platformName || t('common.unknownPlatform')}
+              </div>
+            </div>
 
-              <div className="shift-stats-grid">
-                <div className="shift-stat">
-                  <Clock size={24} />
-                  <div>
-                    <div className="stat-label">{t('dashboard.duration')}</div>
-                    <div className="stat-value time-value">
-                      {`${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="shift-stat">
-                  <TrendingUp size={24} />
-                  <div>
-                    <div className="stat-label">{t('dashboard.withdrawalAmount')}</div>
-                    <div className="stat-value">{formatCurrency(currentShift.totalAmount || 0)}</div>
-                  </div>
-                </div>
-
-                <div className="shift-stat">
-                  <Hash size={24} />
-                  <div>
-                    <div className="stat-label">{t('dashboard.operations')}</div>
-                    <div className="stat-value">{currentShift.operationsCount || 0}</div>
+            <div className="shift-stats-grid">
+              <div className="shift-stat">
+                <Clock size={24} />
+                <div>
+                  <div className="stat-label">{t('dashboard.duration')}</div>
+                  <div className="stat-value time-value">
+                    {`${String(duration.hours).padStart(2, '0')}:${String(duration.minutes).padStart(2, '0')}:${String(duration.seconds).padStart(2, '0')}`}
                   </div>
                 </div>
               </div>
 
-              <button 
-                className="btn-get-requisite"
-                onClick={() => setIsRequisiteModalOpen(true)}
-              >
-                <CreditCard size={20} />
-                {t('dashboard.getRequisite')}
-              </button>
+              <div className="shift-stat">
+                <TrendingUp size={24} />
+                <div>
+                  <div className="stat-label">{t('dashboard.withdrawalAmount')}</div>
+                  <div className="stat-value">{formatCurrency(currentShift.totalAmount || 0)}</div>
+                </div>
+              </div>
+
+              <div className="shift-stat">
+                <Hash size={24} />
+                <div>
+                  <div className="stat-label">{t('dashboard.operations')}</div>
+                  <div className="stat-value">{currentShift.operationsCount || 0}</div>
+                </div>
+              </div>
+            </div>
+
+            <button 
+              className="btn-get-requisite"
+              onClick={() => setIsRequisiteModalOpen(true)}
+            >
+              <CreditCard size={20} />
+              {t('dashboard.getRequisite')}
+            </button>
+          </div>
+        ) : (
+          <div className="no-shift-widget">
+            <PlayCircle size={48} />
+            <h3>{t('dashboard.noActiveShift')}</h3>
+            <p>{t('dashboard.noActiveShiftMessage')}</p>
+            <button 
+              className="btn-primary"
+              onClick={() => navigate('/shifts')}
+            >
+              {t('dashboard.startShift')}
+            </button>
+          </div>
+        )}
+
+        {/* Recent Transactions */}
+        <div className="recent-transactions-section">
+          <div className="section-header">
+            <h2>{t('dashboard.recentTransactions')}</h2>
+            <button 
+              className="btn-link"
+              onClick={() => navigate('/transactions')}
+            >
+              {t('dashboard.viewAll')} →
+            </button>
+          </div>
+
+          {recentTransactions.length === 0 ? (
+            <div className="empty-transactions">
+              <p>{t('dashboard.noTransactionsYet')}</p>
             </div>
           ) : (
-            <div className="no-shift-widget">
-              <PlayCircle size={48} />
-              <h3>{t('dashboard.noActiveShift')}</h3>
-              <p>{t('dashboard.noActiveShiftMessage')}</p>
-              <button 
-                className="btn-primary"
-                onClick={() => navigate('/shifts')}
-              >
-                {t('dashboard.startShift')}
-              </button>
+            <div className="dashboard-transactions-list">
+              {recentTransactions.map((transaction) => (
+                <div key={transaction.id} className="transaction-item">
+                  <div className="transaction-icon">
+                    <Building size={24} />
+                  </div>
+                  <div className="transaction-bank">
+                    {transaction.bankName || t('common.unknownBank')}
+                  </div>
+                  <div className="transaction-meta">
+                    <Calendar size={14} />
+                    {formatTime(transaction.createdAt)}
+                  </div>
+                  <div className="transaction-amount">
+                    {formatCurrency(transaction.amount)}
+                  </div>
+                  {transaction.comment && (
+                    <div className="transaction-comment-text">
+                      <span className="comment-label">Комментарий:</span> {transaction.comment}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
-
-          {/* Recent Transactions */}
-          <div className="recent-transactions-section">
-            <div className="section-header">
-              <h2>{t('dashboard.recentTransactions')}</h2>
-              <button 
-                className="btn-link"
-                onClick={() => navigate('/transactions')}
-              >
-                {t('dashboard.viewAll')} →
-              </button>
-            </div>
-
-            {recentTransactions.length === 0 ? (
-              <div className="empty-transactions">
-                <p>{t('dashboard.noTransactionsYet')}</p>
-              </div>
-            ) : (
-              <div className="dashboard-transactions-list">
-                {recentTransactions.map((transaction) => (
-                  <div key={transaction.id} className="transaction-item">
-                    <div className="transaction-icon">
-                      <Building size={24} />
-                    </div>
-                    <div className="transaction-bank">
-                      {transaction.bankName || t('common.unknownBank')}
-                    </div>
-                    <div className="transaction-meta">
-                      <Calendar size={14} />
-                      {formatTime(transaction.createdAt)}
-                    </div>
-                    <div className="transaction-amount">
-                      {formatCurrency(transaction.amount)}
-                    </div>
-                    {transaction.comment && (
-                      <div className="transaction-comment-text">
-                        <span className="comment-label">Комментарий:</span> {transaction.comment}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Admin/TeamLead Dashboard */}
-      {!isOperator && (
-        <div className="admin-dashboard">
-          <p>Панель администратора / тимлида</p>
-          <p>Здесь будет общая статистика команды</p>
         </div>
-      )}
+      </>
 
       {/* Get Requisite Modal */}
       <GetRequisiteModal 

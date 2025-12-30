@@ -19,7 +19,7 @@ export class GetDropTransactionsForOperatorController {
   constructor(private readonly service: GetDropTransactionsForOperatorService) {}
 
   @Get(':dropId/transactions/operator')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetDropTransactionsForOperator()
   async handle(
     @Param('dropId', ParseIntPipe) dropId: number,

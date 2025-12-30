@@ -19,7 +19,7 @@ export class GetBankTransactionsForOperatorController {
   constructor(private readonly service: GetBankTransactionsForOperatorService) {}
 
   @Get(':bankId/transactions/operator')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetBankTransactionsForOperator()
   async handle(
     @Param('bankId', ParseIntPipe) bankId: number,
