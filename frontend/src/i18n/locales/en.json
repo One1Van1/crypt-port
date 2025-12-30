@@ -72,7 +72,10 @@
     "searchPlaceholder": "Search by bank, CBU, Alias...",
     "totalOperations": "Total operations",
     "refresh": "Refresh",
-    "noTransactions": "No transactions found"
+    "noTransactions": "No transactions found",
+    "myTransactions": "My Transactions",
+    "operatorsTransactions": "Operators Transactions",
+    "operator": "Operator"
   },
   "dashboard": {
     "title": "Home",

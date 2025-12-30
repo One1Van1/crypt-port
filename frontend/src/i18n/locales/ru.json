@@ -72,7 +72,10 @@
     "searchPlaceholder": "Поиск по банку, CBU, Alias...",
     "totalOperations": "Всего операций",
     "refresh": "Обновить",
-    "noTransactions": "Операции не найдены"
+    "noTransactions": "Операции не найдены",
+    "myTransactions": "Мои операции",
+    "operatorsTransactions": "Операции операторов",
+    "operator": "Оператор"
   },
   "dashboard": {
     "title": "Главная",

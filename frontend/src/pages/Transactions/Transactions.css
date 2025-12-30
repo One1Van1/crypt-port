@@ -256,6 +256,33 @@
   color: var(--text-secondary);
 }
 
+.operator-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  width: fit-content;
+}
+
+.operator-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.operator-name {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.operator-email {
+  color: var(--text-secondary);
+  font-weight: 400;
+  font-size: 0.9em;
+}
+
 .transaction-amount {
   font-size: 1.5rem;
   font-weight: 700;

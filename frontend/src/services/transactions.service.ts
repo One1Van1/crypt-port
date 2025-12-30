@@ -77,7 +77,23 @@ class TransactionsService {
     dateFrom?: string;
     dateTo?: string;
   }): Promise<GetTransactionsResponse> {
+    console.log('🔍 transactionsService.getMy called');
     const response = await apiClient.get<GetTransactionsResponse>('/transactions/my', { params });
+    console.log('📋 getMy response:', response.data);
+    return response.data;
+  }
+
+  // Получить мои транзакции (детальный эндпоинт для тимлида/админа)
+  async getMyTransactions(params?: {
+    status?: string;
+    platformId?: number;
+    shiftId?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<GetTransactionsResponse> {
+    console.log('🔍 transactionsService.getMyTransactions called');
+    const response = await apiClient.get<GetTransactionsResponse>('/transactions/my-transactions', { params });
+    console.log('📋 getMyTransactions response:', response.data);
     return response.data;
   }
 
@@ -95,7 +111,9 @@ class TransactionsService {
     status?: string;
     type?: string;
   }): Promise<GetTransactionsResponse> {
+    console.log('🔍 transactionsService.getAll called');
     const response = await apiClient.get<GetTransactionsResponse>('/transactions', { params });
+    console.log('📋 getAll response:', response.data);
     return response.data;
   }
 

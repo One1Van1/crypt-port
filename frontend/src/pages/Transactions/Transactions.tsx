@@ -14,12 +14,16 @@ import {
 import { transactionsService } from '../../services/transactions.service';
 import { shiftsService } from '../../services/shifts.service';
 import { useAppStore } from '../../store/appStore';
+import { useAuthStore } from '../../store/authStore';
+import { UserRole } from '../../types/user.types';
 import CustomSelect from '../../components/CustomSelect/CustomSelect';
 import './Transactions.css';
 
 export default function Transactions() {
   const { t, i18n } = useTranslation();
   const timeFormat = useAppStore((state) => state.timeFormat);
+  const user = useAuthStore((state) => state.user);
+  const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
@@ -28,6 +32,8 @@ export default function Transactions() {
   const [maxAmount, setMaxAmount] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
   const limit = 10;
+
+  const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
 
   // Fetch shifts for filter
   const { data: shiftsData } = useQuery({
@@ -44,15 +50,27 @@ export default function Transactions() {
   const shifts = shiftsData?.items || [];
   const banks = banksData?.items || [];
 
-  // Fetch transactions
-  const { data, refetch } = useQuery({
-    queryKey: ['my-transactions', page, selectedShiftId],
-    queryFn: () => transactionsService.getMy({ 
+  // Fetch MY transactions
+  const { data: myTransactionsData, refetch: refetchMy } = useQuery({
+    queryKey: ['my-transactions-view', page, selectedShiftId],
+    queryFn: () => transactionsService.getMyTransactions({ 
+      shiftId: selectedShiftId || undefined,
+    }),
+    enabled: viewMode === 'my',
+  });
+
+  // Fetch ALL transactions (для админа/тимлида)
+  const { data: allTransactionsData, refetch: refetchAll } = useQuery({
+    queryKey: ['all-transactions', page, selectedShiftId],
+    queryFn: () => transactionsService.getAll({ 
       page, 
       limit,
-      shiftId: selectedShiftId ? Number(selectedShiftId) : undefined,
     }),
+    enabled: isTeamLeadOrAdmin && viewMode === 'all',
   });
+
+  const data = viewMode === 'my' ? myTransactionsData : allTransactionsData;
+  const refetch = viewMode === 'my' ? refetchMy : refetchAll;
 
   // Reset page when filters change
   useEffect(() => {
@@ -133,6 +151,24 @@ export default function Transactions() {
           <p className="transactions-subtitle">{t('transactions.subtitle')}</p>
         </div>
       </div>
+
+      {/* View Mode Switcher для тимлида и админа */}
+      {isTeamLeadOrAdmin && (
+        <div className="view-mode-switcher">
+          <button
+            className={`view-mode-btn ${viewMode === 'my' ? 'active' : ''}`}
+            onClick={() => setViewMode('my')}
+          >
+            {t('transactions.myTransactions')}
+          </button>
+          <button
+            className={`view-mode-btn ${viewMode === 'all' ? 'active' : ''}`}
+            onClick={() => setViewMode('all')}
+          >
+            {t('transactions.operatorsTransactions')}
+          </button>
+        </div>
+      )}
 
       <div className="transactions-filters">
         <div className="search-box">
@@ -274,6 +310,18 @@ export default function Transactions() {
                       <div className="bank-details">
                         <span>CBU: ...{(transaction.bankAccountCbu || transaction.bankAccount?.cbu || '').slice(-4)}</span>
                       </div>
+                      {/* Показываем оператора только во вкладке "Операции операторов" */}
+                      {viewMode === 'all' && transaction.operatorUsername && (
+                        <div className="operator-info">
+                          <span className="operator-label">{t('transactions.operator')}:</span>
+                          <span className="operator-name">
+                            {transaction.operatorUsername}
+                            {transaction.operatorEmail && (
+                              <span className="operator-email"> ({transaction.operatorEmail})</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="transaction-amount">

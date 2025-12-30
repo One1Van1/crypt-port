@@ -37,6 +37,9 @@ export class TransactionItemDto {
   @ApiProperty({ description: 'Operator username' })
   operatorUsername: string;
 
+  @ApiProperty({ description: 'Operator email' })
+  operatorEmail: string;
+
   @ApiProperty({ description: 'Creation date' })
   createdAt: Date;
 
@@ -51,6 +54,7 @@ export class TransactionItemDto {
     this.dropName = transaction.bankAccount?.drop?.name || 'Unknown';
     this.operatorId = transaction.operator?.id;
     this.operatorUsername = transaction.operator?.username || 'Unknown';
+    this.operatorEmail = transaction.operator?.email || 'Unknown';
     this.createdAt = transaction.createdAt;
   }
 }

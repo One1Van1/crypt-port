@@ -13,8 +13,7 @@ export class GetMyShiftsService {
   ) {}
 
   async execute(user: User): Promise<GetMyShiftsResponseDto> {
-    console.log('🔍 GetMyShiftsService.execute called');
-    console.log('👤 User:', { id: user.id, username: user.username, role: user.role });
+
     
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
@@ -23,17 +22,10 @@ export class GetMyShiftsService {
       .where('shift.operatorId = :operatorId', { operatorId: user.id })
       .orderBy('shift.startTime', 'DESC');
 
-    console.log('📝 SQL:', queryBuilder.getSql());
-    console.log('📊 Parameters:', queryBuilder.getParameters());
+
 
     const [items, total] = await queryBuilder.getManyAndCount();
 
-    console.log('✅ Found items:', items.length, 'Total:', total);
-    console.log('📋 Items operators:', items.map(s => ({ 
-      shiftId: s.id, 
-      operatorId: s.operatorId, 
-      operatorName: s.operator?.username 
-    })));
 
     return new GetMyShiftsResponseDto(items, total);
   }

@@ -16,10 +16,10 @@ export class GetAllTransactionsService {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.shift', 'shift')
+      .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .leftJoinAndSelect('transaction.platform', 'platform')
       .leftJoinAndSelect('transaction.operator', 'operator');
 
     // Фильтр по статусу
