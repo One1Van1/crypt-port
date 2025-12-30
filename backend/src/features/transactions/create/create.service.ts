@@ -30,7 +30,7 @@ export class CreateTransactionService {
     // 1. Проверяем активную смену оператора
     const activeShift = await this.shiftRepository.findOne({
       where: {
-        operator: { id: operator.id },
+        user: { id: operator.id },
         status: ShiftStatus.ACTIVE,
       },
       relations: ['platform', 'operator'],

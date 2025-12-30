@@ -92,8 +92,8 @@ export class GetShiftByIdResponseDto {
     this.status = shift.status;
     this.totalAmount = Number(shift.totalAmount);
     this.operationsCount = shift.operationsCount;
-    this.operatorId = shift.operator?.id;
-    this.operatorUsername = shift.operator?.username || 'Unknown';
+    this.operatorId = shift.user?.id;
+    this.operatorUsername = shift.user?.username || 'Unknown';
     this.platformId = shift.platform?.id;
     this.platformName = shift.platform?.name || 'Unknown';
     this.transactions = shift.transactions

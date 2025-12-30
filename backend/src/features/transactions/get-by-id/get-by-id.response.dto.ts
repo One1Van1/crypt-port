@@ -60,8 +60,8 @@ export class GetTransactionByIdResponseDto {
     this.bankName = transaction.bankAccount?.bank?.name || 'Unknown';
     this.dropId = transaction.bankAccount?.drop?.id;
     this.dropName = transaction.bankAccount?.drop?.name || 'Unknown';
-    this.operatorId = transaction.operator?.id;
-    this.operatorUsername = transaction.operator?.username || 'Unknown';
+    this.operatorId = transaction.user?.id;
+    this.operatorUsername = transaction.user?.username || 'Unknown';
     this.createdAt = transaction.createdAt;
     this.updatedAt = transaction.updatedAt;
   }

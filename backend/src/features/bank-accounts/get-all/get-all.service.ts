@@ -33,11 +33,6 @@ export class GetAllBankAccountsService {
       queryBuilder.andWhere('bankAccount.dropId = :dropId', { dropId: query.dropId });
     }
 
-    // Фильтр по пользователю (владельцу дропа)
-    if (query.userId) {
-      queryBuilder.andWhere('drop.userId = :userId', { userId: query.userId });
-    }
-
     // Поиск по CBU или alias
     if (query.search) {
       queryBuilder.andWhere(

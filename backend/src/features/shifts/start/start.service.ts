@@ -21,7 +21,7 @@ export class StartShiftService {
     // Проверяем, нет ли уже активной смены у оператора
     const activeShift = await this.shiftRepository.findOne({
       where: {
-        operator: { id: user.id },
+        user: { id: user.id },
         status: ShiftStatus.ACTIVE,
       },
     });
@@ -43,7 +43,7 @@ export class StartShiftService {
     const shift = this.shiftRepository.create({
       startTime: new Date(),
       status: ShiftStatus.ACTIVE,
-      operator: user,
+      user: user,
       platform,
     });
 
@@ -52,7 +52,7 @@ export class StartShiftService {
     // Загружаем с relations для response
     const shiftWithRelations = await this.shiftRepository.findOne({
       where: { id: savedShift.id },
-      relations: ['operator', 'platform'],
+      relations: ['user', 'platform'],
     });
 
     return new StartShiftResponseDto(shiftWithRelations);

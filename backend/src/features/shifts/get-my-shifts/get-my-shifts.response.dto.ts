@@ -65,9 +65,9 @@ class MyShiftItemDto {
     this.totalAmount = Number(shift.totalAmount);
     this.operationsCount = shift.operationsCount;
     this.operator = {
-      id: shift.operator?.id || 0,
-      username: shift.operator?.username || 'Unknown',
-      email: shift.operator?.email || '',
+      id: shift.user?.id || 0,
+      username: shift.user?.username || 'Unknown',
+      email: shift.user?.email || '',
     };
     this.platform = {
       id: shift.platform?.id || 0,

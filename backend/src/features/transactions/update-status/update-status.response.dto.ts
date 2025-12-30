@@ -42,7 +42,7 @@ export class UpdateTransactionStatusResponseDto {
     this.bankAccountCbu = transaction.bankAccount?.cbu || 'Unknown';
     this.bankName = transaction.bankAccount?.bank?.name || 'Unknown';
     this.dropName = transaction.bankAccount?.drop?.name || 'Unknown';
-    this.operatorUsername = transaction.operator?.username || 'Unknown';
+    this.operatorUsername = transaction.user?.username || 'Unknown';
     this.updatedAt = transaction.updatedAt;
   }
 }

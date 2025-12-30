@@ -37,8 +37,8 @@ export class StartShiftResponseDto {
     this.status = shift.status;
     this.platformId = shift.platform?.id;
     this.platformName = shift.platform?.name;
-    this.operatorId = shift.operator?.id;
-    this.operatorUsername = shift.operator?.username;
+    this.operatorId = shift.user?.id;
+    this.operatorUsername = shift.user?.username;
     this.createdAt = shift.createdAt;
   }
 }

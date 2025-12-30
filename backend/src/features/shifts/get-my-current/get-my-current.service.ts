@@ -16,7 +16,7 @@ export class GetMyCurrentShiftService {
   async execute(user: User): Promise<GetMyCurrentShiftResponseDto | null> {
     const activeShift = await this.shiftRepository.findOne({
       where: {
-        operator: { id: user.id },
+        user: { id: user.id },
         status: ShiftStatus.ACTIVE,
       },
       relations: ['platform', 'operator'],

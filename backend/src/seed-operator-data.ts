@@ -99,7 +99,6 @@ async function seedOperatorData() {
         drop = dropRepository.create({
           ...dropData,
           status: DropStatus.ACTIVE,
-          userId: operator.id,
         });
         await dropRepository.save(drop);
         console.log(`  ✅ Создан дроп: ${drop.name}`);

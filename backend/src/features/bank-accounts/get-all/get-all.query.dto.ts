@@ -40,16 +40,4 @@ export class GetAllBankAccountsQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
-
-  @ApiProperty({
-    description: 'Filter by user ID (drop owner)',
-    example: 17,
-    required: false,
-    type: Number,
-  })
-  @Type(() => Number)
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  userId?: number;
 }

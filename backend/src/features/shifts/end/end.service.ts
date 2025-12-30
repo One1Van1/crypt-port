@@ -17,7 +17,7 @@ export class EndShiftService {
     // Находим смену
     const shift = await this.shiftRepository.findOne({
       where: { id },
-      relations: ['operator', 'platform', 'transactions'],
+      relations: ['user', 'platform', 'transactions'],
     });
 
     if (!shift) {
@@ -25,7 +25,7 @@ export class EndShiftService {
     }
 
     // Проверяем, что это смена текущего оператора
-    if (shift.operator.id !== user.id) {
+    if (shift.user.id !== user.id) {
       throw new ForbiddenException('You can only end your own shifts');
     }
 

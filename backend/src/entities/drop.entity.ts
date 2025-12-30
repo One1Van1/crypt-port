@@ -1,8 +1,7 @@
-import { Entity, Column, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { DropStatus } from '../common/enums/drop.enum';
 import { BankAccount } from './bank-account.entity';
-import { User } from './user.entity';
 
 @Entity('drops')
 export class Drop extends BaseEntity {
@@ -18,13 +17,6 @@ export class Drop extends BaseEntity {
     default: DropStatus.ACTIVE,
   })
   status: DropStatus;
-
-  @Column({ nullable: true, name: 'user_id' })
-  userId: number;
-
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
 
   @OneToMany(() => BankAccount, (bankAccount) => bankAccount.drop)
   bankAccounts: BankAccount[];
