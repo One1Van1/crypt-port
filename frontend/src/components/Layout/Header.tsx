@@ -21,7 +21,15 @@ export default function Header() {
   return (
     <header className="header">
       <div className="header-left">
-        <h1 className="header-title">{t('common.welcome')}</h1>
+        <div className="header-logo">
+          <span className="logo-part">crypt</span>
+          <svg className="logo-bubble" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="49" cy="59" r="28" fill="currentColor"/>
+            <path d="M 50 30 L 87 84 L 50 82 Z" fill="currentColor"/>
+            <circle cx="49" cy="59" r="10" fill="var(--bg-secondary)"/>
+          </svg>
+          <span className="logo-part">port</span>
+        </div>
       </div>
 
       <div className="header-right">

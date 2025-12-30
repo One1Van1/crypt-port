@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -10,7 +11,9 @@ import {
   Users,
   UserCog,
   Building2,
-  UserSquare2
+  UserSquare2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -18,6 +21,7 @@ import './Sidebar.css';
 export default function Sidebar() {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
@@ -37,40 +41,46 @@ export default function Sidebar() {
   );
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <Droplet size={32} color="#5b6cf5" />
-          <span>Crypto Port</span>
-        </div>
-      </div>
-
-      <nav className="sidebar-nav">
-        {visibleNavItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => 
-              `nav-item ${isActive ? 'active' : ''}`
-            }
-          >
-            <item.icon size={20} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="user-info">
-          <div className="user-avatar">
-            {user?.username[0].toUpperCase()}
-          </div>
-          <div className="user-details">
-            <div className="user-name">{user?.username}</div>
-            <div className="user-role">{user?.role}</div>
+    <>
+      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="user-info">
+            <div className="user-avatar">
+              {user?.username[0].toUpperCase()}
+            </div>
+            {!isCollapsed && (
+              <div className="user-details">
+                <div className="user-name">{user?.username}</div>
+                <div className="user-role">{user?.role}</div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </aside>
+
+        <nav className="sidebar-nav">
+          {visibleNavItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => 
+                `nav-item ${isActive ? 'active' : ''}`
+              }
+              title={isCollapsed ? item.label : undefined}
+            >
+              <item.icon size={20} />
+              {!isCollapsed && <span>{item.label}</span>}
+            </NavLink>
+          ))}
+        </nav>
+      </aside>
+
+      <button 
+        className="sidebar-corner-toggle"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        title={isCollapsed ? 'Развернуть' : 'Свернуть'}
+      >
+        {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+      </button>
+    </>
   );
 }
