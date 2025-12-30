@@ -72,6 +72,7 @@ const OperatorBanks = () => {
     const statusMap: { [key: string]: string } = {
       active: 'status-active',
       inactive: 'status-inactive',
+      frozen: 'status-frozen',
       working: 'status-working',
       idle: 'status-idle',
       blocked: 'status-blocked',

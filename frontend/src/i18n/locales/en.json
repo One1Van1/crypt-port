@@ -52,11 +52,10 @@
   "nav": {
     "dashboard": "Home",
     "operatorDashboard": "Workspace",
-    "operatorBanks": "Banks",
-    "operatorDrops": "Drops",
+    "banks": "Banks",
+    "drops": "Drops",
     "teamleadDashboard": "Team Lead",
     "users": "Users",
-    "drops": "Drops",
     "withdraw": "Withdraw",
     "analytics": "Analytics",
     "operators": "Operators",
@@ -300,6 +299,7 @@
     "completed": "Completed",
     "failed": "Failed",
     "cancelled": "Cancelled",
-    "idle": "Idle"
+    "idle": "Idle",
+    "frozen": "Frozen"
   }
 }

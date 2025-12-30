@@ -9,7 +9,6 @@ import Layout from './components/Layout/Layout';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
-import Drops from './pages/Drops/Drops';
 import Analytics from './pages/Analytics/Analytics';
 import BankAccounts from './pages/BankAccounts/BankAccounts';
 import Operators from './pages/Operators/Operators';
@@ -79,10 +78,9 @@ function App() {
                   <Route path="/users" element={<Users />} />
                   <Route path="/operators" element={<Operators />} />
                   <Route path="/operator-dashboard" element={<OperatorDashboard />} />
-                  <Route path="/operator-banks" element={<OperatorBanks />} />
-                  <Route path="/operator-drops" element={<OperatorDrops />} />
+                  <Route path="/banks" element={<OperatorBanks />} />
+                  <Route path="/drops" element={<OperatorDrops />} />
                   <Route path="/teamlead-dashboard" element={<TeamLeadDashboard />} />
-                  <Route path="/drops" element={<Drops />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />
                   <Route path="/shifts" element={<Shifts />} />

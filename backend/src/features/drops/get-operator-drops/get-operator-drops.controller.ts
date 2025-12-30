@@ -18,7 +18,7 @@ export class GetOperatorDropsController {
   constructor(private readonly service: GetOperatorDropsService) {}
 
   @Get('operator/my-drops')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetOperatorDrops()
   async handle(@CurrentUser() user: User): Promise<GetOperatorDropsResponseDto> {
     return this.service.execute(user.id);

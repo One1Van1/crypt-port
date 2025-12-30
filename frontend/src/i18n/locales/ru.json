@@ -52,11 +52,10 @@
   "nav": {
     "dashboard": "Рабочая панель",
     "operatorDashboard": "Рабочая панель",
-    "operatorBanks": "Банки",
-    "operatorDrops": "Дропы",
+    "banks": "Банки",
+    "drops": "Дропы",
     "teamleadDashboard": "Панель тимлида",
     "users": "Пользователи",
-    "drops": "Дропы",
     "withdraw": "Вывод средств",
     "analytics": "Аналитика",
     "operators": "Операторы",
@@ -300,6 +299,7 @@
     "completed": "Завершён",
     "failed": "Ошибка",
     "cancelled": "Отменён",
-    "idle": "Простой"
+    "idle": "Простой",
+    "frozen": "Заморожен"
   }
 }

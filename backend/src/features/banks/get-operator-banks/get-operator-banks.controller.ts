@@ -18,7 +18,7 @@ export class GetOperatorBanksController {
   constructor(private readonly service: GetOperatorBanksService) {}
 
   @Get('operator/my-banks')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetOperatorBanks()
   async handle(@CurrentUser() user: User): Promise<GetOperatorBanksResponseDto> {
     return this.service.execute(user.id);
