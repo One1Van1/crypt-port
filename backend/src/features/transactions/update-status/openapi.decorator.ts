@@ -5,8 +5,8 @@ import { UpdateTransactionStatusResponseDto } from './update-status.response.dto
 export const ApiUpdateTransactionStatus = () =>
   applyDecorators(
     ApiOperation({ 
-      summary: '🟡 [ADMIN, TEAMLEAD] Update transaction status',
-      description: 'Updates transaction status. If cancelled from PENDING, returns balance to bank account',
+      summary: '🟡 [ADMIN, TEAMLEAD] Update transaction status (mainly for cancellation)',
+      description: 'Updates transaction status. Transactions are created as COMPLETED (operator confirms fact). This endpoint is used to cancel erroneously created operations (COMPLETED -> FAILED), which returns balance to bank account',
     }),
     ApiOkResponse({
       description: 'Transaction status updated',

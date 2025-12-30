@@ -27,14 +27,14 @@ export class UpdateTransactionStatusService {
       throw new NotFoundException('Transaction not found');
     }
 
-    // Нельзя изменить статус завершенной транзакции
-    if (transaction.status === TransactionStatus.COMPLETED) {
-      throw new BadRequestException('Cannot change status of completed transaction');
-    }
-
     // Нельзя изменить статус проваленной транзакции
     if (transaction.status === TransactionStatus.FAILED) {
       throw new BadRequestException('Cannot change status of failed transaction');
+    }
+
+    // Можно изменить только COMPLETED → FAILED (отмена ошибочной операции)
+    if (transaction.status === TransactionStatus.COMPLETED && dto.status !== TransactionStatus.FAILED) {
+      throw new BadRequestException('Can only cancel completed transaction (change to FAILED)');
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -42,8 +42,10 @@ export class UpdateTransactionStatusService {
     await queryRunner.startTransaction();
 
     try {
+      // IMPORTANT: Транзакции создаются сразу как COMPLETED (оператор фиксирует факт)
+      // Этот endpoint используется только для отмены ошибочно созданных операций
       // Если помечаем транзакцию как проваленную — возвращаем баланс
-      if (dto.status === TransactionStatus.FAILED && transaction.status === TransactionStatus.PENDING) {
+      if (dto.status === TransactionStatus.FAILED && transaction.status === TransactionStatus.COMPLETED) {
         const bankAccount = await queryRunner.manager.findOne(BankAccount, {
           where: { id: transaction.bankAccount.id },
           lock: { mode: 'pessimistic_write' },

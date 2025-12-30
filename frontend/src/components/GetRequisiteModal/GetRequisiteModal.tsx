@@ -26,7 +26,7 @@ interface GetRequisiteModalProps {
 
 type Step = 'loading' | 'display' | 'amount' | 'success';
 
-export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetRequisiteModalProps) {
+export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModalProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>('loading');
@@ -101,10 +101,10 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
       queryClient.invalidateQueries({ queryKey: ['my-transactions-recent'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
       setStep('success');
-      toast.success('Транзакция успешно создана!');
+      toast.success('Операция успешно зафиксирована!');
     },
     onError: (error: any) => {
-      const errorMsg = error?.response?.data?.message || 'Ошибка при создании транзакции';
+      const errorMsg = error?.response?.data?.message || 'Ошибка при фиксации операции';
       setError(errorMsg);
       toast.error(errorMsg);
     },
@@ -341,7 +341,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                   className={error ? 'error' : ''}
                   autoFocus
                 />
-                <span className="hint">Доступно: {formatCurrency(availableAmount)}</span>
+                <span className="hint">Введите фактическую сумму, которую вывели. Доступно: {formatCurrency(availableAmount)}</span>
               </div>
 
               <div className="form-group">
@@ -370,7 +370,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
                   onClick={handleSubmitAmount}
                   disabled={createTransaction.isPending}
                 >
-                  {createTransaction.isPending ? 'Обработка...' : 'Подтвердить вывод ✓'}
+                  {createTransaction.isPending ? 'Фиксируем...' : 'Зафиксировать операцию ✓'}
                 </button>
               </div>
             </div>
@@ -380,7 +380,7 @@ export default function GetRequisiteModal({ isOpen, onClose, onSuccess }: GetReq
           {step === 'success' && requisite && (
             <div className="step-success">
               <CheckCircle size={64} className="success-icon" />
-              <h3>Операция выполнена успешно!</h3>
+              <h3>Операция зафиксирована!</h3>
               
               <div className="success-details">
                 <div className="detail-item">

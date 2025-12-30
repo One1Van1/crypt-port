@@ -79,10 +79,10 @@ export class CreateTransactionService {
 
       const bankAccount = bankAccounts[0];
 
-      // 5. Создаем транзакцию
+      // 5. Создаем транзакцию (сразу COMPLETED, т.к. оператор вводит факт выполненной операции)
       const transaction = queryRunner.manager.create(Transaction, {
         amount: dto.amount,
-        status: TransactionStatus.PENDING,
+        status: TransactionStatus.COMPLETED,
         comment: dto.comment,
         shift: activeShift,
         bankAccount: bankAccount,
