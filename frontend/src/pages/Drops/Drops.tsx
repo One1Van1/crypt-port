@@ -34,7 +34,7 @@ export default function Drops() {
   });
 
   // Fetch drops
-  const { data, isLoading, refetch } = useQuery({
+  const { data, refetch } = useQuery({
     queryKey: ['drops', searchQuery, statusFilter],
     queryFn: async () => {
       const params: any = { 
@@ -163,7 +163,6 @@ export default function Drops() {
   const activeCount = drops.filter(d => d.status === DropStatus.ACTIVE).length;
   const frozenCount = drops.filter(d => d.status === DropStatus.FROZEN).length;
 
-  const isAdmin = user?.role === UserRole.ADMIN;
   const canEdit = user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD;
 
   return (
