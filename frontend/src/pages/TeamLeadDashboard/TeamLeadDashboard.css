@@ -138,45 +138,114 @@
 /* Таблица реквизитов */
 .requisites-table {
   overflow-x: auto;
+  width: 100%;
+  border-radius: 8px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.requisites-table.reordering {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Кастомный скроллбар */
+.requisites-table::-webkit-scrollbar {
+  height: 8px;
+}
+
+.requisites-table::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+  border-radius: 4px;
+}
+
+.requisites-table::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.requisites-table::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
 }
 
 .requisites-table table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
 }
 
 .requisites-table th,
 .requisites-table td {
-  padding: 1rem;
-  text-align: left;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+/* Sticky первая колонка */
+.requisites-table th:first-child,
+.requisites-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--bg-secondary);
+  z-index: 1;
+  min-width: 90px;
+}
+
+.requisites-table tbody tr:hover td:first-child {
+  background: var(--bg-hover);
 }
 
 .requisites-table th {
   font-weight: 600;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  background: var(--bg-secondary);
 }
 
 .requisites-table td {
   color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.requisites-table tbody tr {
+  opacity: 1;
+  position: relative;
 }
 
 .requisites-table tbody tr:hover {
   background: var(--bg-hover);
 }
 
+.requisites-table tbody tr.updating-row {
+  opacity: 1;
+  background: var(--bg-hover);
+}
+
+/* Убираем старую анимацию reorder */
+
 .priority-input {
-  width: 70px;
-  padding: 0.5rem;
+  width: 60px;
+  padding: 0.4rem;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 1rem;
-  text-align: center;
+  font-size: 0.95rem;
+  text-align: center !important;
+}
+
+/* Убираем стрелочки у input[type="number"] */
+.priority-input::-webkit-outer-spin-button,
+.priority-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.priority-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .priority-input:focus {
@@ -191,11 +260,21 @@
 
 .cbu-cell {
   font-family: 'Courier New', monospace;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .amount-cell {
   font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.saving-indicator {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .status-badge {

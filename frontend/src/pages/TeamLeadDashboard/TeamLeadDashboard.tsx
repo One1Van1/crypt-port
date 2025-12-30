@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Users, TrendingUp, Clock, Award } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
@@ -75,6 +75,8 @@ function RequisitesSection() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const rowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map());
+  const positionsRef = useRef<Map<number, DOMRect>>(new Map());
 
   useEffect(() => {
     loadAccounts();
@@ -94,15 +96,80 @@ function RequisitesSection() {
   };
 
   const handlePriorityChange = async (accountId: number, newPriority: number) => {
+    if (isNaN(newPriority)) return;
+    
     setUpdating(accountId);
+
     try {
+      // Сохраняем старые позиции BEFORE update
+      positionsRef.current.clear();
+      rowRefs.current.forEach((row, id) => {
+        if (row) {
+          positionsRef.current.set(id, row.getBoundingClientRect());
+        }
+      });
+
       await bankAccountsService.updatePriority(accountId.toString(), newPriority);
       await loadAccounts();
+      
+      // Ждём полного рендера DOM перед анимацией
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          rowRefs.current.forEach((row, id) => {
+            if (row) {
+              const oldPos = positionsRef.current.get(id);
+              const newPos = row.getBoundingClientRect();
+              
+              if (oldPos) {
+                const deltaY = oldPos.top - newPos.top;
+                
+                if (Math.abs(deltaY) > 1) {
+                  // Мгновенно перемещаем в старую позицию
+                  row.style.transform = `translateY(${deltaY}px)`;
+                  row.style.transition = 'none';
+                  
+                  // Запускаем анимацию к новой позиции
+                  requestAnimationFrame(() => {
+                    row.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    row.style.transform = 'translateY(0)';
+                    
+                    setTimeout(() => {
+                      row.style.transition = '';
+                      row.style.transform = '';
+                    }, 800);
+                  });
+                }
+              }
+            }
+          });
+        });
+      }, 10);
     } catch (error) {
       console.error('Failed to update priority:', error);
+      await loadAccounts();
     } finally {
       setUpdating(null);
     }
+  };
+
+  const handlePriorityInput = (accountId: number, newValue: string) => {
+    // Разрешаем пустое поле и любые цифры при вводе
+    // Блокируем только если явно больше 99
+    if (newValue !== '') {
+      const numValue = parseInt(newValue);
+      if (!isNaN(numValue) && numValue > 99) {
+        return; // Не даем ввести больше 99
+      }
+    }
+    
+    // Локальное обновление при вводе (сохраняем как есть)
+    setAccounts(prevAccounts => 
+      prevAccounts.map(account => 
+        account.id === accountId 
+          ? { ...account, priority: newValue === '' ? '' as any : parseInt(newValue) || '' as any }
+          : account
+      )
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -139,32 +206,51 @@ function RequisitesSection() {
           <table>
             <thead>
               <tr>
-                <th>{t('teamlead.priority')}</th>
-                <th>{t('bankAccounts.bank')}</th>
-                <th>{t('bankAccounts.cbu')}</th>
-                <th>{t('bankAccounts.alias')}</th>
-                <th>{t('bankAccounts.status')}</th>
-                <th>{t('teamlead.available')}</th>
-                <th>{t('teamlead.actions')}</th>
+                <th>Приоритет</th>
+                <th>Банк</th>
+                <th>CBU</th>
+                <th>Alias</th>
+                <th>Статус</th>
+                <th>Доступно / Лимит</th>
               </tr>
             </thead>
             <tbody>
               {accounts.map((account) => {
                 const status = getStatusBadge(account.status);
-                const limitAmount = account.limitAmount || 0;
+                const limitAmount = account.limit || 0;
                 const withdrawnAmount = account.withdrawnAmount || 0;
                 const available = limitAmount - withdrawnAmount;
                 return (
-                  <tr key={account.id}>
+                  <tr 
+                    key={account.id}
+                    ref={(el) => {
+                      if (el) {
+                        rowRefs.current.set(account.id, el);
+                      } else {
+                        rowRefs.current.delete(account.id);
+                      }
+                    }}
+                    className={updating === account.id ? 'updating-row' : ''}
+                  >
                     <td>
                       <input
                         type="number"
-                        value={account.priority || 0}
-                        onChange={(e) => handlePriorityChange(account.id, parseInt(e.target.value))}
+                        value={account.priority === '' ? '' : (account.priority || 1)}
+                        onChange={(e) => handlePriorityInput(account.id, e.target.value)}
+                        onBlur={(e) => {
+                          const value = parseInt(e.target.value) || 1;
+                          const validValue = Math.max(1, Math.min(99, value));
+                          handlePriorityChange(account.id, validValue);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.currentTarget.blur();
+                          }
+                        }}
                         disabled={updating === account.id}
                         className="priority-input"
-                        min="0"
-                        max="999"
+                        min="1"
+                        max="99"
                       />
                     </td>
                     <td>{account.bank?.name || account.bankName || '-'}</td>
@@ -177,12 +263,8 @@ function RequisitesSection() {
                     </td>
                     <td className="amount-cell">
                       ${available.toFixed(2)} / ${limitAmount.toFixed(2)}
-                    </td>
-                    <td>
-                      {updating === account.id ? (
-                        <span className="updating-text">{t('common.saving')}</span>
-                      ) : (
-                        <span className="priority-hint">{t('teamlead.changePriority')}</span>
+                      {updating === account.id && (
+                        <span className="saving-indicator"> (сохранение...)</span>
                       )}
                     </td>
                   </tr>
@@ -195,7 +277,6 @@ function RequisitesSection() {
     </div>
   );
 }
-
 // Секция контроля операторов
 function OperatorsSection() {
   const { t } = useTranslation();

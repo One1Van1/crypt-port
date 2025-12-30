@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Length, Matches, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Length, Matches, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBankAccountRequestDto {
@@ -46,13 +46,15 @@ export class CreateBankAccountRequestDto {
   limitAmount: number;
 
   @ApiProperty({
-    description: 'Priority (lower number = higher priority)',
+    description: 'Priority (lower number = higher priority, from 1 to 99)',
     example: 1,
     minimum: 1,
+    maximum: 99,
     required: false,
   })
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Max(99)
   priority?: number;
 }
