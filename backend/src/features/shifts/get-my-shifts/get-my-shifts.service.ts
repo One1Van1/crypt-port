@@ -17,9 +17,9 @@ export class GetMyShiftsService {
     
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
-      .leftJoinAndSelect('shift.operator', 'operator')
+      .leftJoinAndSelect('shift.user', 'user')
       .leftJoinAndSelect('shift.platform', 'platform')
-      .where('shift.operatorId = :operatorId', { operatorId: user.id })
+      .where('shift.userId = :userId', { userId: user.id })
       .orderBy('shift.startTime', 'DESC');
 
 

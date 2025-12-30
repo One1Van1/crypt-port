@@ -14,7 +14,7 @@ export class GetDropTransactionsForOperatorService {
 
   async execute(
     dropId: number,
-    operatorId: number,
+    userId: number,
     query: GetDropTransactionsForOperatorQueryDto,
   ): Promise<GetDropTransactionsForOperatorResponseDto> {
     const limit = query.limit || 5;
@@ -27,7 +27,7 @@ export class GetDropTransactionsForOperatorService {
       .leftJoinAndSelect('ba.bank', 'bank')
       .leftJoinAndSelect('ba.drop', 'drop')
       .where('drop.id = :dropId', { dropId })
-      .andWhere('t.operatorId = :operatorId', { operatorId })
+      .andWhere('t.userId = :userId', { userId })
       .orderBy('t.createdAt', 'DESC')
       .take(limit)
       .skip(skip);

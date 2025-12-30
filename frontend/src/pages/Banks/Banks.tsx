@@ -5,9 +5,9 @@ import {
   OperatorBank,
   TransactionForOperator,
 } from '../../services/operator.service';
-import './OperatorBanks.css';
+import './Banks.css';
 
-const OperatorBanks = () => {
+const Banks = () => {
   const { t } = useTranslation();
   const [banks, setBanks] = useState<OperatorBank[]>([]);
   const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
@@ -210,4 +210,4 @@ const OperatorBanks = () => {
   );
 };
 
-export default OperatorBanks;
+export default Banks;

@@ -37,10 +37,10 @@ export class Transaction extends BaseEntity {
   @JoinColumn({ name: 'shift_id' })
   shift: Shift;
 
-  @Column({ name: 'operator_id' })
-  operatorId: number;
+  @Column({ name: 'user_id' })
+  userId: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'operator_id' })
-  operator: User;
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }

@@ -15,9 +15,8 @@ import Operators from './pages/Operators/Operators';
 import Users from './pages/Users/Users';
 import Shifts from './pages/Shifts/Shifts';
 import Transactions from './pages/Transactions/Transactions';
-import OperatorDashboard from './pages/OperatorDashboard/OperatorDashboard';
-import OperatorBanks from './pages/OperatorBanks/OperatorBanks';
-import OperatorDrops from './pages/OperatorDrops/OperatorDrops';
+import Banks from './pages/Banks/Banks';
+import Drops from './pages/Drops/Drops';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
 
 export const queryClient = new QueryClient();
@@ -77,9 +76,8 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/users" element={<Users />} />
                   <Route path="/operators" element={<Operators />} />
-                  <Route path="/operator-dashboard" element={<OperatorDashboard />} />
-                  <Route path="/banks" element={<OperatorBanks />} />
-                  <Route path="/drops" element={<OperatorDrops />} />
+                  <Route path="/banks" element={<Banks />} />
+                  <Route path="/drops" element={<Drops />} />
                   <Route path="/teamlead-dashboard" element={<TeamLeadDashboard />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />

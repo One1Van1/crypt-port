@@ -21,7 +21,7 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .where('transaction.operatorId = :operatorId', { operatorId: operator.id });
+      .where('transaction.userId = :userId', { userId: operator.id });
 
     // Фильтр по статусу
     if (query.status) {

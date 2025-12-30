@@ -18,7 +18,7 @@ export class GetMyBanksService {
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
-      .where('transaction.operatorId = :operatorId', { operatorId: operator.id })
+      .where('transaction.userId = :userId', { userId: operator.id })
       .andWhere('bankAccount.bank IS NOT NULL')
       .getMany();
 

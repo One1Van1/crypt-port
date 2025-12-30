@@ -16,9 +16,9 @@ export class GetTransactionsStatsService {
   async execute(query: GetTransactionsStatsQueryDto): Promise<GetTransactionsStatsResponseDto> {
     const queryBuilder = this.transactionRepository.createQueryBuilder('transaction');
 
-    // Фильтр по оператору
-    if (query.operatorId) {
-      queryBuilder.andWhere('transaction.operatorId = :operatorId', { operatorId: query.operatorId });
+    // Фильтр по пользователю
+    if (query.userId) {
+      queryBuilder.andWhere('transaction.userId = :userId', { userId: query.userId });
     }
 
     // Фильтр по платформе

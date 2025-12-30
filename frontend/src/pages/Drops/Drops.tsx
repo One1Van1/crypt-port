@@ -1,385 +1,197 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  UserX, 
-  Search, 
-  Plus, 
-  RefreshCw, 
-  Edit2, 
-  Snowflake,
-  CheckCircle,
-  MessageSquare,
-  User,
-  Calendar
-} from 'lucide-react';
-import { dropsService, Drop, DropStatus } from '../../services/drops.service';
-import { useAuthStore } from '../../store/authStore';
-import { UserRole } from '../../types/user.types';
+import {
+  operatorService,
+  OperatorDrop,
+  TransactionForOperator,
+} from '../../services/operator.service';
 import './Drops.css';
 
-export default function Drops() {
+const Drops = () => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const user = useAuthStore((state) => state.user);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'frozen'>('all');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDrop, setSelectedDrop] = useState<Drop | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    comment: '',
-    userId: 0,
-  });
+  const [drops, setDrops] = useState<OperatorDrop[]>([]);
+  const [selectedDropId, setSelectedDropId] = useState<number | null>(null);
+  const [dropTransactions, setDropTransactions] = useState<TransactionForOperator[]>([]);
+  const [dropTransactionsTotal, setDropTransactionsTotal] = useState(0);
+  const [showFullDropHistory, setShowFullDropHistory] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Fetch drops
-  const { data, refetch } = useQuery({
-    queryKey: ['drops', searchQuery, statusFilter],
-    queryFn: async () => {
-      const params: any = { 
-        search: searchQuery,
-        limit: 100 
-      };
-      
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
-      
-      const response = await dropsService.getAll(params);
-      return response;
-    },
-  });
+  useEffect(() => {
+    fetchDrops();
+  }, []);
 
-  // Create mutation
-  const createMutation = useMutation({
-    mutationFn: (data: { name: string; comment?: string; userId?: number }) => 
-      dropsService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['drops'] });
-      setIsCreateModalOpen(false);
-      resetForm();
-    },
-  });
-
-  // Update mutation
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
-      dropsService.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['drops'] });
-      setIsEditModalOpen(false);
-      setSelectedDrop(null);
-      resetForm();
-    },
-  });
-
-  // Update status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: DropStatus }) => 
-      dropsService.updateStatus(id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['drops'] });
-    },
-  });
-
-  const resetForm = () => {
-    setFormData({ name: '', comment: '', userId: 0 });
+  const fetchDrops = async () => {
+    try {
+      const data = await operatorService.getMyDrops();
+      setDrops(data.drops);
+    } catch (error) {
+      console.error('Error fetching drops:', error);
+    }
   };
 
-  const handleCreate = () => {
-    setIsCreateModalOpen(true);
-    resetForm();
-  };
-
-  const handleEdit = (drop: Drop) => {
-    setSelectedDrop(drop);
-    setFormData({
-      name: drop.name,
-      comment: drop.comment || '',
-      userId: drop.userId || 0,
-    });
-    setIsEditModalOpen(true);
-  };
-
-  const handleSubmitCreate = () => {
-    if (!formData.name.trim()) {
-      alert('Name is required');
+  const handleDropClick = async (dropId: number) => {
+    if (selectedDropId === dropId && !showFullDropHistory) {
+      setSelectedDropId(null);
+      setDropTransactions([]);
       return;
     }
-    createMutation.mutate({
-      name: formData.name,
-      comment: formData.comment || undefined,
-      userId: formData.userId || undefined,
-    });
-  };
 
-  const handleSubmitEdit = () => {
-    if (!selectedDrop) return;
-    if (!formData.name.trim()) {
-      alert('Name is required');
-      return;
-    }
-    updateMutation.mutate({
-      id: selectedDrop.id,
-      data: {
-        name: formData.name,
-        comment: formData.comment || undefined,
-        userId: formData.userId || undefined,
-      },
-    });
-  };
+    setLoading(true);
+    setSelectedDropId(dropId);
+    setShowFullDropHistory(false);
 
-  const handleToggleStatus = (drop: Drop) => {
-    const newStatus = drop.status === DropStatus.ACTIVE ? DropStatus.FROZEN : DropStatus.ACTIVE;
-    const action = newStatus === DropStatus.FROZEN ? t('drops.confirmFreeze') : t('drops.confirmActivate');
-    if (confirm(`${t('drops.confirmStatusChange')} (${action})?`)) {
-      updateStatusMutation.mutate({ id: drop.id, status: newStatus });
+    try {
+      const data = await operatorService.getDropTransactions(dropId, { limit: 5 });
+      setDropTransactions(data.items);
+      setDropTransactionsTotal(data.total);
+    } catch (error) {
+      console.error('Error fetching drop transactions:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusBadgeClass = (status: DropStatus) => {
-    return status === DropStatus.ACTIVE ? 'status-active' : 'status-frozen';
+  const loadFullDropHistory = async () => {
+    if (!selectedDropId) return;
+
+    setLoading(true);
+    try {
+      const data = await operatorService.getDropTransactions(selectedDropId, {
+        limit: 100,
+      });
+      setDropTransactions(data.items);
+      setShowFullDropHistory(true);
+    } catch (error) {
+      console.error('Error fetching full drop history:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(t('common.locale'), {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const getStatusBadge = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      active: 'status-active',
+      inactive: 'status-inactive',
+      frozen: 'status-frozen',
+      working: 'status-working',
+      idle: 'status-idle',
+      blocked: 'status-blocked',
+      pending: 'status-pending',
+      completed: 'status-completed',
+      failed: 'status-failed',
+      cancelled: 'status-cancelled',
+    };
+    return statusMap[status] || 'status-default';
   };
 
-  const drops = data?.items || [];
-  const filteredDrops = drops.filter((drop) => {
-    const matchesStatus = 
-      statusFilter === 'all' ? true :
-      statusFilter === 'active' ? drop.status === DropStatus.ACTIVE :
-      drop.status === DropStatus.FROZEN;
-    
-    return matchesStatus;
-  });
+  const translateStatus = (status: string) => {
+    return t(`statuses.${status}`, status);
+  };
 
-  const activeCount = drops.filter(d => d.status === DropStatus.ACTIVE).length;
-  const frozenCount = drops.filter(d => d.status === DropStatus.FROZEN).length;
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleString('ru-RU');
+  };
 
-  const canEdit = user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD;
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
 
   return (
-    <div className="drops-page">
-      <div className="drops-header">
-        <div>
-          <h1 className="drops-title">Drops Management</h1>
-          <p className="drops-subtitle">Manage physical persons (drops) for bank accounts</p>
-        </div>
-        {canEdit && (
-          <button className="btn-primary" onClick={handleCreate}>
-            <Plus size={18} />
-            Add Drop
-          </button>
-        )}
-      </div>
+    <div className="operator-drops">
+      <h1>Дропы</h1>
 
-      <div className="drops-filters">
-        <div className="search-box">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-tabs">
-          <button
-            className={`filter-tab ${statusFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('all')}
-          >
-            All <span className="count">{drops.length}</span>
-          </button>
-          <button
-            className={`filter-tab ${statusFilter === 'active' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('active')}
-          >
-            Active <span className="count">{activeCount}</span>
-          </button>
-          <button
-            className={`filter-tab ${statusFilter === 'frozen' ? 'active' : ''}`}
-            onClick={() => setStatusFilter('frozen')}
-          >
-            Frozen <span className="count">{frozenCount}</span>
-          </button>
-        </div>
-
-        <button className="btn-secondary" onClick={() => refetch()}>
-          <RefreshCw size={18} />
-          {t('common.refresh')}
-        </button>
-      </div>
-
-      <div className="drops-grid">
-        {filteredDrops.length === 0 ? (
-          <div className="empty-state">
-            <UserX size={48} />
-            <p>No drops found</p>
-          </div>
-        ) : (
-          filteredDrops.map((drop) => (
-            <div key={drop.id} className="drop-card">
-              <div className="drop-card-header">
-                <div className="drop-info">
-                  <div className="drop-avatar">
-                    {drop.name.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div className="drop-details">
-                    <h3 className="drop-name">{drop.name}</h3>
-                    {drop.user && (
-                      <span className="drop-user">
-                        <User size={12} />
-                        {drop.user.username}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="drop-actions">
-                  <button
-                    className={`status-badge-button ${getStatusBadgeClass(drop.status)}`}
-                    onClick={() => handleToggleStatus(drop)}
-                    disabled={updateStatusMutation.isPending || !canEdit}
-                  >
-                    {drop.status === DropStatus.ACTIVE ? (
-                      <>
-                        <CheckCircle size={14} />
-                        Active
-                      </>
-                    ) : (
-                      <>
-                        <Snowflake size={14} />
-                        Frozen
-                      </>
-                    )}
-                  </button>
-                </div>
+      <div className="section">
+        <h2>Дропы</h2>
+        <div className="drops-grid">
+          {drops.map((drop) => (
+            <div
+              key={drop.id}
+              className={`drop-card ${selectedDropId === drop.id ? 'selected' : ''}`}
+              onClick={() => handleDropClick(drop.id)}
+            >
+              <div className="drop-header">
+                <h3>{drop.name}</h3>
+                <span className={`status-badge ${getStatusBadge(drop.status)}`}>
+                  {translateStatus(drop.status)}
+                </span>
               </div>
 
-              <div className="drop-card-body">
-                {drop.comment && (
-                  <div className="drop-comment">
-                    <MessageSquare size={14} />
-                    <span>{drop.comment}</span>
-                  </div>
-                )}
+              {drop.comment && <p className="drop-comment">{drop.comment}</p>}
 
-                <div className="drop-meta">
-                  <div className="meta-item">
-                    <Calendar size={14} />
-                    <span>Created: {formatDate(drop.createdAt)}</span>
-                  </div>
+              <div className="drop-info">
+                <p>Счетов: {drop.accountsCount}</p>
+                <div className="drop-banks">
+                  <p className="drop-banks-title">Банки:</p>
+                  {drop.banks.map((bank) => (
+                    <span key={bank.id} className="bank-tag">
+                      {bank.name}
+                    </span>
+                  ))}
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-                {canEdit && (
-                  <button 
-                    className="btn-edit"
-                    onClick={() => handleEdit(drop)}
-                  >
-                    <Edit2 size={14} />
-                    Edit
+        {/* История транзакций дропа */}
+        {selectedDropId && (
+          <div className="transactions-history">
+            <h3>История транзакций дропа</h3>
+            {loading ? (
+              <p>Загрузка...</p>
+            ) : (
+              <>
+                <div className="transactions-list">
+                  {dropTransactions.length === 0 ? (
+                    <p>Нет транзакций</p>
+                  ) : (
+                    dropTransactions.map((tx) => (
+                      <div key={tx.id} className="transaction-item">
+                        <div className="transaction-main">
+                          <span className="transaction-amount">
+                            {formatCurrency(tx.amount)}
+                          </span>
+                          {tx.amountUSDT && (
+                            <span className="transaction-usdt">
+                              ${tx.amountUSDT.toFixed(2)}
+                            </span>
+                          )}
+                          <span className={`status-badge ${getStatusBadge(tx.status)}`}>
+                            {translateStatus(tx.status)}
+                          </span>
+                        </div>
+                        <div className="transaction-details">
+                          <span>
+                            {tx.bankAccountAlias} ({tx.bankAccountCbu})
+                          </span>
+                          {tx.bankName && <span>Банк: {tx.bankName}</span>}
+                        </div>
+                        <div className="transaction-meta">
+                          <span>{formatDate(tx.createdAt)}</span>
+                          {tx.comment && (
+                            <span className="transaction-comment">{tx.comment}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {dropTransactionsTotal > 5 && !showFullDropHistory && (
+                  <button className="load-more-btn" onClick={loadFullDropHistory}>
+                    Показать всю историю ({dropTransactionsTotal} транзакций)
                   </button>
                 )}
-              </div>
-            </div>
-          ))
+              </>
+            )}
+          </div>
         )}
       </div>
-
-      {/* Create Modal */}
-      {isCreateModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Add New Drop</h2>
-              <button className="modal-close" onClick={() => setIsCreateModalOpen(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter drop name or alias"
-                />
-              </div>
-              <div className="form-group">
-                <label>Comment</label>
-                <textarea
-                  value={formData.comment}
-                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                  placeholder="Optional comment"
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setIsCreateModalOpen(false)}>
-                Cancel
-              </button>
-              <button 
-                className="btn-primary" 
-                onClick={handleSubmitCreate}
-                disabled={createMutation.isPending}
-              >
-                {createMutation.isPending ? 'Creating...' : 'Create Drop'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {isEditModalOpen && selectedDrop && (
-        <div className="modal-overlay" onClick={() => setIsEditModalOpen(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Edit Drop</h2>
-              <button className="modal-close" onClick={() => setIsEditModalOpen(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group">
-                <label>Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter drop name or alias"
-                />
-              </div>
-              <div className="form-group">
-                <label>Comment</label>
-                <textarea
-                  value={formData.comment}
-                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                  placeholder="Optional comment"
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>
-                Cancel
-              </button>
-              <button 
-                className="btn-primary" 
-                onClick={handleSubmitEdit}
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? 'Updating...' : 'Update Drop'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-}
+};
+
+export default Drops;

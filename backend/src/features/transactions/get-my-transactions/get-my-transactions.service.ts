@@ -24,8 +24,8 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .leftJoinAndSelect('transaction.operator', 'operator')
-      .where('transaction.operatorId = :operatorId', { operatorId: user.id });
+      .leftJoinAndSelect('transaction.user', 'user')
+      .where('transaction.userId = :userId', { userId: user.id });
 
     // Фильтр по статусу
     if (query.status) {
@@ -70,8 +70,8 @@ export class GetMyTransactionsService {
       item.amount = transaction.amount;
       item.currency = 'ARS'; // Default currency
       item.status = transaction.status;
-      item.operatorId = String(transaction.operatorId);
-      item.operatorUsername = transaction.operator?.username || null;
+      item.userId = String(transaction.userId);
+      item.username = transaction.user?.username || null;
       item.platformId = transaction.shift?.platform?.id || null;
       item.platformName = transaction.shift?.platform?.name || null;
       item.shiftId = String(transaction.shiftId);

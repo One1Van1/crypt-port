@@ -20,16 +20,16 @@ export class GetAllTransactionsService {
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .leftJoinAndSelect('transaction.operator', 'operator');
+      .leftJoinAndSelect('transaction.user', 'user');
 
     // Фильтр по статусу
     if (query.status) {
       queryBuilder.andWhere('transaction.status = :status', { status: query.status });
     }
 
-    // Фильтр по оператору
-    if (query.operatorId) {
-      queryBuilder.andWhere('transaction.operatorId = :operatorId', { operatorId: query.operatorId });
+    // Фильтр по пользователю
+    if (query.userId) {
+      queryBuilder.andWhere('transaction.userId = :userId', { userId: query.userId });
     }
 
     // Фильтр по платформе

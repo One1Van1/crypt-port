@@ -14,11 +14,11 @@ export class TransactionItemDto {
   @ApiProperty({ enum: TransactionStatus, description: 'Transaction status' })
   status: TransactionStatus;
 
-  @ApiProperty({ description: 'Operator ID' })
-  operatorId: string;
+  @ApiProperty({ description: 'User ID' })
+  userId: string;
 
-  @ApiProperty({ description: 'Operator username', nullable: true })
-  operatorUsername: string | null;
+  @ApiProperty({ description: 'Username', nullable: true })
+  username: string | null;
 
   @ApiProperty({ description: 'Platform ID', nullable: true })
   platformId: number | null;

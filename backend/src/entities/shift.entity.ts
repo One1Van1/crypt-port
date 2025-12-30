@@ -29,12 +29,12 @@ export class Shift extends BaseEntity {
   })
   status: ShiftStatus;
 
-  @Column({ name: 'operator_id' })
-  operatorId: number;
+  @Column({ name: 'user_id' })
+  userId: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: 'operator_id' })
-  operator: User;
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
   @Column({ name: 'platform_id' })
   platformId: number;

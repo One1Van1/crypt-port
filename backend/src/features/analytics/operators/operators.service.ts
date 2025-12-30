@@ -33,7 +33,7 @@ export class GetOperatorsAnalyticsService {
       // Строим запрос смен
       const shiftsQuery = this.shiftRepository
         .createQueryBuilder('shift')
-        .where('shift.operatorId = :operatorId', { operatorId: operator.id })
+        .where('shift.userId = :userId', { userId: operator.id })
         .andWhere('shift.status = :status', { status: ShiftStatus.COMPLETED });
 
       if (query.startDate && query.endDate) {
@@ -52,7 +52,7 @@ export class GetOperatorsAnalyticsService {
       // Строим запрос транзакций
       const transactionsQuery = this.transactionRepository
         .createQueryBuilder('transaction')
-        .where('transaction.operatorId = :operatorId', { operatorId: operator.id });
+        .where('transaction.userId = :userId', { userId: operator.id });
 
       if (query.startDate && query.endDate) {
         transactionsQuery.andWhere('transaction.createdAt BETWEEN :startDate AND :endDate', {

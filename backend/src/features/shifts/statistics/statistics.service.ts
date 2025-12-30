@@ -18,9 +18,9 @@ export class GetShiftsStatisticsService {
       .createQueryBuilder('shift')
       .where('shift.status = :status', { status: ShiftStatus.COMPLETED });
 
-    // Фильтр по оператору
-    if (query.operatorId) {
-      queryBuilder.andWhere('shift.operatorId = :operatorId', { operatorId: query.operatorId });
+    // Фильтр по пользователю
+    if (query.userId) {
+      queryBuilder.andWhere('shift.userId = :userId', { userId: query.userId });
     }
 
     // Фильтр по площадке

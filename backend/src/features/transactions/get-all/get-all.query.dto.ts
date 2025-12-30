@@ -41,13 +41,13 @@ export class GetAllTransactionsQueryDto {
   status?: TransactionStatus;
 
   @ApiProperty({
-    description: 'Filter by operator ID',
+    description: 'Filter by user ID',
     example: '550e8400-e29b-41d4-a716-446655440000',
     required: false,
   })
   @IsOptional()
   @IsUUID()
-  operatorId?: string;
+  userId?: string;
 
   @ApiProperty({
     description: 'Filter by platform ID',
