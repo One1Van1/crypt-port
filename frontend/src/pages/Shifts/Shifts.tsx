@@ -35,13 +35,29 @@ export default function Shifts() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
 
-  // Check if user is operator
+  // Check if user is operator, teamlead or admin
   useEffect(() => {
     if (user && user.role !== UserRole.OPERATOR && user.role !== UserRole.ADMIN && user.role !== UserRole.TEAMLEAD) {
       navigate('/dashboard');
     }
   }, [user?.role, navigate]);
+
+  // Определяем, является ли пользователь тимлидом или админом
+  const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+
+  // Debug: log when viewMode changes
+  useEffect(() => {
+    const token = useAuthStore.getState().accessToken;
+    console.log('📋 ViewMode changed:', {
+      viewMode,
+      isTeamLeadOrAdmin,
+      userRole: user?.role,
+      hasToken: !!token,
+      tokenLength: token?.length || 0,
+    });
+  }, [viewMode, isTeamLeadOrAdmin, user?.role]);
 
   // Update current time every second
   useEffect(() => {
@@ -78,14 +94,27 @@ export default function Shifts() {
     refetchOnWindowFocus: false,
   });
 
-  // Fetch all shifts
-  const { data: allShiftsData } = useQuery({
+  // Fetch my shifts
+  const { data: myShiftsData } = useQuery({
     queryKey: ['my-shifts'],
     queryFn: async () => {
       const result = await shiftsService.getMyShifts();
       console.log('My shifts loaded:', result);
       return result;
     },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch all shifts (for teamlead/admin)
+  const { data: allShiftsData, isLoading: isLoadingAllShifts } = useQuery({
+    queryKey: ['all-shifts'],
+    queryFn: async () => {
+      const result = await shiftsService.getAll({ limit: 1000 });
+      console.log('All shifts loaded:', result);
+      return result;
+    },
+    enabled: isTeamLeadOrAdmin,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -177,16 +206,25 @@ export default function Shifts() {
   };
 
   const platforms = platformsData?.items || [];
-  const allShifts = allShiftsData?.items || [];
+  
+  // Определяем какие смены показывать
+  const shiftsToShow = viewMode === 'my' 
+    ? (myShiftsData?.items || [])
+    : (allShiftsData?.items || []);
 
-  console.log('Rendering with data:', { 
-    platforms: platforms.length, 
-    allShifts: allShifts.length, 
-    allShiftsData 
+  console.log('🔍 Shifts Debug:', { 
+    viewMode,
+    isTeamLeadOrAdmin,
+    userRole: user?.role,
+    myShiftsCount: myShiftsData?.items?.length || 0,
+    allShiftsCount: allShiftsData?.items?.length || 0,
+    shiftsToShowCount: shiftsToShow.length,
+    isLoadingAllShifts,
+    allShiftsData: allShiftsData,
   });
 
   // Filter shifts
-  const filteredShifts = allShifts.filter((shift: any) => {
+  const filteredShifts = shiftsToShow.filter((shift: any) => {
     const matchesStatus = 
       statusFilter === 'all' ? true :
       statusFilter === 'active' ? shift.status === 'active' :
@@ -200,8 +238,8 @@ export default function Shifts() {
     return matchesStatus && matchesSearch;
   });
 
-  const activeShiftsCount = allShifts.filter((s: any) => s.status === 'active').length;
-  const completedShiftsCount = allShifts.filter((s: any) => s.status === 'completed').length;
+  const activeShiftsCount = shiftsToShow.filter((s: any) => s.status === 'active').length;
+  const completedShiftsCount = shiftsToShow.filter((s: any) => s.status === 'completed').length;
 
   const selectedPlatformObj = platforms.find(p => p.id === selectedPlatform);
 
@@ -211,7 +249,7 @@ export default function Shifts() {
         <div>
           <h1 className="shifts-title">{t('shifts.title')}</h1>
           <p className="shifts-subtitle">{t('shifts.subtitle')}</p>
-          {currentShift && (
+          {currentShift && viewMode === 'my' && (
             <div className="current-shift-badge">
               <span className="pulse-dot"></span>
               {t('shifts.activeShiftOn')} {currentShift.platformName}
@@ -219,7 +257,7 @@ export default function Shifts() {
           )}
         </div>
         <div className="shifts-header-actions">
-          {currentShift && (
+          {currentShift && viewMode === 'my' && (
             <button 
               className="btn-end-shift" 
               onClick={handleEndShift}
@@ -228,7 +266,7 @@ export default function Shifts() {
               {t('shifts.endShift')}
             </button>
           )}
-          {!currentShift && (
+          {!currentShift && viewMode === 'my' && (
             <button className="btn-secondary" onClick={() => setIsCreateModalOpen(true)}>
               <Plus size={18} />
               {t('shifts.newShift')}
@@ -236,6 +274,26 @@ export default function Shifts() {
           )}
         </div>
       </div>
+
+      {/* View Mode Switcher for TeamLead/Admin */}
+      {isTeamLeadOrAdmin && (
+        <div className="view-mode-switcher">
+          <button 
+            className={`view-mode-btn ${viewMode === 'my' ? 'active' : ''}`}
+            onClick={() => setViewMode('my')}
+          >
+            <User size={18} />
+            {t('shifts.myShifts')}
+          </button>
+          <button 
+            className={`view-mode-btn ${viewMode === 'all' ? 'active' : ''}`}
+            onClick={() => setViewMode('all')}
+          >
+            <Clock size={18} />
+            {t('shifts.operatorsShifts')}
+          </button>
+        </div>
+      )}
 
       {/* Search and Filters */}
       <div className="shifts-controls">
@@ -254,7 +312,7 @@ export default function Shifts() {
             className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
             onClick={() => setStatusFilter('all')}
           >
-            {t('shifts.allShifts')} <span className="count">{allShifts.length}</span>
+            {t('shifts.allShifts')} <span className="count">{shiftsToShow.length}</span>
           </button>
           <button 
             className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
@@ -273,7 +331,12 @@ export default function Shifts() {
 
       {/* Shifts Grid */}
       <div className="shifts-grid">
-        {filteredShifts.length === 0 ? (
+        {viewMode === 'all' && isLoadingAllShifts ? (
+          <div className="empty-state">
+            <Clock size={48} />
+            <p>{t('common.loading')}</p>
+          </div>
+        ) : filteredShifts.length === 0 ? (
           <div className="empty-state">
             <Clock size={48} />
             <p>{t('shifts.noShiftsFound')}</p>
@@ -312,12 +375,18 @@ export default function Shifts() {
                 </div>
 
                 <div className="shift-card-body">
-                  <div className="shift-info-row">
-                    <div className="shift-info-item">
-                      <User size={14} />
-                      <span>{shift.operator?.username || 'Unknown'}</span>
+                  {/* Показываем оператора только в режиме "Смены операторов" */}
+                  {viewMode === 'all' && shift.operator && (
+                    <div className="shift-info-row">
+                      <div className="shift-info-item operator-info">
+                        <User size={16} />
+                        <span className="operator-name">{shift.operator.username}</span>
+                        {shift.operator.email && (
+                          <span className="operator-email">{shift.operator.email}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="shift-stats-row">
                     <div className="shift-stat">

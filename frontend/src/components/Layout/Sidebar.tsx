@@ -13,7 +13,8 @@ import {
   Building2,
   UserSquare2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Award
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -25,6 +26,7 @@ export default function Sidebar() {
 
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
+    { to: '/teamlead-dashboard', icon: Award, label: t('nav.teamleadDashboard'), roles: ['teamlead', 'admin'] },
     { to: '/operator-banks', icon: Building2, label: t('nav.operatorBanks'), roles: ['operator'] },
     { to: '/operator-drops', icon: UserSquare2, label: t('nav.operatorDrops'), roles: ['operator'] },
     { to: '/users', icon: UserCog, label: t('nav.users'), roles: ['admin'] },

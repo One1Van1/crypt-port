@@ -18,7 +18,7 @@ export class GetMyCurrentShiftController {
   constructor(private readonly service: GetMyCurrentShiftService) {}
 
   @Get('my-current')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetMyCurrentShift()
   async handle(@CurrentUser() user: User): Promise<GetMyCurrentShiftResponseDto | null> {
     return this.service.execute(user);

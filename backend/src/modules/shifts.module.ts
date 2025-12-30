@@ -34,13 +34,15 @@ import { GetShiftsStatisticsService } from '../features/shifts/statistics/statis
 @Module({
   imports: [TypeOrmModule.forFeature([Shift, Platform])],
   controllers: [
-    StartShiftController,
-    EndShiftController,
+    // Более специфичные роуты ПЕРВЫМИ
     GetMyCurrentShiftController,
-    GetAllShiftsController,
     GetMyShiftsController,
     GetShiftByIdController,
     GetShiftsStatisticsController,
+    // Общие роуты ПОСЛЕ специфичных
+    StartShiftController,
+    EndShiftController,
+    GetAllShiftsController,
   ],
   providers: [
     StartShiftService,

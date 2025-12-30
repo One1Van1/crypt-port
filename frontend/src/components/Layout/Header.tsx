@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Sun, Moon, Globe, LogOut, Bell, Clock } from 'lucide-react';
 import { useAppStore } from '../../store/appStore';
 import { useAuthStore } from '../../store/authStore';
+import { queryClient } from '../../App';
 import './Header.css';
 
 export default function Header() {
@@ -12,6 +13,11 @@ export default function Header() {
   const toggleTimeFormat = useAppStore((state) => state.toggleTimeFormat);
   const setLanguage = useAppStore((state) => state.setLanguage);
   const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = () => {
+    queryClient.clear(); // Очищаем весь кеш React Query
+    logout(); // Вызываем logout из store
+  };
 
   const handleLanguageToggle = () => {
     const newLang = i18n.language === 'en' ? 'ru' : 'en';
@@ -51,7 +57,7 @@ export default function Header() {
           <Bell size={20} />
         </button>
 
-        <button className="icon-button" title={t('auth.logout')} onClick={logout}>
+        <button className="icon-button" title={t('auth.logout')} onClick={handleLogout}>
           <LogOut size={20} />
         </button>
       </div>

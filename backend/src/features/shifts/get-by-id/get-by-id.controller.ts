@@ -16,7 +16,7 @@ export class GetShiftByIdController {
   constructor(private readonly service: GetShiftByIdService) {}
 
   @Get('by-id/:id')
-  @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetShiftById()
   async handle(@Param('id', ParseIntPipe) id: number): Promise<GetShiftByIdResponseDto> {
     return this.service.execute(id);

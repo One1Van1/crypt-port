@@ -1,6 +1,7 @@
-import { IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
+import { IsOptional, IsEnum, IsUUID, IsDateString, IsInt, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ShiftStatus } from '../../../common/enums/shift.enum';
+import { Type } from 'class-transformer';
 
 export class GetAllShiftsQueryDto {
   @ApiProperty({
@@ -48,4 +49,30 @@ export class GetAllShiftsQueryDto {
   @IsOptional()
   @IsDateString()
   endDate?: string;
+
+  @ApiProperty({
+    description: 'Page number',
+    example: 1,
+    minimum: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiProperty({
+    description: 'Items per page',
+    example: 10,
+    minimum: 1,
+    maximum: 1000,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(1000)
+  limit?: number;
 }

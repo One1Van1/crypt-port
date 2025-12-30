@@ -54,8 +54,10 @@ class ShiftsService {
     limit?: number;
     status?: string;
   }): Promise<GetAllShiftsResponse> {
+    console.log('🔄 Requesting all shifts with params:', params);
     const response = await apiClient.get<GetAllShiftsResponse>('/shifts', { params });
-    console.log('Shifts API response:', response.data);
+    console.log('✅ Shifts API response:', response.data);
+    console.log('📊 Total shifts received:', response.data.items?.length || 0);
     return response.data;
   }
 

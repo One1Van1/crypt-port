@@ -19,7 +19,7 @@ export class StartShiftController {
   constructor(private readonly service: StartShiftService) {}
 
   @Post('start')
-  @Roles(UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiStartShift()
   async handle(
     @Body() dto: StartShiftRequestDto,

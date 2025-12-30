@@ -19,8 +19,9 @@ import Transactions from './pages/Transactions/Transactions';
 import OperatorDashboard from './pages/OperatorDashboard/OperatorDashboard';
 import OperatorBanks from './pages/OperatorBanks/OperatorBanks';
 import OperatorDrops from './pages/OperatorDrops/OperatorDrops';
+import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 function App() {
   const theme = useAppStore((state) => state.theme);
@@ -80,6 +81,7 @@ function App() {
                   <Route path="/operator-dashboard" element={<OperatorDashboard />} />
                   <Route path="/operator-banks" element={<OperatorBanks />} />
                   <Route path="/operator-drops" element={<OperatorDrops />} />
+                  <Route path="/teamlead-dashboard" element={<TeamLeadDashboard />} />
                   <Route path="/drops" element={<Drops />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />

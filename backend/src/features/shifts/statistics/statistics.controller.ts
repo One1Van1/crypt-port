@@ -17,7 +17,7 @@ export class GetShiftsStatisticsController {
   constructor(private readonly service: GetShiftsStatisticsService) {}
 
   @Get('statistics')
-  @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
+  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
   @ApiGetShiftsStatistics()
   async handle(@Query() query: GetShiftsStatisticsQueryDto): Promise<GetShiftsStatisticsResponseDto> {
     return this.service.execute(query);
