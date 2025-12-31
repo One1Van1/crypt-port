@@ -33,7 +33,7 @@ export class CreateTransactionService {
         user: { id: operator.id },
         status: ShiftStatus.ACTIVE,
       },
-      relations: ['platform', 'operator'],
+      relations: ['platform', 'user'],
     });
 
     if (!activeShift) {
@@ -115,7 +115,7 @@ export class CreateTransactionService {
       // 8. Загружаем созданную транзакцию со всеми relations для DTO
       const savedTransaction = await this.transactionRepository.findOne({
         where: { id: transaction.id },
-        relations: ['bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'shift', 'operator'],
+        relations: ['bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'shift', 'user'],
       });
 
       return new CreateTransactionResponseDto(savedTransaction);

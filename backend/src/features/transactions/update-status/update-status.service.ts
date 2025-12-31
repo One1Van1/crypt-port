@@ -20,7 +20,7 @@ export class UpdateTransactionStatusService {
   async execute(id: number, dto: UpdateTransactionStatusRequestDto): Promise<UpdateTransactionStatusResponseDto> {
     const transaction = await this.transactionRepository.findOne({
       where: { id },
-      relations: ['bankAccount', 'shift', 'platform', 'operator', 'bankAccount.bank', 'bankAccount.drop'],
+      relations: ['bankAccount', 'shift', 'platform', 'user', 'bankAccount.bank', 'bankAccount.drop'],
     });
 
     if (!transaction) {
@@ -73,7 +73,7 @@ export class UpdateTransactionStatusService {
       // Загружаем обновленную транзакцию
       const updatedTransaction = await this.transactionRepository.findOne({
         where: { id: transaction.id },
-        relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'operator'],
+        relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'user'],
       });
 
       return new UpdateTransactionStatusResponseDto(updatedTransaction);

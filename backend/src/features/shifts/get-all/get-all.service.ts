@@ -15,7 +15,7 @@ export class GetAllShiftsService {
   async execute(query: GetAllShiftsQueryDto): Promise<GetAllShiftsResponseDto> {
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
-      .leftJoinAndSelect('shift.operator', 'operator')
+      .leftJoinAndSelect('shift.user', 'user')
       .leftJoinAndSelect('shift.platform', 'platform');
 
     // Фильтр по статусу

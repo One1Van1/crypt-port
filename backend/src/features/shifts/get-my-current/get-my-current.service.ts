@@ -19,7 +19,7 @@ export class GetMyCurrentShiftService {
         user: { id: user.id },
         status: ShiftStatus.ACTIVE,
       },
-      relations: ['platform', 'operator'],
+      relations: ['platform', 'user'],
     });
 
     if (!activeShift) {

@@ -14,7 +14,7 @@ export class GetShiftByIdService {
   async execute(id: number): Promise<GetShiftByIdResponseDto> {
     const shift = await this.shiftRepository.findOne({
       where: { id },
-      relations: ['operator', 'platform', 'transactions', 'transactions.bankAccount', 'transactions.bankAccount.bank'],
+      relations: ['user', 'platform', 'transactions', 'transactions.bankAccount', 'transactions.bankAccount.bank'],
     });
 
     if (!shift) {
