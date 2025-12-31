@@ -1,0 +1,186 @@
+.custom-datepicker {
+  position: relative;
+  width: 100%;
+}
+
+.custom-datepicker-trigger {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0;
+  transition: all 0.2s;
+  text-align: left;
+  line-height: 1.5;
+  box-sizing: border-box;
+  font-family: inherit;
+  margin: 0;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+}
+
+.custom-datepicker-trigger span {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  text-align: left;
+  padding-right: 8px;
+}
+
+.custom-datepicker-trigger:hover {
+  border-color: var(--accent-primary);
+}
+
+.custom-datepicker-trigger.open {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(91, 108, 245, 0.1);
+}
+
+.custom-datepicker-trigger .placeholder {
+  color: var(--text-tertiary);
+}
+
+.clear-icon, .calendar-icon {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.clear-icon {
+  color: var(--text-tertiary);
+}
+
+.clear-icon:hover {
+  color: var(--text-primary);
+}
+
+.calendar-icon {
+  color: var(--text-secondary);
+}
+
+.custom-datepicker-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  padding: 12px;
+  min-width: 280px;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.calendar-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.calendar-header button:hover {
+  background: var(--bg-tertiary);
+}
+
+.calendar-header span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.calendar-weekdays div {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  padding: 4px;
+  text-transform: uppercase;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.calendar-days button {
+  aspect-ratio: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.calendar-days button:not(.empty):hover {
+  background: var(--bg-tertiary);
+}
+
+.calendar-days button.empty {
+  cursor: default;
+}
+
+.calendar-days button.today {
+  border: 1px solid var(--accent-primary);
+}
+
+.calendar-days button.selected {
+  background: var(--accent-primary);
+  color: white;
+  font-weight: 600;
+}
+
+.calendar-footer {
+  display: flex;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+.calendar-footer button {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.calendar-footer button:hover {
+  background: var(--bg-primary);
+  border-color: var(--accent-primary);
+}

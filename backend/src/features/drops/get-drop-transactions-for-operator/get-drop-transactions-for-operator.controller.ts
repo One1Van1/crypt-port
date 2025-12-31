@@ -26,6 +26,6 @@ export class GetDropTransactionsForOperatorController {
     @Query() query: GetDropTransactionsForOperatorQueryDto,
     @CurrentUser() user: User,
   ): Promise<GetDropTransactionsForOperatorResponseDto> {
-    return this.service.execute(dropId, user.id, query);
+    return this.service.execute(dropId, user.id, query, user.role);
   }
 }

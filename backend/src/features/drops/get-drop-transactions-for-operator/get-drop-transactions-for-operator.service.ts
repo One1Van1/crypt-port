@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction } from '../../../entities/transaction.entity';
-import { GetDropTransactionsForOperatorQueryDto } from './get-drop-transactions-for-operator.query.dto';
+import { GetDropTransactionsForOperatorQueryDto, UserFilterType } from './get-drop-transactions-for-operator.query.dto';
 import { GetDropTransactionsForOperatorResponseDto } from './get-drop-transactions-for-operator.response.dto';
+import { UserRole } from '../../../common/enums/user.enum';
 
 @Injectable()
 export class GetDropTransactionsForOperatorService {
@@ -14,8 +15,9 @@ export class GetDropTransactionsForOperatorService {
 
   async execute(
     dropId: number,
-    userId: number,
+    currentUserId: number,
     query: GetDropTransactionsForOperatorQueryDto,
+    userRole?: UserRole,
   ): Promise<GetDropTransactionsForOperatorResponseDto> {
     const limit = query.limit || 5;
     const page = query.page || 1;
@@ -26,8 +28,69 @@ export class GetDropTransactionsForOperatorService {
       .leftJoinAndSelect('t.bankAccount', 'ba')
       .leftJoinAndSelect('ba.bank', 'bank')
       .leftJoinAndSelect('ba.drop', 'drop')
-      .where('drop.id = :dropId', { dropId })
-      .andWhere('t.userId = :userId', { userId })
+      .leftJoinAndSelect('t.user', 'user')
+      .leftJoinAndSelect('t.shift', 'shift')
+      .where('drop.id = :dropId', { dropId });
+
+    // Фильтрация по пользователю (для операторов всегда только свои)
+    if (userRole === UserRole.OPERATOR) {
+      queryBuilder.andWhere('t.userId = :userId', { userId: currentUserId });
+    } else {
+      // Для admin/teamlead применяем userFilter
+      if (query.userFilter === UserFilterType.MY) {
+        queryBuilder.andWhere('t.userId = :userId', { userId: currentUserId });
+      } else if (query.userFilter === UserFilterType.OTHERS) {
+        queryBuilder.andWhere('t.userId != :userId', { userId: currentUserId });
+      }
+      // Для ALL не добавляем условие - показываем всех
+    }
+
+    // Фильтр по роли пользователя
+    if (query.userRole) {
+      queryBuilder.andWhere('user.role = :userRole', { userRole: query.userRole });
+    }
+
+    // Фильтр по конкретному userId
+    if (query.userId) {
+      queryBuilder.andWhere('t.userId = :filteredUserId', { filteredUserId: query.userId });
+    }
+
+    // Поиск по username
+    if (query.username) {
+      queryBuilder.andWhere('user.username ILIKE :username', { username: `%${query.username}%` });
+    }
+
+    // Фильтр по имени банка
+    if (query.bankName) {
+      queryBuilder.andWhere('bank.name ILIKE :bankName', { bankName: `%${query.bankName}%` });
+    }
+
+    // Фильтр по статусу
+    if (query.status) {
+      queryBuilder.andWhere('t.status = :status', { status: query.status });
+    }
+
+    // Фильтр по дате
+    if (query.startDate && query.endDate) {
+      queryBuilder.andWhere('t.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: query.startDate,
+        endDate: query.endDate,
+      });
+    } else if (query.startDate) {
+      queryBuilder.andWhere('t.createdAt >= :startDate', { startDate: query.startDate });
+    } else if (query.endDate) {
+      queryBuilder.andWhere('t.createdAt <= :endDate', { endDate: query.endDate });
+    }
+
+    // Фильтр по сумме
+    if (query.minAmount !== undefined) {
+      queryBuilder.andWhere('t.amount >= :minAmount', { minAmount: query.minAmount });
+    }
+    if (query.maxAmount !== undefined) {
+      queryBuilder.andWhere('t.amount <= :maxAmount', { maxAmount: query.maxAmount });
+    }
+
+    queryBuilder
       .orderBy('t.createdAt', 'DESC')
       .take(limit)
       .skip(skip);

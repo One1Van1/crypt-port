@@ -62,6 +62,27 @@ export interface TransactionsForOperatorResponse {
   total: number;
 }
 
+export enum UserFilterType {
+  MY = 'my',
+  ALL = 'all',
+  OTHERS = 'others',
+}
+
+export interface DropTransactionsParams {
+  page?: number;
+  limit?: number;
+  userFilter?: UserFilterType;
+  userRole?: string;
+  userId?: string;
+  username?: string;
+  bankName?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  minAmount?: number;
+  maxAmount?: number;
+}
+
 export const operatorService = {
   getMyBanks: async (): Promise<OperatorBanksResponse> => {
     const response = await apiClient.get('/banks/operator/my-banks');
@@ -85,7 +106,7 @@ export const operatorService = {
 
   getDropTransactions: async (
     dropId: number,
-    params?: { page?: number; limit?: number }
+    params?: DropTransactionsParams
   ): Promise<TransactionsForOperatorResponse> => {
     const response = await apiClient.get(`/drops/${dropId}/transactions/operator`, {
       params,
