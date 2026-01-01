@@ -19,7 +19,7 @@ export class CreateTransactionController {
   constructor(private readonly service: CreateTransactionService) {}
 
   @Post()
-  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
+  @Roles(UserRole.OPERATOR)
   @ApiCreateTransaction()
   async handle(
     @Body() dto: CreateTransactionRequestDto,

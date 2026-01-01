@@ -19,7 +19,7 @@ export class GetMyBanksController {
 
   @Get('my-banks')
   @ApiGetMyBanks()
-  @Roles(UserRole.OPERATOR, UserRole.ADMIN, UserRole.TEAMLEAD)
+  @Roles(UserRole.OPERATOR)
   async handle(@CurrentUser() user: User): Promise<GetMyBanksResponseDto> {
     return this.service.execute(user);
   }

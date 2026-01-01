@@ -17,7 +17,7 @@ export class UpdateTransactionStatusController {
   constructor(private readonly service: UpdateTransactionStatusService) {}
 
   @Patch(':id/status')
-  @Roles(UserRole.ADMIN, UserRole.TEAMLEAD, UserRole.OPERATOR)
+  @Roles(UserRole.OPERATOR)
   @ApiUpdateTransactionStatus()
   async handle(
     @Param('id', ParseIntPipe) id: number,

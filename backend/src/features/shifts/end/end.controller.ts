@@ -18,7 +18,7 @@ export class EndShiftController {
   constructor(private readonly service: EndShiftService) {}
 
   @Post(':id/end')
-  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
+  @Roles(UserRole.OPERATOR)
   @ApiEndShift()
   async handle(
     @Param('id', ParseIntPipe) id: number,

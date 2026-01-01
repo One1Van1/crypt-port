@@ -19,7 +19,7 @@ export class GetMyTransactionsController {
   constructor(private readonly service: GetMyTransactionsService) {}
 
   @Get('my')
-  @Roles(UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN)
+  @Roles(UserRole.OPERATOR)
   @ApiGetMyTransactions()
   async handle(
     @Query() query: GetMyTransactionsQueryDto,

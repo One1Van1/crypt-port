@@ -30,11 +30,11 @@ export class CreateTransactionService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async execute(dto: CreateTransactionRequestDto, operator: User): Promise<CreateTransactionResponseDto> {
+  async execute(dto: CreateTransactionRequestDto, user: User): Promise<CreateTransactionResponseDto> {
     // 1. Проверяем активную смену оператора
     const activeShift = await this.shiftRepository.findOne({
       where: {
-        user: { id: operator.id },
+        user: { id: user.id },
         status: ShiftStatus.ACTIVE,
       },
       relations: ['platform', 'user'],
@@ -129,7 +129,7 @@ export class CreateTransactionService {
         platform: activeShift.platform,
         bankAccount: bankAccount,
         sourceDropNeoBank: sourceNeoBank,
-        user: operator,
+        user: user,
       });
 
       await queryRunner.manager.save(transaction);

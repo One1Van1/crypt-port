@@ -13,12 +13,12 @@ export class GetMyBanksService {
     private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
-  async execute(operator: User): Promise<GetMyBanksResponseDto> {
+  async execute(user: User): Promise<GetMyBanksResponseDto> {
     const transactions = await this.transactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
-      .where('transaction.userId = :userId', { userId: operator.id })
+      .where('transaction.user_id = :userId', { userId: user.id })
       .andWhere('bankAccount.bank IS NOT NULL')
       .getMany();
 

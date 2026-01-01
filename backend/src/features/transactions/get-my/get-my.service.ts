@@ -13,7 +13,7 @@ export class GetMyTransactionsService {
     private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
-  async execute(query: GetMyTransactionsQueryDto, operator: User): Promise<GetMyTransactionsResponseDto> {
+  async execute(query: GetMyTransactionsQueryDto, user: User): Promise<GetMyTransactionsResponseDto> {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
       .leftJoinAndSelect('transaction.shift', 'shift')
@@ -21,7 +21,7 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .where('transaction.userId = :userId', { userId: operator.id });
+      .where('transaction.userId = :userId', { userId: user.id });
 
     // Фильтр по статусу
     if (query.status) {

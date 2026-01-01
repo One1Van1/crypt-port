@@ -18,7 +18,7 @@ export class GetMyShiftsController {
   constructor(private readonly service: GetMyShiftsService) {}
 
   @Get('my-shifts')
-  @Roles(UserRole.OPERATOR, UserRole.ADMIN, UserRole.TEAMLEAD)
+  @Roles(UserRole.OPERATOR)
   @ApiGetMyShifts()
   async handle(@CurrentUser() user: User): Promise<GetMyShiftsResponseDto> {
     return this.service.execute(user);

@@ -19,7 +19,19 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
-    const hasRole = requiredRoles.some((role) => user.role === role);
+    
+    // Иерархия ролей: ADMIN > TEAMLEAD > OPERATOR
+    const hasRole = requiredRoles.some((role) => {
+      if (user.role === UserRole.ADMIN) {
+        return true; // Админ может всё
+      }
+      if (user.role === UserRole.TEAMLEAD) {
+        // Тимлид может всё что может оператор + свои права
+        return role === UserRole.TEAMLEAD || role === UserRole.OPERATOR;
+      }
+      // Оператор только свои права
+      return user.role === role;
+    });
 
     if (!hasRole) {
       throw new ForbiddenException(
