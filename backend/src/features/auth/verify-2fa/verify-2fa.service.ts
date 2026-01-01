@@ -75,7 +75,7 @@ export class Verify2faService {
         email: user.email,
         role: user.role,
       },
-      { expiresIn: '15m' },
+      { expiresIn: '24h' }, // Токен действует 24 часа
     );
 
     const refreshToken = this.jwtService.sign(

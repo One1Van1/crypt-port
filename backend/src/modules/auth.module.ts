@@ -31,7 +31,7 @@ import { RefreshService } from '../features/auth/refresh/refresh.service';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
-      signOptions: { expiresIn: '15m' },
+      signOptions: { expiresIn: '24h' }, // Токен действует 24 часа
     }),
   ],
   controllers: [

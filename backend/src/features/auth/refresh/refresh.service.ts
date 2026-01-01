@@ -43,7 +43,7 @@ export class RefreshService {
         email: user.email,
         role: user.role,
       },
-      { expiresIn: '15m' },
+      { expiresIn: '24h' }, // Токен действует 24 часа
     );
 
     const refreshToken = this.jwtService.sign(
