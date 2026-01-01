@@ -12,11 +12,20 @@ export class CreateTransactionRequestDto {
   amount: number;
 
   @ApiProperty({
-    description: 'Platform ID',
+    description: 'Source neo-bank ID (from which drop received funds)',
     example: 1,
   })
   @IsNumber()
-  platformId: number;
+  sourceDropNeoBankId: number;
+
+  @ApiProperty({
+    description: 'Receipt/proof of transaction',
+    example: 'https://storage.example.com/receipts/abc123.jpg',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  receipt?: string;
 
   @ApiProperty({
     description: 'Optional comment',

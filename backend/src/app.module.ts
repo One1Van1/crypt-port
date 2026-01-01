@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth.module';
 import { AdminModule } from './modules/admin.module';
 import { BanksModule } from './modules/banks.module';
 import { DropsModule } from './modules/drops.module';
+import { DropNeoBanksModule } from './modules/drop-neo-banks.module';
 import { PlatformsModule } from './modules/platforms.module';
 import { BankAccountsModule } from './modules/bank-accounts.module';
 import { ShiftsModule } from './modules/shifts.module';
@@ -31,6 +32,7 @@ import { AnalyticsModule } from './modules/analytics.module';
     AdminModule,
     BanksModule,
     DropsModule,
+    DropNeoBanksModule,
     PlatformsModule,
     BankAccountsModule,
     ShiftsModule,

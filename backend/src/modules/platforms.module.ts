@@ -22,6 +22,10 @@ import { UpdatePlatformService } from '../features/platforms/update/update.servi
 import { UpdatePlatformStatusController } from '../features/platforms/update-status/update-status.controller';
 import { UpdatePlatformStatusService } from '../features/platforms/update-status/update-status.service';
 
+// Update Rate
+import { UpdateExchangeRateController } from '../features/platforms/update-rate/update-rate.controller';
+import { UpdateExchangeRateService } from '../features/platforms/update-rate/update-rate.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([Platform])],
   controllers: [
@@ -30,6 +34,7 @@ import { UpdatePlatformStatusService } from '../features/platforms/update-status
     GetPlatformByIdController,
     UpdatePlatformController,
     UpdatePlatformStatusController,
+    UpdateExchangeRateController,
   ],
   providers: [
     CreatePlatformService,
@@ -37,6 +42,7 @@ import { UpdatePlatformStatusService } from '../features/platforms/update-status
     GetPlatformByIdService,
     UpdatePlatformService,
     UpdatePlatformStatusService,
+    UpdateExchangeRateService,
   ],
 })
 export class PlatformsModule {}
