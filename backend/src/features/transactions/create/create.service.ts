@@ -87,7 +87,7 @@ export class CreateTransactionService {
         shift: activeShift,
         bankAccount: bankAccount,
         platform: platform,
-        operator: operator,
+        user: operator,
       });
 
       await queryRunner.manager.save(transaction);
