@@ -219,13 +219,13 @@
 }
 
 .status-badge-button.status-active {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .status-badge-button.status-inactive {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .status-badge-button:hover {
@@ -295,23 +295,23 @@
 }
 
 .role-select-dropdown.role-admin {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .role-select-dropdown.role-teamlead {
-  background: #dbeafe;
-  color: #1e40af;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
 }
 
 .role-select-dropdown.role-operator {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 .role-select-dropdown.role-pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
 }
 
 .role-select-dropdown:hover {

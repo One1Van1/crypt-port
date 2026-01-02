@@ -21,6 +21,7 @@
   --accent-success: #10b981;
   --accent-error: #ef4444;
   --logo-circle: #ff7849;
+  --primary: #5b6cf5; /* Alias for --accent-primary */
 }
 
 [data-theme='dark'] {
@@ -36,6 +37,7 @@
   --accent-success: #10b981;
   --accent-error: #ef4444;
   --logo-circle: #6366f1;
+  --primary: #6366f1; /* Alias for --accent-primary */
 }
 
 body {
