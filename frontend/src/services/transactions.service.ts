@@ -15,16 +15,23 @@ export enum TransactionStatus {
 export interface Transaction {
   id: string;
   bankAccountId: string;
-  operatorId: string;
-  shiftId: string;
   amount: number;
-  type: TransactionType;
+  amountUSDT?: number;
+  exchangeRate?: number;
   status: TransactionStatus;
+  receipt?: string;
   comment?: string;
-  // Плоские поля от API
-  bankName?: string;
-  bankAccountCbu?: string;
-  // Вложенные объекты (не всегда присутствуют)
+  // Source neo-bank
+  sourceDropNeoBank?: {
+    id: number;
+    provider: string;
+    accountId: string;
+    drop: {
+      id: number;
+      name: string;
+    };
+  };
+  // Target bank account
   bankAccount?: {
     id: string;
     cbu: string;
@@ -32,17 +39,29 @@ export interface Transaction {
     bank?: {
       name: string;
     };
+    drop?: {
+      id: number;
+      name: string;
+    };
   };
-  operator?: {
-    username: string;
-    email: string;
+  // Platform
+  platform?: {
+    id: number;
+    name: string;
+    exchangeRate: number;
   };
+  // Shift and User
   shift?: {
     id: string;
     platformId: number;
     platform?: {
       name: string;
     };
+  };
+  user?: {
+    id: number;
+    name: string;
+    email: string;
   };
   createdAt: string;
   updatedAt: string;
@@ -55,7 +74,8 @@ export interface GetTransactionsResponse {
 
 export interface CreateTransactionRequest {
   amount: number;
-  platformId: number;
+  sourceDropNeoBankId: number;
+  receipt?: string;
   comment?: string;
 }
 

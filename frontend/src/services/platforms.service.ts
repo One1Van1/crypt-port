@@ -4,6 +4,7 @@ export interface Platform {
   id: number;
   name: string;
   status: 'active' | 'inactive';
+  exchangeRate: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +26,11 @@ class PlatformsService {
 
   async getById(id: number): Promise<Platform> {
     const response = await apiClient.get<Platform>(`/platforms/${id}`);
+    return response.data;
+  }
+
+  async updateRate(id: number, exchangeRate: number): Promise<Platform> {
+    const response = await apiClient.patch<Platform>(`/platforms/${id}/rate`, { exchangeRate });
     return response.data;
   }
 }

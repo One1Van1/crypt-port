@@ -17,6 +17,7 @@ import Shifts from './pages/Shifts/Shifts';
 import Transactions from './pages/Transactions/Transactions';
 import Banks from './pages/Banks/Banks';
 import Drops from './pages/Drops/Drops';
+import DropNeoBanks from './pages/DropNeoBanks/DropNeoBanks';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
 
 export const queryClient = new QueryClient();
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/operators" element={<Operators />} />
                   <Route path="/banks" element={<Banks />} />
                   <Route path="/drops" element={<Drops />} />
+                  <Route path="/drop-neo-banks" element={<DropNeoBanks />} />
                   <Route path="/teamlead-dashboard" element={<TeamLeadDashboard />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />

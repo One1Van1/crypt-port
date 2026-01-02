@@ -54,6 +54,7 @@
     "operatorDashboard": "Рабочая панель",
     "banks": "Банки",
     "drops": "Дропы",
+    "dropNeoBanks": "Нео-банки",
     "teamleadDashboard": "Панель тимлида",
     "users": "Пользователи",
     "withdraw": "Вывод средств",
@@ -301,5 +302,57 @@
     "cancelled": "Отменён",
     "idle": "Простой",
     "frozen": "Заморожен"
+  },
+  "dropNeoBanks": {
+    "title": "Нео-банки (Аккаунты дропов)",
+    "subtitle": "Управление аккаунтами нео-банков для приёма платежей",
+    "addNeoBank": "Добавить нео-банк",
+    "editNeoBank": "Редактировать нео-банк",
+    "updateBalance": "Обновить баланс",
+    "deleteConfirm": "Вы уверены, что хотите удалить этот нео-банк?",
+    "filters": {
+      "allDrops": "Все дропы",
+      "allProviders": "Все провайдеры",
+      "allStatuses": "Все статусы"
+    },
+    "table": {
+      "drop": "Дроп",
+      "provider": "Провайдер",
+      "accountId": "ID аккаунта",
+      "currentBalance": "Текущий баланс",
+      "status": "Статус",
+      "comment": "Комментарий",
+      "actions": "Действия"
+    },
+    "form": {
+      "drop": "Дроп",
+      "selectDrop": "Выберите дроп",
+      "provider": "Провайдер",
+      "accountId": "ID аккаунта",
+      "accountIdPlaceholder": "например, cuenta.ivan2024",
+      "initialBalance": "Начальный баланс (ARS)",
+      "newBalance": "Новый баланс (ARS)",
+      "comment": "Комментарий",
+      "commentPlaceholder": "Необязательные заметки"
+    },
+    "actions": {
+      "updateBalanceTitle": "Обновить баланс",
+      "edit": "Редактировать",
+      "delete": "Удалить"
+    },
+    "messages": {
+      "created": "Нео-банк успешно создан",
+      "updated": "Нео-банк успешно обновлён",
+      "deleted": "Нео-банк успешно удалён",
+      "balanceUpdated": "Баланс успешно обновлён",
+      "createError": "Не удалось создать нео-банк",
+      "updateError": "Не удалось обновить нео-банк",
+      "deleteError": "Не удалось удалить нео-банк",
+      "balanceError": "Не удалось обновить баланс",
+      "notFound": "Нео-банки не найдены"
+    },
+    "info": {
+      "currentBalance": "Текущий баланс"
+    }
   }
 }

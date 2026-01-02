@@ -11,11 +11,13 @@ import {
   TrendingUp, 
   AlertTriangle,
   Loader,
-  CheckCircle
+  CheckCircle,
+  Wallet
 } from 'lucide-react';
 import { bankAccountsService, BankAccount } from '../../services/bank-accounts.service';
 import { transactionsService, CreateTransactionRequest } from '../../services/transactions.service';
 import { shiftsService } from '../../services/shifts.service';
+import dropNeoBanksService, { DropNeoBank } from '../../services/drop-neo-banks.service';
 import './GetRequisiteModal.css';
 
 interface GetRequisiteModalProps {
@@ -24,12 +26,13 @@ interface GetRequisiteModalProps {
   onSuccess?: () => void;
 }
 
-type Step = 'loading' | 'display' | 'amount' | 'success';
+type Step = 'loading' | 'select-source' | 'amount' | 'success';
 
 export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModalProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>('loading');
+  const [selectedNeoBank, setSelectedNeoBank] = useState<string>('');
   const [requisite, setRequisite] = useState<BankAccount | null>(null);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
@@ -85,6 +88,20 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     enabled: isOpen,
   });
 
+  // Получить активные нео-банки ЭТОГО дропа
+  const { data: neoBanks = [], isLoading: neoBanksLoading } = useQuery({
+    queryKey: ['neo-banks-for-drop', requisite?.dropId],
+    queryFn: async () => {
+      if (!requisite?.dropId) return [];
+      const result = await dropNeoBanksService.getAll({ 
+        dropId: requisite.dropId,
+        status: 'active' 
+      });
+      return result.items;
+    },
+    enabled: isOpen && !!requisite?.dropId,
+  });
+
   // Автоматически получаем реквизит при открытии модалки
   useEffect(() => {
     if (isOpen && currentShift && step === 'loading') {
@@ -125,7 +142,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       // Система автоматически подбирает оптимальный реквизит по приоритетам
       const result = await bankAccountsService.getAvailable();
       setRequisite(result);
-      setStep('display');
+      setStep('select-source');
       toast.success('Реквизит успешно получен');
     } catch (err: any) {
       const errorMsg = err?.response?.data?.message || err.message || 'Не удалось получить реквизит';
@@ -145,13 +162,6 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       console.error('Failed to copy:', err);
       toast.error('Не удалось скопировать');
     }
-  };
-
-  const handleNextToAmount = () => {
-    setStep('amount');
-    setAmount('');
-    setComment('');
-    setError('');
   };
 
   const handleSubmitAmount = () => {
@@ -174,13 +184,14 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setError('');
     createTransaction.mutate({
       amount: amountNum,
-      platformId: currentShift.platformId,
+      sourceDropNeoBankId: selectedNeoBank,
       comment: comment?.trim() || undefined,
     });
   };
 
   const handleClose = () => {
     setStep('loading');
+    setSelectedNeoBank('');
     setRequisite(null);
     setAmount('');
     setComment('');
@@ -203,8 +214,27 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
 
   if (!isOpen) return null;
 
-  const availableAmount = requisite?.availableAmount || 0;
-  const isLowBalance = availableAmount > 0 && availableAmount < 50000;
+  const selectedNeoBankData = neoBanks.find(nb => nb.id === selectedNeoBank);
+
+  const getProviderLabel = (provider: string) => {
+    const labels: Record<string, string> = {
+      ripio: 'Ripio',
+      lemon_cash: 'Lemon Cash',
+      satoshi_tango: 'Satoshi Tango',
+      yont: 'Yont',
+    };
+    return labels[provider] || provider;
+  };
+
+  const getProviderBadgeClass = (provider: string) => {
+    const classes: Record<string, string> = {
+      ripio: 'badge-ripio',
+      lemon_cash: 'badge-lemon',
+      satoshi_tango: 'badge-satoshi',
+      yont: 'badge-yont',
+    };
+    return classes[provider] || 'badge-default';
+  };
 
   return (
     <div className="modal-overlay" onClick={handleClose} onKeyDown={handleModalKeyDown}>
@@ -217,7 +247,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
         <div className="modal-header">
           <h2>
             {step === 'loading' && 'Получить реквизит'}
-            {step === 'display' && 'Реквизит для вывода'}
+            {step === 'select-source' && 'Выберите нео-банк для вывода'}
             {step === 'amount' && 'Введите сумму вывода'}
             {step === 'success' && 'Операция выполнена'}
           </h2>
@@ -226,7 +256,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
 
         {/* Body */}
         <div className="modal-body">
-          {/* Step: Loading / Get Requisite */}
+          {/* Step 1: Loading */}
           {step === 'loading' && (
             <div className="step-loading">
               <Loader size={48} className="spin" />
@@ -240,10 +270,12 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
             </div>
           )}
 
-          {/* Step 2: Display Requisite */}
-          {step === 'display' && requisite && (
-            <div className="step-display">
+          {/* Step 2: Select Source Neo-Bank + Show Requisite */}
+          {step === 'select-source' && requisite && (
+            <div className="step-select-source">
               <div className="requisite-info">
+                <h3 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Реквизит для вывода:</h3>
+                
                 <div className="info-row bank-row">
                   <Building size={20} />
                   <div>
@@ -256,7 +288,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   <Tag size={20} />
                   <div>
                     <span className="label">Владелец (Дроп)</span>
-                    <span className="value">{requisite.dropName || requisite.drop?.name || 'Неизвестный'}</span>
+                    <span className="value">{requisite.dropName || 'Неизвестный'}</span>
                   </div>
                 </div>
 
@@ -298,34 +330,94 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   <TrendingUp size={20} />
                   <div>
                     <span className="label">Доступно для вывода</span>
-                    <span className="value amount-value">{formatCurrency(availableAmount)}</span>
+                    <span className="value amount-value">{formatCurrency(requisite.availableAmount || 0)}</span>
                   </div>
                 </div>
+              </div>
 
-                {isLowBalance && (
-                  <div className="warning-message">
-                    <AlertTriangle size={16} />
-                    Низкий остаток на реквизите
+              <div className="divider" style={{ margin: '1.5rem 0' }}></div>
+
+              {neoBanksLoading ? (
+                <div className="step-loading">
+                  <Loader size={48} className="spin" />
+                  <p>Загрузка нео-банков...</p>
+                </div>
+              ) : neoBanks.length === 0 ? (
+                <div className="empty-state">
+                  <Wallet size={48} />
+                  <p>Нет доступных нео-банков для этого дропа</p>
+                  <small>Обратитесь к администратору</small>
+                </div>
+              ) : (
+                <>
+                  <div className="instructions">
+                    <p>Выберите нео-банк <strong>({requisite.dropName})</strong>, с которого будете выводить средства</p>
                   </div>
-                )}
-              </div>
 
-              <div className="instructions">
-                <p>Выполните перевод вручную и введите фактическую сумму</p>
-              </div>
+                  <div className="neo-banks-list">
+                    {neoBanks.map((neoBank) => (
+                      <div
+                        key={neoBank.id}
+                        className={`neo-bank-card ${selectedNeoBank === neoBank.id ? 'selected' : ''}`}
+                        onClick={() => setSelectedNeoBank(neoBank.id)}
+                      >
+                        <div className="neo-bank-header">
+                          <span className={`provider-badge ${getProviderBadgeClass(neoBank.provider)}`}>
+                            {getProviderLabel(neoBank.provider)}
+                          </span>
+                          {selectedNeoBank === neoBank.id && (
+                            <Check size={20} className="check-icon" />
+                          )}
+                        </div>
+                        <div className="neo-bank-info">
+                          <div className="info-item">
+                            <span className="label">Аккаунт:</span>
+                            <span className="value">{neoBank.accountId}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="label">Баланс:</span>
+                            <span className="value balance">{formatCurrency(neoBank.currentBalance || 0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-              <button className="btn-primary btn-large" onClick={handleNextToAmount}>
-                Далее - Ввести сумму →
-              </button>
+                  {error && (
+                    <div className="error-message">
+                      <AlertTriangle size={18} />
+                      {error}
+                    </div>
+                  )}
+
+                  <button 
+                    className="btn-primary btn-large" 
+                    onClick={() => {
+                      if (!selectedNeoBank) {
+                        setError('Выберите нео-банк');
+                        toast.error('Выберите нео-банк');
+                        return;
+                      }
+                      setStep('amount');
+                    }}
+                    disabled={!selectedNeoBank}
+                  >
+                    Далее - Ввести сумму →
+                  </button>
+                </>
+              )}
             </div>
           )}
 
           {/* Step 3: Amount Input */}
-          {step === 'amount' && requisite && (
+          {step === 'amount' && requisite && selectedNeoBankData && (
             <div className="step-amount">
               <div className="requisite-summary">
-                <p><strong>Реквизит:</strong> {requisite.bankName || requisite.bank?.name}</p>
-                <p><strong>Владелец:</strong> {requisite.dropName || requisite.drop?.name}</p>
+                <p><strong>Исходный нео-банк:</strong> <span className={`provider-badge ${getProviderBadgeClass(selectedNeoBankData.provider)}`}>{getProviderLabel(selectedNeoBankData.provider)}</span></p>
+                <p><small>Дроп: {selectedNeoBankData.dropName} | Баланс: {formatCurrency(selectedNeoBankData.currentBalance || 0)}</small></p>
+                <div className="divider"></div>
+                <p><strong>Реквизит для вывода:</strong> {requisite.bankName || requisite.bank?.name}</p>
+                <p><strong>Владелец:</strong> {requisite.dropName}</p>
                 <p><small>CBU: ...{requisite.cbu.slice(-4)} | Alias: {requisite.alias}</small></p>
               </div>
 
@@ -341,7 +433,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   className={error ? 'error' : ''}
                   autoFocus
                 />
-                <span className="hint">Введите фактическую сумму, которую вывели. Доступно: {formatCurrency(availableAmount)}</span>
+                <span className="hint">Введите фактическую сумму, которую вывели. Доступно: {formatCurrency(requisite?.availableAmount || 0)}</span>
               </div>
 
               <div className="form-group">
@@ -393,11 +485,11 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                 </div>
                 <div className="detail-item">
                   <span className="label">Владелец</span>
-                  <span className="value">{requisite.dropName || requisite.drop?.name}</span>
+                  <span className="value">{requisite.dropName}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Остаток на реквизите</span>
-                  <span className="value">{formatCurrency(availableAmount - parseFloat(amount))}</span>
+                  <span className="value">{formatCurrency((requisite?.availableAmount || 0) - parseFloat(amount))}</span>
                 </div>
                 {comment && (
                   <div className="detail-item comment-item">
@@ -412,7 +504,8 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   Закрыть
                 </button>
                 <button className="btn-primary" onClick={() => {
-                  setStep('loading');
+                  setStep('select-source');
+                  setSelectedNeoBank('');
                   setRequisite(null);
                   handleGetRequisite();
                 }}>
