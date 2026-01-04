@@ -85,36 +85,29 @@ export class CreateTransactionService {
     await queryRunner.startTransaction();
 
     try {
-      // 4. Получаем доступный банковский аккаунт того же дропа с правильной сортировкой
-      const query = queryRunner.manager
-        .createQueryBuilder(BankAccount, 'ba')
-        .leftJoinAndSelect('ba.bank', 'bank')
-        .leftJoinAndSelect('ba.drop', 'drop')
-        .where('ba.status = :status', { status: BankAccountStatus.WORKING })
-        .andWhere('ba.drop_id = :dropId', { dropId: sourceNeoBank.drop.id })
-        .andWhere('(ba.limit_amount - ba.withdrawn_amount) >= :amount', { amount: dto.amount })
-        .orderBy('ba.priority', 'ASC')
-        .addOrderBy('ba.last_used_at', 'ASC', 'NULLS FIRST')
-        .limit(1);
-      
-      // Логируем SQL для отладки
-      console.log('=== GET BANK ACCOUNT SQL ===');
-      console.log(query.getSql());
-      console.log('Parameters:', { 
-        status: BankAccountStatus.WORKING, 
-        dropId: sourceNeoBank.drop.id,
-        amount: dto.amount 
+      // 4. Получаем целевой банковский аккаунт (реквизит) по ID
+      const bankAccount = await queryRunner.manager.findOne(BankAccount, {
+        where: { id: dto.bankAccountId },
+        relations: ['bank', 'drop'],
       });
-      
-      const bankAccounts = await query.getMany();
 
-      if (!bankAccounts || bankAccounts.length === 0) {
-        throw new BadRequestException('No available bank accounts with sufficient balance for this drop');
+      if (!bankAccount) {
+        throw new NotFoundException('Bank account not found');
       }
 
-      const bankAccount = bankAccounts[0];
+      if (bankAccount.status !== BankAccountStatus.WORKING) {
+        throw new BadRequestException('Bank account is not available');
+      }
 
-      // 4.1. Вычисляем USDT по средневзвешенному курсу нео-банка
+      // 4.1. Проверяем доступный лимит
+      const availableLimit = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
+      if (availableLimit < dto.amount) {
+        throw new BadRequestException(
+          `Insufficient limit in bank account. Available: ${availableLimit} ARS, Required: ${dto.amount} ARS`,
+        );
+      }
+
+      // 4.2. Вычисляем USDT по средневзвешенному курсу нео-банка
       // ВАЖНО: Используем курс НАШЕГО нео-банка, а не текущий курс платформы!
       const neoBankRate = sourceNeoBank.exchangeRate || activeShift.platform.exchangeRate;
       const calculatedUSDT = dto.amount / neoBankRate;

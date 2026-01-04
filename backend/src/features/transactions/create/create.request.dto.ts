@@ -19,6 +19,13 @@ export class CreateTransactionRequestDto {
   sourceDropNeoBankId: number;
 
   @ApiProperty({
+    description: 'Target bank account ID (requisite)',
+    example: 5,
+  })
+  @IsNumber()
+  bankAccountId: number;
+
+  @ApiProperty({
     description: 'Receipt/proof of transaction',
     example: 'https://storage.example.com/receipts/abc123.jpg',
     required: false,

@@ -15,10 +15,15 @@ export class GetAllDropNeoBanksService {
   async execute(query: GetAllDropNeoBanksQueryDto): Promise<GetAllDropNeoBanksResponseDto> {
     const queryBuilder = this.dropNeoBankRepository
       .createQueryBuilder('dnb')
-      .leftJoinAndSelect('dnb.drop', 'drop');
+      .leftJoinAndSelect('dnb.drop', 'drop')
+      .leftJoinAndSelect('dnb.platform', 'platform');
 
     if (query.dropId) {
       queryBuilder.andWhere('dnb.dropId = :dropId', { dropId: query.dropId });
+    }
+
+    if (query.platformId) {
+      queryBuilder.andWhere('dnb.platformId = :platformId', { platformId: query.platformId });
     }
 
     if (query.provider) {
@@ -29,7 +34,7 @@ export class GetAllDropNeoBanksService {
       queryBuilder.andWhere('dnb.status = :status', { status: query.status });
     }
 
-    queryBuilder.orderBy('drop.name', 'ASC').addOrderBy('dnb.provider', 'ASC');
+    queryBuilder.orderBy('dnb.provider', 'ASC');
 
     const items = await queryBuilder.getMany();
 

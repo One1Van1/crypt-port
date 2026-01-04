@@ -21,11 +21,17 @@ export class DropNeoBankItemDto {
   @ApiProperty({ description: 'Current balance in ARS', example: 500000 })
   currentBalance: number;
 
-  @ApiProperty()
-  drop: {
+  @ApiProperty({ required: false })
+  drop?: {
     id: number;
     name: string;
     status: string;
+  };
+
+  @ApiProperty({ required: false })
+  platform?: {
+    id: number;
+    name: string;
   };
 
   @ApiProperty()
@@ -38,11 +44,22 @@ export class DropNeoBankItemDto {
     this.status = dropNeoBank.status;
     this.comment = dropNeoBank.comment;
     this.currentBalance = Number(dropNeoBank.currentBalance);
-    this.drop = {
-      id: dropNeoBank.drop.id,
-      name: dropNeoBank.drop.name,
-      status: dropNeoBank.drop.status,
-    };
+    
+    if (dropNeoBank.drop) {
+      this.drop = {
+        id: dropNeoBank.drop.id,
+        name: dropNeoBank.drop.name,
+        status: dropNeoBank.drop.status,
+      };
+    }
+    
+    if (dropNeoBank.platform) {
+      this.platform = {
+        id: dropNeoBank.platform.id,
+        name: dropNeoBank.platform.name,
+      };
+    }
+    
     this.createdAt = dropNeoBank.createdAt;
   }
 }

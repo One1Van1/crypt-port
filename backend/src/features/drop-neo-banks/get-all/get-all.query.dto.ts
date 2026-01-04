@@ -15,6 +15,16 @@ export class GetAllDropNeoBanksQueryDto {
   dropId?: number;
 
   @ApiProperty({
+    description: 'Platform ID filter',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  platformId?: number;
+
+  @ApiProperty({
     enum: NeoBankProvider,
     description: 'Provider filter',
     required: false,

@@ -36,6 +36,7 @@ export interface UpdateBalanceDto {
 
 export interface GetAllDropNeoBanksParams {
   dropId?: number;
+  platformId?: number;
   provider?: string;
   status?: string;
 }

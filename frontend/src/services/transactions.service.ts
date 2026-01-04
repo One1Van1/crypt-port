@@ -75,6 +75,7 @@ export interface GetTransactionsResponse {
 export interface CreateTransactionRequest {
   amount: number;
   sourceDropNeoBankId: number;
+  bankAccountId: number;
   receipt?: string;
   comment?: string;
 }

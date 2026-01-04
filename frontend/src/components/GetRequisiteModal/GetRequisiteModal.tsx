@@ -88,18 +88,18 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     enabled: isOpen,
   });
 
-  // Получить активные нео-банки ЭТОГО дропа
+  // Получить активные нео-банки платформы текущей смены
   const { data: neoBanks = [], isLoading: neoBanksLoading } = useQuery({
-    queryKey: ['neo-banks-for-drop', requisite?.dropId],
+    queryKey: ['neo-banks-for-platform', currentShift?.platformId],
     queryFn: async () => {
-      if (!requisite?.dropId) return [];
+      if (!currentShift?.platformId) return [];
       const result = await dropNeoBanksService.getAll({ 
-        dropId: requisite.dropId,
+        platformId: currentShift.platformId,
         status: 'active' 
       });
       return result.items;
     },
-    enabled: isOpen && !!requisite?.dropId,
+    enabled: isOpen && !!currentShift?.platformId,
   });
 
   // Автоматически получаем реквизит при открытии модалки
@@ -112,11 +112,23 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   // Создать транзакцию
   const createTransaction = useMutation({
     mutationFn: (data: CreateTransactionRequest) => transactionsService.create(data),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['current-shift'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions-recent'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['neo-banks-for-platform'] });
+      
+      // Обновить реквизит с сервера чтобы показать новый лимит
+      if (requisite?.id) {
+        try {
+          const updatedRequisite = await bankAccountsService.getById(String(requisite.id));
+          setRequisite(updatedRequisite);
+        } catch (error) {
+          console.error('Failed to refresh requisite:', error);
+        }
+      }
+      
       setStep('success');
       toast.success('Операция успешно зафиксирована!');
     },
@@ -184,7 +196,8 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setError('');
     createTransaction.mutate({
       amount: amountNum,
-      sourceDropNeoBankId: selectedNeoBank,
+      sourceDropNeoBankId: Number(selectedNeoBank),
+      bankAccountId: requisite.id,
       comment: comment?.trim() || undefined,
     });
   };
