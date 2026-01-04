@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Platform } from '../../../entities/platform.entity';
-import { Balance } from '../../../entities/balance.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { BankAccount } from '../../../entities/bank-account.entity';
 import { PesoToUsdtConversion } from '../../../entities/peso-to-usdt-conversion.entity';
@@ -12,7 +11,7 @@ import { Drop } from '../../../entities/drop.entity';
 import { UsdtToPesoExchange } from '../../../entities/usdt-to-peso-exchange.entity';
 import { Transaction } from '../../../entities/transaction.entity';
 import { SystemSetting } from '../../../entities/system-setting.entity';
-import { Currency } from '../../../common/enums/balance.enum';
+
 import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
@@ -35,8 +34,6 @@ export class GetWorkingDepositSectionsService {
   constructor(
     @InjectRepository(Platform)
     private readonly platformRepository: Repository<Platform>,
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
     @InjectRepository(DropNeoBank)
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
     @InjectRepository(BankAccount)
@@ -109,13 +106,7 @@ export class GetWorkingDepositSectionsService {
     let total = 0;
 
     for (const platform of platforms) {
-      const balance = await this.balanceRepository
-        .createQueryBuilder('balance')
-        .where('balance.platform_id = :platformId', { platformId: platform.id })
-        .andWhere('balance.currency = :currency', { currency: Currency.USDT })
-        .getOne();
-
-      const balanceAmount = balance ? Number(balance.amount) : 0;
+      const balanceAmount = Number(platform.balance);
       total += balanceAmount;
 
       platformBalanceDtos.push(
@@ -130,6 +121,7 @@ export class GetWorkingDepositSectionsService {
     // Замороженные нео-банки
     const frozenNeoBanks = await this.dropNeoBankRepository.find({
       where: { status: NeoBankStatus.FROZEN },
+      relations: ['platform'],
     });
 
     const accountDtos: AccountDto[] = [];
@@ -139,17 +131,14 @@ export class GetWorkingDepositSectionsService {
     for (const neoBank of frozenNeoBanks) {
       const balance = Number(neoBank.currentBalance);
       
-      // Get the latest exchange that funded this neo-bank to determine the rate
-      const latestExchange = await this.usdtToPesoExchangeRepository.findOne({
-        where: { neoBankId: neoBank.id },
-        order: { createdAt: 'DESC' },
-        relations: ['platform'],
-      });
-
-      const rate = latestExchange?.exchangeRate || 1100;
-      const platformId = latestExchange?.platformId || 0;
-      const platformName = latestExchange?.platform?.name || 'Unknown';
-      const balanceUsdt = balance / rate;
+      // Используем сохраненный курс и USDT эквивалент
+      const rate = neoBank.exchangeRate || 1100; // fallback если нет курса
+      const balanceUsdt = neoBank.usdtEquivalent || (balance / rate);
+      
+      // Получаем платформу для отображения
+      const platform = neoBank.platform;
+      const platformId = platform?.id || 0;
+      const platformName = platform?.name || 'Unknown';
 
       total += balance;
       totalUsdt += balanceUsdt;
@@ -178,21 +167,20 @@ export class GetWorkingDepositSectionsService {
     // 1. Активные нео-банки
     const activeNeoBanks = await this.dropNeoBankRepository.find({
       where: { status: NeoBankStatus.ACTIVE },
+      relations: ['platform'],
     });
 
     for (const neoBank of activeNeoBanks) {
       const balance = Number(neoBank.currentBalance);
       
-      const latestExchange = await this.usdtToPesoExchangeRepository.findOne({
-        where: { neoBankId: neoBank.id },
-        order: { createdAt: 'DESC' },
-        relations: ['platform'],
-      });
-
-      const rate = latestExchange?.exchangeRate || 1100;
-      const platformId = latestExchange?.platformId || 0;
-      const platformName = latestExchange?.platform?.name || 'Unknown';
-      const balanceUsdt = balance / rate;
+      // Используем сохраненный курс и USDT эквивалент
+      const rate = neoBank.exchangeRate || 1100; // fallback если нет курса
+      const balanceUsdt = neoBank.usdtEquivalent || (balance / rate);
+      
+      // Получаем платформу для отображения
+      const platform = neoBank.platform;
+      const platformId = platform?.id || 0;
+      const platformName = platform?.name || 'Unknown';
 
       total += balance;
       totalUsdt += balanceUsdt;

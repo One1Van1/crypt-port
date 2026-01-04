@@ -4,12 +4,12 @@ import { Repository, DataSource } from 'typeorm';
 import { Profit } from '../../../entities/profit.entity';
 import { PesoToUsdtConversion } from '../../../entities/peso-to-usdt-conversion.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
-import { Balance } from '../../../entities/balance.entity';
+import { Platform } from '../../../entities/platform.entity';
 import { User } from '../../../entities/user.entity';
 import { WithdrawProfitRequestDto } from './withdraw.request.dto';
 import { WithdrawProfitResponseDto } from './withdraw.response.dto';
 import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
-import { Currency } from '../../../common/enums/balance.enum';
+
 
 @Injectable()
 export class WithdrawProfitService {
@@ -20,8 +20,8 @@ export class WithdrawProfitService {
     private readonly pesoToUsdtConversionRepository: Repository<PesoToUsdtConversion>,
     @InjectRepository(DropNeoBank)
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
+    @InjectRepository(Platform)
+    private readonly platformRepository: Repository<Platform>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -137,13 +137,10 @@ export class WithdrawProfitService {
 
     // TODO: Изначальный депозит нужно хранить в настройках системы
     // Пока считаем что это сумма балансов платформ
-    const platformBalances = await this.balanceRepository
-      .createQueryBuilder('balance')
-      .where('balance.currency = :currency', { currency: Currency.USDT })
-      .getMany();
+    const platforms = await this.platformRepository.find();
 
-    const initialDeposit = platformBalances.reduce(
-      (sum, balance) => sum + Number(balance.amount),
+    const initialDeposit = platforms.reduce(
+      (sum, platform) => sum + Number(platform.balance),
       0
     );
 

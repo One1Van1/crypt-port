@@ -7,7 +7,6 @@ import { BankAccount } from '../entities/bank-account.entity';
 import { Platform } from '../entities/platform.entity';
 import { Shift } from '../entities/shift.entity';
 import { Transaction } from '../entities/transaction.entity';
-import { Balance } from '../entities/balance.entity';
 
 // Get Operators Analytics
 import { GetOperatorsAnalyticsController } from '../features/analytics/operators/operators.controller';
@@ -27,7 +26,6 @@ import { GetGeneralStatsService } from '../features/analytics/general/general.se
       Platform,
       Shift,
       Transaction,
-      Balance,
     ]),
   ],
   controllers: [GetOperatorsAnalyticsController, GetGeneralStatsController],

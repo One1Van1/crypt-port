@@ -8,7 +8,6 @@ import { BankAccount } from '../../../entities/bank-account.entity';
 import { Platform } from '../../../entities/platform.entity';
 import { Shift } from '../../../entities/shift.entity';
 import { Transaction } from '../../../entities/transaction.entity';
-import { Balance } from '../../../entities/balance.entity';
 import { UserRole } from '../../../common/enums/user.enum';
 import { ShiftStatus } from '../../../common/enums/shift.enum';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
@@ -32,8 +31,6 @@ export class GetGeneralStatsService {
     private readonly shiftRepository: Repository<Shift>,
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
   ) {}
 
   async execute(): Promise<GetGeneralStatsResponseDto> {
@@ -69,9 +66,9 @@ export class GetGeneralStatsService {
       .filter((t) => t.status === TransactionStatus.COMPLETED)
       .reduce((sum, t) => sum + Number(t.amount), 0);
 
-    // Балансы
-    const allBalances = await this.balanceRepository.find();
-    const totalBalance = allBalances.reduce((sum, b) => sum + Number(b.amount), 0);
+    // Балансы платформ
+    const allPlatforms = await this.platformRepository.find();
+    const totalBalance = allPlatforms.reduce((sum, p) => sum + Number(p.balance), 0);
 
     return new GetGeneralStatsResponseDto({
       totalUsers,

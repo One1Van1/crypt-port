@@ -16,4 +16,7 @@ export class Platform extends BaseEntity {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, name: 'exchange_rate', default: 0 })
   exchangeRate: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+  balance: number;
 }

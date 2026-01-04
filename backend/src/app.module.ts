@@ -13,7 +13,6 @@ import { PlatformsModule } from './modules/platforms.module';
 import { BankAccountsModule } from './modules/bank-accounts.module';
 import { ShiftsModule } from './modules/shifts.module';
 import { TransactionsModule } from './modules/transactions.module';
-import { BalancesModule } from './modules/balances.module';
 import { UsersModule } from './modules/users.module';
 import { AnalyticsModule } from './modules/analytics.module';
 import { ExchangeRatesModule } from './modules/exchange-rates.module';
@@ -41,7 +40,6 @@ import { WorkingDepositModule } from './modules/working-deposit.module';
     BankAccountsModule,
     ShiftsModule,
     TransactionsModule,
-    BalancesModule,
     UsersModule,
     AnalyticsModule,
     ExchangeRatesModule,

@@ -28,6 +28,12 @@ export class DropNeoBank extends BaseEntity {
   @Column({ type: 'decimal', precision: 12, scale: 2, default: 0, name: 'current_balance' })
   currentBalance: number;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'exchange_rate' })
+  exchangeRate: number;
+
+  @Column({ type: 'decimal', precision: 15, scale: 4, nullable: true, name: 'usdt_equivalent' })
+  usdtEquivalent: number;
+
   @Column({ name: 'drop_id' })
   dropId: number;
 

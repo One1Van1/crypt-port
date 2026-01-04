@@ -5,8 +5,8 @@ import { Transaction } from '../../../entities/transaction.entity';
 import { Shift } from '../../../entities/shift.entity';
 import { BankAccount } from '../../../entities/bank-account.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
-import { Balance } from '../../../entities/balance.entity';
 import { User } from '../../../entities/user.entity';
+import { NeoBankWithdrawal } from '../../../entities/neo-bank-withdrawal.entity';
 import { CreateTransactionRequestDto } from './create.request.dto';
 import { CreateTransactionResponseDto } from './create.response.dto';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
@@ -25,8 +25,6 @@ export class CreateTransactionService {
     private readonly bankAccountRepository: Repository<BankAccount>,
     @InjectRepository(DropNeoBank)
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -58,27 +56,26 @@ export class CreateTransactionService {
       throw new BadRequestException('Source neo-bank is not active');
     }
 
-    // 2.1. Проверяем курс платформы
+    // 2.1. Проверяем достаточность средств на нео-банке
+    if (Number(sourceNeoBank.currentBalance) < dto.amount) {
+      throw new BadRequestException(
+        `Insufficient balance in neo-bank. Available: ${sourceNeoBank.currentBalance} ARS, required: ${dto.amount} ARS`,
+      );
+    }
+
+    // 2.2. Проверяем курс платформы
     if (!activeShift.platform.exchangeRate || activeShift.platform.exchangeRate <= 0) {
       throw new BadRequestException(`Exchange rate not set for platform ${activeShift.platform.name}`);
     }
 
-    // 2.2. Рассчитываем сумму в USDT
-    const amountUSDT = dto.amount / activeShift.platform.exchangeRate;
+    // 2.3. Рассчитываем сумму в USDT по курсу нео-банка
+    const neoBankRate = sourceNeoBank.exchangeRate || activeShift.platform.exchangeRate;
+    const amountUSDT = dto.amount / neoBankRate;
 
-    // 2.3. Проверяем Balance платформы
-    const balance = await this.balanceRepository.findOne({
-      where: { platform: { id: activeShift.platform.id } },
-      relations: ['platform'],
-    });
-
-    if (!balance) {
-      throw new NotFoundException(`Balance not found for platform ${activeShift.platform.name}`);
-    }
-
-    if (balance.amount < amountUSDT) {
+    // 2.4. Проверяем баланс платформы
+    if (Number(activeShift.platform.balance) < amountUSDT) {
       throw new BadRequestException(
-        `Insufficient balance. Available: ${balance.amount} USDT, required: ${amountUSDT.toFixed(4)} USDT`,
+        `Insufficient balance on platform. Available: ${activeShift.platform.balance} USDT, Required: ${amountUSDT.toFixed(4)} USDT`
       );
     }
 
@@ -117,11 +114,16 @@ export class CreateTransactionService {
 
       const bankAccount = bankAccounts[0];
 
+      // 4.1. Вычисляем USDT по средневзвешенному курсу нео-банка
+      // ВАЖНО: Используем курс НАШЕГО нео-банка, а не текущий курс платформы!
+      const neoBankRate = sourceNeoBank.exchangeRate || activeShift.platform.exchangeRate;
+      const calculatedUSDT = dto.amount / neoBankRate;
+
       // 5. Создаем транзакцию (сразу COMPLETED, т.к. оператор вводит факт выполненной операции)
       const transaction = queryRunner.manager.create(Transaction, {
         amount: dto.amount,
-        amountUSDT: amountUSDT,
-        exchangeRate: activeShift.platform.exchangeRate,
+        amountUSDT: calculatedUSDT,
+        exchangeRate: neoBankRate,  // Курс нео-банка, а не платформы!
         status: TransactionStatus.COMPLETED,
         receipt: dto.receipt,
         comment: dto.comment,
@@ -147,9 +149,46 @@ export class CreateTransactionService {
       
       await queryRunner.manager.save(bankAccount);
 
-      // 6.1. Уменьшаем Balance платформы
-      balance.amount = Number(balance.amount) - amountUSDT;
-      await queryRunner.manager.save(balance);
+      // 6.2. Вычитаем сумму из нео-банка и ПРОПОРЦИОНАЛЬНО уменьшаем USDT
+      const balanceBefore = Number(sourceNeoBank.currentBalance);
+      const usdtBefore = Number(sourceNeoBank.usdtEquivalent) || 0;
+      
+      sourceNeoBank.currentBalance = balanceBefore - dto.amount;
+      
+      // ВАЖНО: Вычитаем USDT пропорционально!
+      // Если вывели 10% песо, то и USDT вычитаем 10%
+      if (balanceBefore > 0 && usdtBefore > 0) {
+        const withdrawnRatio = dto.amount / balanceBefore;
+        const withdrawnUsdt = usdtBefore * withdrawnRatio;
+        sourceNeoBank.usdtEquivalent = usdtBefore - withdrawnUsdt;
+        
+        // Пересчитываем средневзвешенный курс
+        if (sourceNeoBank.currentBalance > 0) {
+          sourceNeoBank.exchangeRate = sourceNeoBank.currentBalance / sourceNeoBank.usdtEquivalent;
+        }
+      }
+      
+      await queryRunner.manager.save(sourceNeoBank);
+
+      // 6.3. Создаем запись о выводе с нео-банка
+      const neoBankWithdrawal = queryRunner.manager.create(NeoBankWithdrawal, {
+        amount: dto.amount,
+        neoBank: sourceNeoBank,
+        bankAccount: bankAccount,
+        transaction: transaction,
+        withdrawnByUser: user,
+        balanceBefore: balanceBefore,
+        balanceAfter: sourceNeoBank.currentBalance,
+        comment: dto.comment,
+      });
+      await queryRunner.manager.save(neoBankWithdrawal);
+
+      // 
+      await queryRunner.manager.save(bankAccount);
+
+      // 6.1. Уменьшаем баланс платформы
+      activeShift.platform.balance = Number(activeShift.platform.balance) - amountUSDT;
+      await queryRunner.manager.save(activeShift.platform);
 
       // 7. Обновляем статистику смены
       activeShift.operationsCount += 1;

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Profit } from '../entities/profit.entity';
 import { PesoToUsdtConversion } from '../entities/peso-to-usdt-conversion.entity';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
-import { Balance } from '../entities/balance.entity';
+import { Platform } from '../entities/platform.entity';
 
 // Withdraw Profit
 import { WithdrawProfitController } from '../features/profits/withdraw/withdraw.controller';
@@ -19,7 +19,7 @@ import { GetProfitHistoryService } from '../features/profits/get-history/get-his
       Profit,
       PesoToUsdtConversion,
       DropNeoBank,
-      Balance,
+      Platform,
     ]),
   ],
   controllers: [

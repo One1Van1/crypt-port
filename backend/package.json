@@ -12,7 +12,10 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "seed:platforms": "ts-node -r tsconfig-paths/register src/seed-platforms.ts",
-    "seed:working-deposit": "ts-node -r tsconfig-paths/register src/seed-working-deposit.ts"
+    "seed:working-deposit": "ts-node -r tsconfig-paths/register src/seed-working-deposit.ts",
+    "seed:all": "ts-node -r tsconfig-paths/register src/seed-all.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/config/ormconfig.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/config/ormconfig.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.9",

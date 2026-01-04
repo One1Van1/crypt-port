@@ -4,7 +4,8 @@ import { Transaction } from '../entities/transaction.entity';
 import { Shift } from '../entities/shift.entity';
 import { BankAccount } from '../entities/bank-account.entity';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
-import { Balance } from '../entities/balance.entity';
+import { NeoBankWithdrawal } from '../entities/neo-bank-withdrawal.entity';
+import { Platform } from '../entities/platform.entity';
 
 // Create Transaction
 import { CreateTransactionController } from '../features/transactions/create/create.controller';
@@ -39,7 +40,7 @@ import { GetTransactionsStatsController } from '../features/transactions/stats/s
 import { GetTransactionsStatsService } from '../features/transactions/stats/stats.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Transaction, Shift, BankAccount, DropNeoBank, Balance])],
+  imports: [TypeOrmModule.forFeature([Transaction, Shift, BankAccount, DropNeoBank, NeoBankWithdrawal, Platform])],
   controllers: [
     CreateTransactionController,
     GetMyTransactionsController,

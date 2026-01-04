@@ -3,12 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Platform } from '../../../entities/platform.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
-import { Balance } from '../../../entities/balance.entity';
 import { UsdtToPesoExchange } from '../../../entities/usdt-to-peso-exchange.entity';
 import { User } from '../../../entities/user.entity';
 import { ExchangeUsdtToPesosRequestDto } from './exchange-usdt-to-pesos.request.dto';
 import { ExchangeUsdtToPesosResponseDto } from './exchange-usdt-to-pesos.response.dto';
-import { Currency } from '../../../common/enums/balance.enum';
+
 import { PlatformStatus } from '../../../common/enums/platform.enum';
 import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 
@@ -19,8 +18,6 @@ export class ExchangeUsdtToPesosService {
     private readonly platformRepository: Repository<Platform>,
     @InjectRepository(DropNeoBank)
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
     @InjectRepository(UsdtToPesoExchange)
     private readonly usdtToPesoExchangeRepository: Repository<UsdtToPesoExchange>,
     private readonly dataSource: DataSource,
@@ -64,20 +61,10 @@ export class ExchangeUsdtToPesosService {
       }
 
       // 3. Проверяем баланс USDT на платформе
-      const platformBalance = await queryRunner.manager
-        .createQueryBuilder(Balance, 'balance')
-        .where('balance.platform_id = :platformId', { platformId: dto.platformId })
-        .andWhere('balance.currency = :currency', { currency: Currency.USDT })
-        .getOne();
-
-      if (!platformBalance) {
-        throw new BadRequestException(`No USDT balance found for platform ${platform.name}`);
-      }
-
-      if (Number(platformBalance.amount) < dto.usdtAmount) {
+      if (Number(platform.balance) < dto.usdtAmount) {
         throw new BadRequestException(
           `Insufficient USDT balance on platform ${platform.name}. ` +
-          `Available: ${platformBalance.amount} USDT, Required: ${dto.usdtAmount} USDT`
+          `Available: ${platform.balance} USDT, Required: ${dto.usdtAmount} USDT`
         );
       }
 
@@ -85,11 +72,23 @@ export class ExchangeUsdtToPesosService {
       const pesosAmount = dto.usdtAmount * platform.exchangeRate;
 
       // 5. Списываем USDT с платформы
-      platformBalance.amount = Number(platformBalance.amount) - dto.usdtAmount;
-      await queryRunner.manager.save(Balance, platformBalance);
+      platform.balance = Number(platform.balance) - dto.usdtAmount;
+      await queryRunner.manager.save(Platform, platform);
 
-      // 6. Добавляем песо в нео-банк
-      neoBank.currentBalance = Number(neoBank.currentBalance) + pesosAmount;
+      // 6. Добавляем песо в нео-банк и ПРИБАВЛЯЕМ USDT
+      const previousBalancePesos = Number(neoBank.currentBalance);
+      const previousUsdtEquivalent = Number(neoBank.usdtEquivalent) || 0;
+      
+      neoBank.currentBalance = previousBalancePesos + pesosAmount;
+      
+      // ВАЖНО: ПРИБАВЛЯЕМ USDT, а не пересчитываем по курсу!
+      // Это сохраняет правильную стоимость при смешанных курсах
+      neoBank.usdtEquivalent = previousUsdtEquivalent + dto.usdtAmount;
+      
+      // Средневзвешенный курс (для справки)
+      // Показывает "средний" курс всех пополнений
+      neoBank.exchangeRate = neoBank.currentBalance / neoBank.usdtEquivalent;
+      
       await queryRunner.manager.save(DropNeoBank, neoBank);
 
       // 7. Создаем запись об обмене

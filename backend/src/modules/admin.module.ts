@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/user.entity';
 import { Platform } from '../entities/platform.entity';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
-import { Balance } from '../entities/balance.entity';
 import { UsdtToPesoExchange } from '../entities/usdt-to-peso-exchange.entity';
 import { SystemSetting } from '../entities/system-setting.entity';
 
@@ -23,7 +22,6 @@ import { SetInitialDepositService } from '../features/admin/settings/set-initial
       User,
       Platform,
       DropNeoBank,
-      Balance,
       UsdtToPesoExchange,
       SystemSetting,
     ]),

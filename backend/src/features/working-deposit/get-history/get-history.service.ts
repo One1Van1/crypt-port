@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual } from 'typeorm';
-import { Balance } from '../../../entities/balance.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { Transaction } from '../../../entities/transaction.entity';
 import { SystemSetting } from '../../../entities/system-setting.entity';
@@ -13,8 +12,6 @@ import { TransactionStatus } from '../../../common/enums/transaction.enum';
 @Injectable()
 export class GetWorkingDepositHistoryService {
   constructor(
-    @InjectRepository(Balance)
-    private readonly balanceRepository: Repository<Balance>,
     @InjectRepository(DropNeoBank)
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
     @InjectRepository(Transaction)
@@ -48,67 +45,19 @@ export class GetWorkingDepositHistoryService {
   }
 
   private async calculatePointAtDate(date: Date, initialDeposit: number): Promise<WorkingDepositHistoryPointDto> {
-    // Platform balances at this date
-    const balances = await this.balanceRepository.find({
-      where: {
-        updatedAt: LessThanOrEqual(date),
-      },
-      relations: ['platform'],
-    });
-
-    const platformBalances = balances.reduce((sum, b) => sum + b.amount, 0);
-
-    // Blocked pesos (frozen neo-banks) at this date
-    const frozenNeoBanks = await this.dropNeoBankRepository.find({
-      where: {
-        status: NeoBankStatus.FROZEN,
-        updatedAt: LessThanOrEqual(date),
-      },
-    });
-
-    const blockedPesos = frozenNeoBanks.reduce((sum, nb) => {
-      const usdtEquivalent = nb.currentBalance / 1100; // Use default rate
-      return sum + usdtEquivalent;
-    }, 0);
-
-    // Unpaid pesos (active neo-banks + pending transactions) at this date
-    const activeNeoBanks = await this.dropNeoBankRepository.find({
-      where: {
-        status: NeoBankStatus.ACTIVE,
-        createdAt: LessThanOrEqual(date),
-      },
-    });
-
-    const pendingTransactions = await this.transactionRepository.find({
-      where: {
-        status: TransactionStatus.PENDING,
-        createdAt: LessThanOrEqual(date),
-      },
-    });
-
-    const unpaidPesos = 
-      activeNeoBanks.reduce((sum, nb) => sum + (nb.currentBalance / 1100), 0) +
-      pendingTransactions.reduce((sum, tx) => sum + (tx.amount / (tx.exchangeRate || 1100)), 0);
-
-    // Free USDT (simplified - we don't track historical conversions)
-    const freeUsdt = 0; // TODO: Add conversion history tracking
-
-    // Deficit (simplified - we don't track historical withdrawals)
-    const deficit = 0; // TODO: Add withdrawal history tracking
-
-    const totalUsdt = platformBalances + blockedPesos + unpaidPesos + freeUsdt - deficit;
-    const profit = totalUsdt - initialDeposit;
-
-    return {
-      date: date.toISOString().split('T')[0],
-      totalUsdt,
-      initialDeposit,
-      profit,
-      platformBalances,
-      blockedPesos,
-      unpaidPesos,
-      freeUsdt,
-      deficit,
-    };
+    // TODO: Implement history calculation without balances table
+    // Need to track platform balance changes through transactions
+    const point = new WorkingDepositHistoryPointDto();
+    point.date = date.toISOString().split('T')[0];
+    point.totalUsdt = 0;
+    point.initialDeposit = initialDeposit;
+    point.profit = 0;
+    point.platformBalances = 0;
+    point.blockedPesos = 0;
+    point.unpaidPesos = 0;
+    point.freeUsdt = 0;
+    point.deficit = 0;
+    
+    return point;
   }
 }

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Platform } from '../entities/platform.entity';
-import { Balance } from '../entities/balance.entity';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
 import { BankAccount } from '../entities/bank-account.entity';
 import { PesoToUsdtConversion } from '../entities/peso-to-usdt-conversion.entity';
@@ -24,7 +23,6 @@ import { GetWorkingDepositHistoryService } from '../features/working-deposit/get
   imports: [
     TypeOrmModule.forFeature([
       Platform,
-      Balance,
       DropNeoBank,
       BankAccount,
       PesoToUsdtConversion,
