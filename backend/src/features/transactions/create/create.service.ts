@@ -7,7 +7,6 @@ import { BankAccount } from '../../../entities/bank-account.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { Balance } from '../../../entities/balance.entity';
 import { User } from '../../../entities/user.entity';
-import { ExchangeRate } from '../../../entities/exchange-rate.entity';
 import { CreateTransactionRequestDto } from './create.request.dto';
 import { CreateTransactionResponseDto } from './create.response.dto';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
@@ -28,8 +27,6 @@ export class CreateTransactionService {
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
     @InjectRepository(Balance)
     private readonly balanceRepository: Repository<Balance>,
-    @InjectRepository(ExchangeRate)
-    private readonly exchangeRateRepository: Repository<ExchangeRate>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -61,18 +58,13 @@ export class CreateTransactionService {
       throw new BadRequestException('Source neo-bank is not active');
     }
 
-    // 2.1. Получаем текущий курс
-    const currentRate = await this.exchangeRateRepository.findOne({
-      where: { isActive: true },
-      order: { createdAt: 'DESC' },
-    });
-
-    if (!currentRate) {
-      throw new BadRequestException('No active exchange rate found. Please set exchange rate first.');
+    // 2.1. Проверяем курс платформы
+    if (!activeShift.platform.exchangeRate || activeShift.platform.exchangeRate <= 0) {
+      throw new BadRequestException(`Exchange rate not set for platform ${activeShift.platform.name}`);
     }
 
     // 2.2. Рассчитываем сумму в USDT
-    const amountUSDT = dto.amount / currentRate.rate;
+    const amountUSDT = dto.amount / activeShift.platform.exchangeRate;
 
     // 2.3. Проверяем Balance платформы
     const balance = await this.balanceRepository.findOne({
@@ -129,7 +121,7 @@ export class CreateTransactionService {
       const transaction = queryRunner.manager.create(Transaction, {
         amount: dto.amount,
         amountUSDT: amountUSDT,
-        exchangeRate: currentRate.rate,
+        exchangeRate: activeShift.platform.exchangeRate,
         status: TransactionStatus.COMPLETED,
         receipt: dto.receipt,
         comment: dto.comment,

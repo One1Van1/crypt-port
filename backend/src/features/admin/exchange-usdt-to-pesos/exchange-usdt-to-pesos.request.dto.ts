@@ -1,4 +1,4 @@
-import { IsNumber, IsPositive, Min } from 'class-validator';
+import { IsNumber, IsPositive } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -29,13 +29,4 @@ export class ExchangeUsdtToPesosRequestDto {
   @IsNumber()
   @IsPositive()
   usdtAmount: number;
-
-  @ApiProperty({
-    description: 'Exchange rate (ARS per 1 USDT) set by admin',
-    example: 1050.75,
-  })
-  @Type(() => Number)
-  @IsNumber()
-  @Min(0.01)
-  exchangeRate: number;
 }

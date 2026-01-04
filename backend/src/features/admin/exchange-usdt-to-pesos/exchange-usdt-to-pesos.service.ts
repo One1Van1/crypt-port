@@ -45,6 +45,11 @@ export class ExchangeUsdtToPesosService {
         throw new BadRequestException(`Platform ${platform.name} is not active`);
       }
 
+      // Проверяем курс платформы
+      if (!platform.exchangeRate || platform.exchangeRate <= 0) {
+        throw new BadRequestException(`Exchange rate not set for platform ${platform.name}`);
+      }
+
       // 2. Проверяем существование и статус нео-банка
       const neoBank = await queryRunner.manager.findOne(DropNeoBank, {
         where: { id: dto.neoBankId },
@@ -76,8 +81,8 @@ export class ExchangeUsdtToPesosService {
         );
       }
 
-      // 4. Рассчитываем количество песо
-      const pesosAmount = dto.usdtAmount * dto.exchangeRate;
+      // 4. Рассчитываем количество песо (по курсу платформы)
+      const pesosAmount = dto.usdtAmount * platform.exchangeRate;
 
       // 5. Списываем USDT с платформы
       platformBalance.amount = Number(platformBalance.amount) - dto.usdtAmount;
@@ -92,7 +97,7 @@ export class ExchangeUsdtToPesosService {
         platformId: dto.platformId,
         neoBankId: dto.neoBankId,
         usdtAmount: dto.usdtAmount,
-        exchangeRate: dto.exchangeRate,
+        exchangeRate: platform.exchangeRate,
         pesosAmount: pesosAmount,
         createdByUserId: user.id,
       });
@@ -108,7 +113,7 @@ export class ExchangeUsdtToPesosService {
         neoBank.id,
         neoBank.provider,
         dto.usdtAmount,
-        dto.exchangeRate,
+        platform.exchangeRate,
         pesosAmount,
         user.id,
         savedExchange.createdAt,

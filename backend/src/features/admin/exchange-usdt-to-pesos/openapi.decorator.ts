@@ -6,7 +6,7 @@ export const ApiExchangeUsdtToPesos = () =>
   applyDecorators(
     ApiOperation({
       summary: 'Exchange USDT to Pesos (Admin only)',
-      description: 'Admin withdraws USDT from platform and deposits pesos to neo-bank at specified exchange rate',
+      description: 'Admin withdraws USDT from platform and deposits pesos to neo-bank. Exchange rate is taken from platform settings automatically.',
     }),
     ApiOkResponse({
       description: 'Exchange completed successfully',

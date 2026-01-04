@@ -13,4 +13,7 @@ export class Platform extends BaseEntity {
     default: PlatformStatus.ACTIVE,
   })
   status: PlatformStatus;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, name: 'exchange_rate', default: 0 })
+  exchangeRate: number;
 }

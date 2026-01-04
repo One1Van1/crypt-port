@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Platform } from '../../../entities/platform.entity';
@@ -13,10 +13,20 @@ export class UpdateExchangeRateService {
   ) {}
 
   async execute(id: number, dto: UpdateExchangeRateRequestDto): Promise<UpdateExchangeRateResponseDto> {
-    // DEPRECATED: Exchange rate is now global, use POST /exchange-rates/set instead
-    throw new BadRequestException(
-      'This endpoint is deprecated. Exchange rate is now global. ' +
-      'Please use POST /exchange-rates/set to update the exchange rate for all platforms.'
+    const platform = await this.platformRepository.findOne({ where: { id } });
+
+    if (!platform) {
+      throw new NotFoundException('Platform not found');
+    }
+
+    platform.exchangeRate = dto.exchangeRate;
+    await this.platformRepository.save(platform);
+
+    return new UpdateExchangeRateResponseDto(
+      platform.id,
+      platform.name,
+      Number(platform.exchangeRate),
+      platform.updatedAt,
     );
   }
 }
