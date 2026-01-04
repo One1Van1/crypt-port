@@ -34,10 +34,10 @@ export class DropNeoBank extends BaseEntity {
   @Column({ type: 'decimal', precision: 15, scale: 4, nullable: true, name: 'usdt_equivalent' })
   usdtEquivalent: number;
 
-  @Column({ name: 'drop_id' })
+  @Column({ name: 'drop_id', nullable: true })
   dropId: number;
 
-  @ManyToOne(() => Drop)
+  @ManyToOne(() => Drop, { nullable: true })
   @JoinColumn({ name: 'drop_id' })
   drop: Drop;
 
