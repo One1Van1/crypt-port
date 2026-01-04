@@ -19,10 +19,13 @@ export class CreateBankAccountResponseDto {
   })
   status: BankAccountStatus;
 
-  @ApiProperty({ description: 'Limit' })
-  limit: number;
+  @ApiProperty({ description: 'Initial limit (set by admin)' })
+  initialLimitAmount: number;
 
-  @ApiProperty({ description: 'Withdrawn amount' })
+  @ApiProperty({ description: 'Current working limit' })
+  currentLimitAmount: number;
+
+  @ApiProperty({ description: 'Withdrawn amount (statistics)' })
   withdrawnAmount: number;
 
   @ApiProperty({ description: 'Priority' })
@@ -48,7 +51,8 @@ export class CreateBankAccountResponseDto {
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
-    this.limit = Number(bankAccount.limitAmount);
+    this.initialLimitAmount = Number(bankAccount.initialLimitAmount);
+    this.currentLimitAmount = Number(bankAccount.currentLimitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
     this.priority = bankAccount.priority;
     this.bankId = bankAccount.bank?.id;

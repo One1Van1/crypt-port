@@ -18,8 +18,11 @@ export class BankAccountForOperatorDto {
   @ApiProperty({ description: 'Priority (lower = higher priority)' })
   priority: number;
 
-  @ApiProperty({ description: 'Limit amount' })
-  limitAmount: number;
+  @ApiProperty({ description: 'Initial limit amount (set by admin)' })
+  initialLimitAmount: number;
+
+  @ApiProperty({ description: 'Current working limit' })
+  currentLimitAmount: number;
 
   @ApiProperty({ description: 'Withdrawn amount' })
   withdrawnAmount: number;

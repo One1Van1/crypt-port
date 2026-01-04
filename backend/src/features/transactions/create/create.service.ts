@@ -99,8 +99,8 @@ export class CreateTransactionService {
         throw new BadRequestException('Bank account is not available');
       }
 
-      // 4.1. Проверяем доступный лимит
-      const availableLimit = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
+      // 4.1. Проверяем доступный лимит (теперь используем currentLimitAmount)
+      const availableLimit = Number(bankAccount.currentLimitAmount);
       if (availableLimit < dto.amount) {
         throw new BadRequestException(
           `Insufficient limit in bank account. Available: ${availableLimit} ARS, Required: ${dto.amount} ARS`,
@@ -129,13 +129,15 @@ export class CreateTransactionService {
 
       await queryRunner.manager.save(transaction);
 
-      // 6. Обновляем баланс банковского аккаунта
+      // 6. Обновляем балансы банковского аккаунта
+      // Увеличиваем withdrawnAmount (для статистики)
       bankAccount.withdrawnAmount = Number(bankAccount.withdrawnAmount) + dto.amount;
+      // Уменьшаем currentLimitAmount (рабочий лимит)
+      bankAccount.currentLimitAmount = Number(bankAccount.currentLimitAmount) - dto.amount;
       bankAccount.lastUsedAt = new Date();
       
       // Auto-blocking: если достигнут лимит, блокируем счет
-      const newAvailableAmount = bankAccount.limitAmount - bankAccount.withdrawnAmount;
-      if (newAvailableAmount <= 0) {
+      if (bankAccount.currentLimitAmount <= 0) {
         bankAccount.status = BankAccountStatus.BLOCKED;
         bankAccount.blockReason = 'Достигнут лимит вывода';
       }

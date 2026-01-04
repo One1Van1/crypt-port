@@ -19,14 +19,14 @@ export class GetAvailableBankAccountService {
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .where('bankAccount.status = :status', { status: BankAccountStatus.WORKING })
-      .andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) > :minAmount', {
+      .andWhere('bankAccount.currentLimitAmount > :minAmount', {
         minAmount: 0,
       })
       .orderBy('bankAccount.priority', 'ASC')
       .addOrderBy('bankAccount.lastUsedAt', 'ASC', 'NULLS FIRST');
 
     if (query.amount) {
-      queryBuilder.andWhere('(bankAccount.limitAmount - bankAccount.withdrawnAmount) >= :amount', {
+      queryBuilder.andWhere('bankAccount.currentLimitAmount >= :amount', {
         amount: query.amount,
       });
     }

@@ -6,9 +6,9 @@ export interface BankAccount {
   alias: string;
   status: string;
   priority: number;
-  limitAmount: number;
+  initialLimitAmount: number;
+  currentLimitAmount: number;
   withdrawnAmount: number;
-  availableAmount?: number;
   bankId: number;
   bankName?: string;
   dropId: number;
@@ -53,7 +53,7 @@ class BankAccountsService {
     cbu: string;
     alias: string;
     accountType: string;
-    limitAmount?: number;
+    initialLimitAmount?: number;
     priority?: number;
   }): Promise<BankAccount> {
     const response = await apiClient.post<BankAccount>('/bank-accounts', data);

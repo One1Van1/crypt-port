@@ -11,8 +11,8 @@ export class GetAvailableBankAccountResponseDto {
   @ApiProperty({ description: 'Alias' })
   alias: string;
 
-  @ApiProperty({ description: 'Available amount (limit - withdrawn)' })
-  availableAmount: number;
+  @ApiProperty({ description: 'Current working limit (available amount)' })
+  currentLimitAmount: number;
 
   @ApiProperty({ description: 'Priority' })
   priority: number;
@@ -33,14 +33,10 @@ export class GetAvailableBankAccountResponseDto {
     this.id = bankAccount.id;
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
-    // Преобразуем decimal (string) в number
-    const limitAmount = typeof bankAccount.limitAmount === 'string' 
-      ? parseFloat(bankAccount.limitAmount) 
-      : bankAccount.limitAmount;
-    const withdrawnAmount = typeof bankAccount.withdrawnAmount === 'string'
-      ? parseFloat(bankAccount.withdrawnAmount)
-      : bankAccount.withdrawnAmount;
-    this.availableAmount = limitAmount - withdrawnAmount;
+    // currentLimitAmount - уже доступный лимит
+    this.currentLimitAmount = typeof bankAccount.currentLimitAmount === 'string' 
+      ? parseFloat(bankAccount.currentLimitAmount) 
+      : bankAccount.currentLimitAmount;
     this.priority = bankAccount.priority;
     this.bankId = bankAccount.bankId;
     this.bankName = bankAccount.bank?.name || '';

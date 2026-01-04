@@ -37,13 +37,13 @@ export class CreateBankAccountRequestDto {
   dropId: number;
 
   @ApiProperty({
-    description: 'Withdrawal limit',
-    example: 100000,
+    description: 'Initial withdrawal limit (set by admin)',
+    example: 5000000,
     minimum: 0,
   })
   @IsNumber()
   @Min(0)
-  limitAmount: number;
+  initialLimitAmount: number;
 
   @ApiProperty({
     description: 'Priority (lower number = higher priority, from 1 to 99)',

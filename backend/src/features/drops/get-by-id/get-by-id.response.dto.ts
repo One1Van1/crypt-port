@@ -27,8 +27,11 @@ class BankAccountItemDto {
   @ApiProperty({ description: 'Withdrawn amount' })
   withdrawnAmount: number;
 
-  @ApiProperty({ description: 'Limit' })
-  limit: number;
+  @ApiProperty({ description: 'Initial limit (set by admin)' })
+  initialLimitAmount: number;
+
+  @ApiProperty({ description: 'Current working limit' })
+  currentLimitAmount: number;
 
   constructor(bankAccount: BankAccount) {
     this.id = bankAccount.id;
@@ -37,7 +40,8 @@ class BankAccountItemDto {
     this.status = bankAccount.status;
     this.bankName = bankAccount.bank?.name || 'Unknown';
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.limit = Number(bankAccount.limitAmount);
+    this.initialLimitAmount = Number(bankAccount.initialLimitAmount);
+    this.currentLimitAmount = Number(bankAccount.currentLimitAmount);
   }
 }
 

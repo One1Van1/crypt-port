@@ -217,9 +217,10 @@ function RequisitesSection() {
             <tbody>
               {accounts.map((account) => {
                 const status = getStatusBadge(account.status);
-                const limitAmount = account.limit || 0;
+                const initialLimitAmount = account.initialLimitAmount || 0;
+                const currentLimitAmount = account.currentLimitAmount || 0;
                 const withdrawnAmount = account.withdrawnAmount || 0;
-                const available = limitAmount - withdrawnAmount;
+                const usagePercent = (withdrawnAmount / initialLimitAmount) * 100;
                 return (
                   <tr 
                     key={account.id}

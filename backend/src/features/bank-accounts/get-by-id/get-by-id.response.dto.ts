@@ -22,14 +22,14 @@ export class GetBankAccountByIdResponseDto {
   @ApiProperty({ description: 'Block reason', required: false })
   blockReason: string | null;
 
-  @ApiProperty({ description: 'Limit' })
-  limit: number;
+  @ApiProperty({ description: 'Initial limit (set by admin)' })
+  initialLimitAmount: number;
 
-  @ApiProperty({ description: 'Withdrawn amount' })
+  @ApiProperty({ description: 'Current working limit' })
+  currentLimitAmount: number;
+
+  @ApiProperty({ description: 'Withdrawn amount (statistics)' })
   withdrawnAmount: number;
-
-  @ApiProperty({ description: 'Available amount (limit - withdrawn)' })
-  availableAmount: number;
 
   @ApiProperty({ description: 'Priority' })
   priority: number;
@@ -64,9 +64,9 @@ export class GetBankAccountByIdResponseDto {
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
     this.blockReason = bankAccount.blockReason;
-    this.limit = Number(bankAccount.limitAmount);
+    this.initialLimitAmount = Number(bankAccount.initialLimitAmount);
+    this.currentLimitAmount = Number(bankAccount.currentLimitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
     this.priority = bankAccount.priority;
     this.lastUsedAt = bankAccount.lastUsedAt;
     this.bankId = bankAccount.bank?.id;

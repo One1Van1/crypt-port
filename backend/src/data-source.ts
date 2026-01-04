@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 export default new DataSource({
   type: 'postgres',
   host: 'localhost',
@@ -7,8 +9,8 @@ export default new DataSource({
   username: 'postgres',
   password: 'postgres',
   database: 'crypt_port',
-  entities: ['src/**/*.entity.ts'],
-  migrations: ['src/migrations/*.ts'],
+  entities: ['dist/**/*.entity.js'],
+  migrations: ['dist/migrations/*.js'],
   synchronize: false,
   logging: true,
 });

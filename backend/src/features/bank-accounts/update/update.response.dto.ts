@@ -19,14 +19,14 @@ export class UpdateBankAccountResponseDto {
   })
   status: BankAccountStatus;
 
-  @ApiProperty({ description: 'Limit' })
-  limit: number;
+  @ApiProperty({ description: 'Initial limit (set by admin)' })
+  initialLimitAmount: number;
 
-  @ApiProperty({ description: 'Withdrawn amount' })
+  @ApiProperty({ description: 'Current working limit' })
+  currentLimitAmount: number;
+
+  @ApiProperty({ description: 'Withdrawn amount (statistics)' })
   withdrawnAmount: number;
-
-  @ApiProperty({ description: 'Available amount (limit - withdrawn)' })
-  availableAmount: number;
 
   @ApiProperty({ description: 'Bank name' })
   bankName: string;
@@ -42,9 +42,9 @@ export class UpdateBankAccountResponseDto {
     this.cbu = bankAccount.cbu;
     this.alias = bankAccount.alias;
     this.status = bankAccount.status;
-    this.limit = Number(bankAccount.limitAmount);
+    this.initialLimitAmount = Number(bankAccount.initialLimitAmount);
+    this.currentLimitAmount = Number(bankAccount.currentLimitAmount);
     this.withdrawnAmount = Number(bankAccount.withdrawnAmount);
-    this.availableAmount = Number(bankAccount.limitAmount) - Number(bankAccount.withdrawnAmount);
     this.bankName = bankAccount.bank?.name || 'Unknown';
     this.dropName = bankAccount.drop?.name || 'Unknown';
     this.updatedAt = bankAccount.updatedAt;

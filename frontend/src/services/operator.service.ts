@@ -6,7 +6,8 @@ export interface BankAccountForOperator {
   alias: string;
   status: string;
   priority: number;
-  limitAmount: number;
+  initialLimitAmount: number;
+  currentLimitAmount: number;
   withdrawnAmount: number;
   lastUsedAt: Date | null;
   dropName: string;

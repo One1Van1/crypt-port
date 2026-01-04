@@ -17,7 +17,7 @@ import {
 import { bankAccountsService, BankAccount } from '../../services/bank-accounts.service';
 import { transactionsService, CreateTransactionRequest } from '../../services/transactions.service';
 import { shiftsService } from '../../services/shifts.service';
-import dropNeoBanksService, { DropNeoBank } from '../../services/drop-neo-banks.service';
+import dropNeoBanksService from '../../services/drop-neo-banks.service';
 import './GetRequisiteModal.css';
 
 interface GetRequisiteModalProps {
@@ -32,7 +32,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>('loading');
-  const [selectedNeoBank, setSelectedNeoBank] = useState<string>('');
+  const [selectedNeoBank, setSelectedNeoBank] = useState<number | null>(null);
   const [requisite, setRequisite] = useState<BankAccount | null>(null);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
@@ -180,7 +180,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     if (!requisite || !currentShift) return;
 
     const amountNum = parseFloat(amount);
-    const availableAmount = requisite.availableAmount || 0;
+    const availableAmount = requisite.currentLimitAmount || 0;
 
     // Валидация
     if (!amount || amountNum <= 0) {
@@ -204,7 +204,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
 
   const handleClose = () => {
     setStep('loading');
-    setSelectedNeoBank('');
+    setSelectedNeoBank(null);
     setRequisite(null);
     setAmount('');
     setComment('');
@@ -343,7 +343,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   <TrendingUp size={20} />
                   <div>
                     <span className="label">Доступно для вывода</span>
-                    <span className="value amount-value">{formatCurrency(requisite.availableAmount || 0)}</span>
+                    <span className="value amount-value">{formatCurrency(requisite.currentLimitAmount || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -427,7 +427,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
             <div className="step-amount">
               <div className="requisite-summary">
                 <p><strong>Исходный нео-банк:</strong> <span className={`provider-badge ${getProviderBadgeClass(selectedNeoBankData.provider)}`}>{getProviderLabel(selectedNeoBankData.provider)}</span></p>
-                <p><small>Дроп: {selectedNeoBankData.dropName} | Баланс: {formatCurrency(selectedNeoBankData.currentBalance || 0)}</small></p>
+                <p><small>Дроп: {selectedNeoBankData.drop?.name || 'Unknown'} | Баланс: {formatCurrency(selectedNeoBankData.currentBalance || 0)}</small></p>
                 <div className="divider"></div>
                 <p><strong>Реквизит для вывода:</strong> {requisite.bankName || requisite.bank?.name}</p>
                 <p><strong>Владелец:</strong> {requisite.dropName}</p>
@@ -446,7 +446,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   className={error ? 'error' : ''}
                   autoFocus
                 />
-                <span className="hint">Введите фактическую сумму, которую вывели. Доступно: {formatCurrency(requisite?.availableAmount || 0)}</span>
+                <span className="hint">Введите фактическую сумму, которую вывели. Доступно: {formatCurrency(requisite?.currentLimitAmount || 0)}</span>
               </div>
 
               <div className="form-group">
@@ -467,7 +467,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
               )}
 
               <div className="modal-footer">
-                <button className="btn-secondary" onClick={() => setStep('display')}>
+                <button className="btn-secondary" onClick={() => setStep('select-source')}>
                   Назад
                 </button>
                 <button 
@@ -502,7 +502,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                 </div>
                 <div className="detail-item">
                   <span className="label">Остаток на реквизите</span>
-                  <span className="value">{formatCurrency((requisite?.availableAmount || 0) - parseFloat(amount))}</span>
+                  <span className="value">{formatCurrency((requisite?.currentLimitAmount || 0) - parseFloat(amount))}</span>
                 </div>
                 {comment && (
                   <div className="detail-item comment-item">
@@ -518,7 +518,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                 </button>
                 <button className="btn-primary" onClick={() => {
                   setStep('select-source');
-                  setSelectedNeoBank('');
+                  setSelectedNeoBank(null);
                   setRequisite(null);
                   handleGetRequisite();
                 }}>

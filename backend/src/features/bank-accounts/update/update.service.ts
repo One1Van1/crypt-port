@@ -29,7 +29,17 @@ export class UpdateBankAccountService {
 
     // Обновляем только переданные поля
     if (dto.alias !== undefined) bankAccount.alias = dto.alias;
-    if (dto.limit !== undefined) bankAccount.limitAmount = dto.limit;
+    if (dto.limit !== undefined) {
+      // При изменении лимита обновляем initialLimitAmount
+      // и пересчитываем currentLimitAmount
+      const oldInitial = Number(bankAccount.initialLimitAmount);
+      const withdrawn = Number(bankAccount.withdrawnAmount);
+      const oldCurrent = Number(bankAccount.currentLimitAmount);
+      
+      bankAccount.initialLimitAmount = dto.limit;
+      // Сохраняем пропорцию: если было использовано 20%, останется 80% от нового лимита
+      bankAccount.currentLimitAmount = dto.limit - withdrawn;
+    }
 
     const updatedAccount = await this.bankAccountRepository.save(bankAccount);
 

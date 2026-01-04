@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -7,19 +7,13 @@ import {
   Plus, 
   RefreshCw, 
   Edit2,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Lock,
   TrendingUp,
   Calendar,
-  User as UserIcon,
   Building
 } from 'lucide-react';
 import { bankAccountsService, BankAccount } from '../../services/bank-accounts.service';
-import { dropsService, Drop } from '../../services/drops.service';
-import { banksService, Bank } from '../../services/banks.service';
-import { usersService, User } from '../../services/users.service';
+import { banksService } from '../../services/banks.service';
+import { usersService } from '../../services/users.service';
 import { useAuthStore } from '../../store/authStore';
 import { useAppStore } from '../../store/appStore';
 import { UserRole } from '../../types/user.types';
@@ -60,7 +54,7 @@ export default function BankAccounts() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch accounts
-  const { data: accountsData, isLoading, refetch } = useQuery({
+  const { data: accountsData, refetch } = useQuery({
     queryKey: ['bank-accounts', searchQuery, statusFilter],
     queryFn: async () => {
       const params: any = { 
@@ -76,11 +70,6 @@ export default function BankAccounts() {
     },
   });
 
-  // Fetch drops
-  const { data: dropsData } = useQuery({
-    queryKey: ['drops-list'],
-    queryFn: () => dropsService.getAll({ limit: 100, status: 'active' }),
-  });
 
   // Fetch banks
   const { data: banksData } = useQuery({
@@ -195,13 +184,13 @@ export default function BankAccounts() {
   const handleEdit = (account: BankAccount) => {
     setSelectedAccount(account);
     setFormData({
-      userId: account.userId,
-      dropId: '', // drops не используются пока
-      bankId: account.bankId,
+      userId: '', // userId не используется в BankAccount
+      dropId: String(account.dropId || ''),
+      bankId: String(account.bankId),
       cbu: account.cbu,
       alias: account.alias,
-      accountType: account.accountType,
-      limitAmount: account.limitAmount,
+      accountType: 'personal', // accountType не используется
+      limitAmount: account.initialLimitAmount,
       priority: account.priority,
       blockReason: '',
     });
@@ -231,7 +220,7 @@ export default function BankAccounts() {
     }
 
     updateMutation.mutate({
-      id: selectedAccount.id,
+      id: String(selectedAccount.id),
       data: {
         userId: formData.userId,
         bankId: formData.bankId,
@@ -246,12 +235,12 @@ export default function BankAccounts() {
 
   const handleStatusChange = (account: BankAccount, newStatus: string) => {
     if (confirm(`${t('bankAccounts.confirmStatusChange')} ${newStatus}?`)) {
-      updateStatusMutation.mutate({ id: account.id, status: newStatus });
+      updateStatusMutation.mutate({ id: String(account.id), status: newStatus });
     }
   };
 
   const handlePriorityChange = (account: BankAccount, newPriority: number) => {
-    updatePriorityMutation.mutate({ id: account.id, priority: newPriority });
+    updatePriorityMutation.mutate({ id: String(account.id), priority: newPriority });
   };
 
   const getStatusBadgeClass = (status: string) => {
@@ -264,19 +253,6 @@ export default function BankAccounts() {
         return 'status-blocked';
       default:
         return 'status-default';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case ACCOUNT_STATUSES.WORKING:
-        return <CheckCircle size={14} />;
-      case ACCOUNT_STATUSES.NOT_WORKING:
-        return <XCircle size={14} />;
-      case ACCOUNT_STATUSES.BLOCKED:
-        return <Lock size={14} />;
-      default:
-        return <AlertCircle size={14} />;
     }
   };
 
@@ -296,7 +272,6 @@ export default function BankAccounts() {
   };
 
   const accounts = accountsData?.items || [];
-  const drops = dropsData?.items || [];
   const banks = banksData?.items || [];
   const users = usersData?.items || [];
 
@@ -384,8 +359,7 @@ export default function BankAccounts() {
           </div>
         ) : (
           filteredAccounts.map((account) => {
-            const availableAmount = account.limitAmount - account.withdrawnAmount;
-            const usagePercent = (account.withdrawnAmount / account.limitAmount) * 100;
+            const usagePercent = (account.withdrawnAmount / account.initialLimitAmount) * 100;
             
             return (
               <div key={account.id} className="bank-account-card">
@@ -396,7 +370,6 @@ export default function BankAccounts() {
                     </div>
                     <div>
                       <h3 className="bank-name">{account.bank?.name || 'Unknown Bank'}</h3>
-                      <span className="account-type">{account.accountType}</span>
                     </div>
                   </div>
                   <div className="account-actions">
@@ -434,7 +407,7 @@ export default function BankAccounts() {
                         Limit Usage
                       </span>
                       <span className="limit-values">
-                        {formatCurrency(account.withdrawnAmount)} / {formatCurrency(account.limitAmount)}
+                        {formatCurrency(account.withdrawnAmount)} / {formatCurrency(account.initialLimitAmount)}
                       </span>
                     </div>
                     <div className="limit-bar">
@@ -448,7 +421,7 @@ export default function BankAccounts() {
                     </div>
                     <div className="limit-footer">
                       <span className="available-amount">
-                        Available: {formatCurrency(availableAmount)}
+                        Available: {formatCurrency(account.currentLimitAmount)}
                       </span>
                       <span className="usage-percent">{usagePercent.toFixed(1)}%</span>
                     </div>

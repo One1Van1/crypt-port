@@ -184,16 +184,17 @@ async function seedOperatorData() {
       });
 
       if (!account) {
-        // Используем прямой SQL т.к. limit - зарезервированное слово
+        // Используем прямой SQL
         await dataSource.query(
-          `INSERT INTO bank_accounts (cbu, alias, status, priority, "limitAmount", "withdrawnAmount", "bankId", "dropId")
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          `INSERT INTO bank_accounts (cbu, alias, status, priority, "initialLimitAmount", "currentLimitAmount", "withdrawnAmount", "bankId", "dropId")
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
           [
             accountData.cbu,
             accountData.alias,
             BankAccountStatus.WORKING,
             accountData.priority,
             accountData.limitAmount,
+            accountData.limitAmount, // currentLimitAmount = initialLimitAmount изначально
             0,
             accountData.bank.id,
             accountData.drop.id,
