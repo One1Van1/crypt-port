@@ -16,6 +16,8 @@ import { TransactionsModule } from './modules/transactions.module';
 import { BalancesModule } from './modules/balances.module';
 import { UsersModule } from './modules/users.module';
 import { AnalyticsModule } from './modules/analytics.module';
+import { ExchangeRatesModule } from './modules/exchange-rates.module';
+import { CashWithdrawalsModule } from './modules/cash-withdrawals.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { AnalyticsModule } from './modules/analytics.module';
     BalancesModule,
     UsersModule,
     AnalyticsModule,
+    ExchangeRatesModule,
+    CashWithdrawalsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

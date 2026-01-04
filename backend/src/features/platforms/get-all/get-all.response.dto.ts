@@ -26,7 +26,7 @@ class PlatformItemDto {
     this.id = platform.id;
     this.name = platform.name;
     this.status = platform.status;
-    this.exchangeRate = Number(platform.exchangeRate);
+    this.exchangeRate = 0; // Курс теперь глобальный
     this.createdAt = platform.createdAt;
   }
 }

@@ -17,17 +17,15 @@ async function seed() {
   console.log('🚀 Starting seed...\n');
 
   // Обновляем курсы обмена для платформ
-  console.log('📊 Updating exchange rates for platforms...');
+  console.log('📊 Checking platforms (exchange rate is now global)...');
   const platforms = await platformRepository.find();
   
   if (platforms.length === 0) {
     console.log('⚠️  No platforms found. Please run seed-platforms.ts first.');
   } else {
     for (const platform of platforms) {
-      // Устанавливаем курс ARS/USDT (примерно 1000-1100 ARS за 1 USDT)
-      platform.exchangeRate = 1050.00 + Math.random() * 50; // Случайный курс между 1050-1100
-      await platformRepository.save(platform);
-      console.log(`✅ Updated ${platform.name} exchange rate: ${platform.exchangeRate.toFixed(2)} ARS/USDT`);
+      // Курс теперь глобальный, устанавливается через /exchange-rates/set
+      console.log(`✅ Platform ${platform.name} found (global exchange rate is now used)`);
     }
   }
 

@@ -11,6 +11,9 @@ export class CashWithdrawal extends BaseEntity {
   @Column({ name: 'bank_account_id' })
   bankAccountId: number; // ID физического банка откуда забрали
 
+  @Column({ type: 'decimal', precision: 15, scale: 2, name: 'withdrawal_rate' })
+  withdrawalRate: number; // Курс на момент забора денег
+
   @Column({
     type: 'varchar',
     default: 'pending',
