@@ -11,7 +11,8 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "seed:platforms": "ts-node -r tsconfig-paths/register src/seed-platforms.ts"
+    "seed:platforms": "ts-node -r tsconfig-paths/register src/seed-platforms.ts",
+    "seed:working-deposit": "ts-node -r tsconfig-paths/register src/seed-working-deposit.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.9",

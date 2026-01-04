@@ -19,6 +19,7 @@ import Banks from './pages/Banks/Banks';
 import Drops from './pages/Drops/Drops';
 import DropNeoBanks from './pages/DropNeoBanks/DropNeoBanks';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
+import WorkingDepositChart from './pages/WorkingDeposit/WorkingDepositChart';
 
 export const queryClient = new QueryClient();
 
@@ -85,6 +86,7 @@ function App() {
                   <Route path="/bank-accounts" element={<BankAccounts />} />
                   <Route path="/shifts" element={<Shifts />} />
                   <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/working-deposit" element={<WorkingDepositChart />} />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Layout>

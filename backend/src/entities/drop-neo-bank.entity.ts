@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { NeoBankProvider, NeoBankStatus } from '../common/enums/neo-bank.enum';
 import { Drop } from './drop.entity';
+import { Platform } from './platform.entity';
 
 @Entity('drop_neo_banks')
 export class DropNeoBank extends BaseEntity {
@@ -33,4 +34,11 @@ export class DropNeoBank extends BaseEntity {
   @ManyToOne(() => Drop)
   @JoinColumn({ name: 'drop_id' })
   drop: Drop;
+
+  @Column({ name: 'platform_id', nullable: true })
+  platformId: number;
+
+  @ManyToOne(() => Platform)
+  @JoinColumn({ name: 'platform_id' })
+  platform: Platform;
 }

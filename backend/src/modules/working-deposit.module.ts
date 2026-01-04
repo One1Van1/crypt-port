@@ -16,6 +16,10 @@ import { SystemSetting } from '../entities/system-setting.entity';
 import { GetWorkingDepositSectionsController } from '../features/working-deposit/get-sections/get-sections.controller';
 import { GetWorkingDepositSectionsService } from '../features/working-deposit/get-sections/get-sections.service';
 
+// Get History
+import { GetWorkingDepositHistoryController } from '../features/working-deposit/get-history/get-history.controller';
+import { GetWorkingDepositHistoryService } from '../features/working-deposit/get-history/get-history.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -32,7 +36,13 @@ import { GetWorkingDepositSectionsService } from '../features/working-deposit/ge
       SystemSetting,
     ]),
   ],
-  controllers: [GetWorkingDepositSectionsController],
-  providers: [GetWorkingDepositSectionsService],
+  controllers: [
+    GetWorkingDepositSectionsController,
+    GetWorkingDepositHistoryController,
+  ],
+  providers: [
+    GetWorkingDepositSectionsService,
+    GetWorkingDepositHistoryService,
+  ],
 })
 export class WorkingDepositModule {}

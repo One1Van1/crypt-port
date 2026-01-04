@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Award,
-  Wallet
+  Wallet,
+  TrendingUp
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -26,6 +27,7 @@ export default function Sidebar() {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
     { to: '/teamlead-dashboard', icon: Award, label: t('nav.teamleadDashboard'), roles: ['teamlead', 'admin'] },
+    { to: '/working-deposit', icon: TrendingUp, label: 'График', roles: ['admin'] },
     { to: '/banks', icon: Building2, label: t('nav.banks'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drops', icon: UserSquare2, label: t('nav.drops'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drop-neo-banks', icon: Wallet, label: t('nav.dropNeoBanks'), roles: ['admin', 'teamlead'] },
