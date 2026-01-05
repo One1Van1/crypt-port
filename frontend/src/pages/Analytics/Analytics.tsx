@@ -16,7 +16,6 @@ import {
   Edit3,
   Check,
   History,
-  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -72,6 +71,13 @@ const mockOperatorsData = [
     shiftsCount: 12,
     avgPerHour: 48251,
     successRate: 91,
+    withdrawalRate: 1150,
+    bankId: 2,
+    status: 'pending',
+    conversionRate: 1000,
+    withdrawnAmount: 2130000,
+    inProcessAmount: 2130000,
+    convertedAmount: 7100,
   },
   {
     id: '2',
@@ -82,6 +88,13 @@ const mockOperatorsData = [
     shiftsCount: 11,
     avgPerHour: 52800,
     successRate: 96,
+    withdrawalRate: 1150,
+    bankId: 1,
+    status: 'pending',
+    conversionRate: 1000,
+    withdrawnAmount: 2070000,
+    inProcessAmount: 2070000,
+    convertedAmount: 6900,
   },
   {
     id: '3',
@@ -92,6 +105,13 @@ const mockOperatorsData = [
     shiftsCount: 10,
     avgPerHour: 45900,
     successRate: 90,
+    withdrawalRate: 1150,
+    bankId: 3,
+    status: 'pending',
+    conversionRate: 1000,
+    withdrawnAmount: 1725000,
+    inProcessAmount: 1725000,
+    convertedAmount: 5750,
   },
 ];
 
@@ -113,7 +133,7 @@ export default function Analytics() {
   const [operatorFilter, setOperatorFilter] = useState<OperatorFilter>('all');
   const [viewMode, setViewMode] = useState<ViewMode>('amount');
   const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
-  const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+  const [selectedOperator, setSelectedOperator] = useState<number | null>(null);
   const [editingPlatformId, setEditingPlatformId] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<string>('');
   const [withdrawalDate, setWithdrawalDate] = useState<Date | null>(new Date());
@@ -161,6 +181,12 @@ export default function Analytics() {
         endDate
       });
     },
+  });
+
+  // Fetch operators withdrawals data
+  const { data: operatorsWithdrawalsData } = useQuery({
+    queryKey: ['operators-withdrawals'],
+    queryFn: () => analyticsService.getOperatorsWithdrawals(),
   });
 
   // Update platform rate mutation
@@ -502,44 +528,102 @@ export default function Analytics() {
 
         {/* Right Side - Main Analytics Widgets */}
         <div className="analytics-widgets-container">
-        {/* Row 1: Operators Performance (full width) */}
+        {/* Row 1: Cash Withdrawal Process (full width) */}
         <div className="analytics-row">
-          {/* Operators Performance Widget */}
+          {/* Cash Withdrawal Process Widget */}
           <div className="analytics-widget widget-full">
             <div className="widget-header">
               <h3 className="widget-title">
                 <Users size={20} />
-                {t('teamlead.analyticsTitle')}
+                Процесс обналички
               </h3>
-              <div className="widget-subtitle">{t('teamlead.analyticsDescription')}</div>
+              <div className="widget-subtitle">Каждый вывод наличных и его конвертация в USDT</div>
             </div>
-            <div className="widget-content">
-              <div className="operators-table">
-                <div className="table-header">
-                  <div className="th-name">{t('teamlead.operator')}</div>
-                  <div className="th-deals">{t('teamlead.transactions')}</div>
-                  <div className="th-amount">{t('teamlead.totalAmount')}</div>
-                  <div className="th-shifts">{t('teamlead.shifts')}</div>
-                  <div className="th-conversion">{t('teamlead.successRate')}</div>
-                </div>
-                {mockOperatorsData.map((operator) => (
+            <div className="widget-content" style={{ padding: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div style={{ overflowY: 'scroll', scrollbarWidth: 'thin', visibility: 'hidden', height: 0 }}></div>
+              <div className="table-header" style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr 1fr', gap: 0, backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                <div className="th-name" style={{ padding: '12px', borderRight: '2px solid var(--border-color)' }}>Пользователь</div>
+                <div className="th-deals" style={{ padding: '12px', textAlign: 'center', borderRight: '2px solid var(--border-color)' }}>Забрал наличные</div>
+                <div className="th-amount" style={{ padding: '12px', textAlign: 'center', borderRight: '2px solid var(--border-color)' }}>В процессе</div>
+                <div className="th-shifts" style={{ padding: '12px', textAlign: 'center' }}>Вернул USDT</div>
+              </div>
+              <div 
+                className="operators-table"
+                style={{
+                  maxHeight: '240px',
+                  overflowY: 'scroll',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'var(--border-color) var(--bg-tertiary)',
+                }}
+              >
+                {operatorsWithdrawalsData?.operators.map((withdrawal) => (
                   <div
-                    key={operator.id}
-                    className={`table-row ${selectedOperator === operator.id ? 'selected' : ''}`}
-                    onClick={() => setSelectedOperator(operator.id)}
+                    key={withdrawal.id}
+                    className={`table-row ${selectedOperator === withdrawal.id ? 'selected' : ''}`}
+                    onClick={() => setSelectedOperator(withdrawal.id)}
+                    style={{ display: 'grid', gridTemplateColumns: '200px 1fr 1fr 1fr', gap: 0, alignItems: 'center' }}
                   >
-                    <div className="td-name">
-                      <div className="operator-name">{operator.name}</div>
-                      <div className="operator-subtitle">
-                        {operator.completedTransactions}/{operator.totalTransactions} {t('statuses.completed').toLowerCase()} • {formatCurrencyFull(operator.avgPerHour)}/{t('teamlead.totalHours').toLowerCase()}
+                    <div className="td-name" style={{ padding: '10px', borderRight: '2px solid var(--border-color)' }}>
+                      <div className="operator-name" style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '2px' }}>{withdrawal.name}</div>
+                      <div className="operator-subtitle" style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
+                        ID: #{withdrawal.id}
                       </div>
                     </div>
-                    <div className="td-deals">{operator.totalTransactions}</div>
-                    <div className="td-amount">{formatCurrency(operator.amount)}</div>
-                    <div className="td-shifts">{operator.shiftsCount}</div>
-                    <div className="td-conversion">
-                      <div className="conversion-badge" data-level={operator.successRate >= 90 ? 'high' : 'medium'}>
-                        {operator.successRate}%
+                    
+                    {/* Часть 1: Забрал наличные */}
+                    <div style={{ 
+                      padding: '10px',
+                      textAlign: 'center',
+                      backgroundColor: 'rgba(100, 116, 139, 0.2)', // Всегда тёмная - этап выполнен
+                      borderRight: '2px solid var(--border-color)',
+                    }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#64748b', marginBottom: '3px' }}>
+                        {formatCurrency(withdrawal.withdrawnAmount)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '1px' }}>
+                        курс: {withdrawal.withdrawalRate || 0}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
+                        банк #{withdrawal.bankId || 'N/A'}
+                      </div>
+                    </div>
+                    
+                    {/* Часть 2: В процессе */}
+                    <div style={{ 
+                      padding: '10px',
+                      textAlign: 'center',
+                      backgroundColor: withdrawal.status === 'converted' 
+                        ? 'rgba(100, 116, 139, 0.2)' // Тёмная - этап пройден
+                        : 'rgba(100, 116, 139, 0.06)', // Светлая - в процессе
+                      borderRight: '2px solid var(--border-color)',
+                    }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#64748b', marginBottom: '3px' }}>
+                        {formatCurrency(withdrawal.inProcessAmount)}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '1px' }}>
+                        {withdrawal.status || 'completed'}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
+                        ожидает конвертации
+                      </div>
+                    </div>
+                    
+                    {/* Часть 3: Вернул USDT */}
+                    <div style={{ 
+                      padding: '10px',
+                      textAlign: 'center',
+                      backgroundColor: withdrawal.convertedAmount > 0 
+                        ? 'rgba(100, 116, 139, 0.2)' // Тёмная - выполнено
+                        : 'rgba(100, 116, 139, 0.06)', // Светлая - ещё не выполнено
+                    }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#64748b', marginBottom: '3px' }}>
+                        {withdrawal.convertedAmount.toFixed(2)} USDT
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '1px' }}>
+                        курс: {withdrawal.conversionRate || 0}
+                      </div>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)' }}>
+                        конвертировано
                       </div>
                     </div>
                   </div>
