@@ -106,58 +106,62 @@ const Banks = () => {
 
       <div className="section">
         <h2>Банки (по приоритету)</h2>
-        <div className="banks-grid">
-          {banks.map((bank) => (
-            <div
-              key={bank.id}
-              className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
-              onClick={() => handleBankClick(bank.id)}
-            >
-              <div className="bank-header">
-                <h3>{bank.name}</h3>
-                <span className={`status-badge ${getStatusBadge(bank.status)}`}>
-                  {translateStatus(bank.status)}
-                </span>
-              </div>
+        <div className="content-wrapper">
+          <div className="banks-grid">
+            {banks.map((bank) => (
+              <div
+                key={bank.id}
+                className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
+                onClick={() => handleBankClick(bank.id)}
+              >
+                <div className="bank-header">
+                  <h3>{bank.name}</h3>
+                  <span className={`status-badge ${getStatusBadge(bank.status)}`}>
+                    {translateStatus(bank.status)}
+                  </span>
+                </div>
 
-              <div className="bank-accounts">
-                <p className="accounts-count">Счетов: {bank.accounts.length}</p>
-                <div className="accounts-list">
-                  {bank.accounts.slice(0, 3).map((account) => (
-                    <div key={account.id} className="account-item">
-                      <div className="account-info">
-                        <span className="account-alias">{account.alias}</span>
-                        <span className="account-priority">
-                          Приоритет: {account.priority}
+                <div className="bank-accounts">
+                  <p className="accounts-count">Счетов: {bank.accounts.length}</p>
+                  <div className="accounts-list">
+                    {bank.accounts.slice(0, 3).map((account) => (
+                      <div key={account.id} className="account-item">
+                        <div className="account-info">
+                          <span className="account-alias">{account.alias}</span>
+                          <span className="account-priority">
+                            Приоритет: {account.priority}
+                          </span>
+                        </div>
+                        <div className="account-limits">
+                          <span>
+                            {formatCurrency(account.withdrawnAmount)} /{' '}
+                            {formatCurrency(account.limitAmount)}
+                          </span>
+                        </div>
+                        <span className={`status-badge ${getStatusBadge(account.status)}`}>
+                          {translateStatus(account.status)}
                         </span>
                       </div>
-                      <div className="account-limits">
-                        <span>
-                          {formatCurrency(account.withdrawnAmount)} /{' '}
-                          {formatCurrency(account.limitAmount)}
-                        </span>
-                      </div>
-                      <span className={`status-badge ${getStatusBadge(account.status)}`}>
-                        {translateStatus(account.status)}
-                      </span>
-                    </div>
-                  ))}
-                  {bank.accounts.length > 3 && (
-                    <p className="more-accounts">
-                      И еще {bank.accounts.length - 3} счетов...
-                    </p>
-                  )}
+                    ))}
+                    {bank.accounts.length > 3 && (
+                      <p className="more-accounts">
+                        И еще {bank.accounts.length - 3} счетов...
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* История транзакций банка */}
-        {selectedBankId && (
+          {/* История транзакций банка */}
           <div className="transactions-history">
             <h3>История транзакций банка</h3>
-            {loading ? (
+            {!selectedBankId ? (
+              <div className="history-placeholder">
+                <p>Выберите банк для просмотра истории</p>
+              </div>
+            ) : loading ? (
               <p>Загрузка...</p>
             ) : (
               <>
@@ -204,7 +208,7 @@ const Banks = () => {
               </>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

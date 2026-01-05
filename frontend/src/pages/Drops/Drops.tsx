@@ -163,43 +163,43 @@ const Drops = () => {
 
       <div className="section">
         <h2>Дропы</h2>
-        <div className="drops-grid">
-          {drops.map((drop) => (
-            <div
-              key={drop.id}
-              className={`drop-card ${selectedDropId === drop.id ? 'selected' : ''}`}
-              onClick={() => handleDropClick(drop.id)}
-            >
-              <div className="drop-header">
-                <h3>{drop.name}</h3>
-                <span className={`status-badge ${getStatusBadge(drop.status)}`}>
-                  {translateStatus(drop.status)}
-                </span>
-              </div>
+        <div className="content-wrapper">
+          <div className="drops-grid">
+            {drops.map((drop) => (
+              <div
+                key={drop.id}
+                className={`drop-card ${selectedDropId === drop.id ? 'selected' : ''}`}
+                onClick={() => handleDropClick(drop.id)}
+              >
+                <div className="drop-header">
+                  <h3>{drop.name}</h3>
+                  <span className={`status-badge ${getStatusBadge(drop.status)}`}>
+                    {translateStatus(drop.status)}
+                  </span>
+                </div>
 
-              {drop.comment && <p className="drop-comment">{drop.comment}</p>}
+                {drop.comment && <p className="drop-comment">{drop.comment}</p>}
 
-              <div className="drop-info">
-                <p>Счетов: {drop.accountsCount}</p>
-                <div className="drop-banks">
-                  <p className="drop-banks-title">Банки:</p>
-                  {drop.banks.map((bank) => (
-                    <span key={bank.id} className="bank-tag">
-                      {bank.name}
-                    </span>
-                  ))}
+                <div className="drop-info">
+                  <p>Счетов: {drop.accountsCount}</p>
+                  <div className="drop-banks">
+                    <p className="drop-banks-title">Банки:</p>
+                    {drop.banks.map((bank) => (
+                      <span key={bank.id} className="bank-tag">
+                        {bank.name}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* История транзакций дропа */}
-        {selectedDropId && (
+          {/* История транзакций дропа */}
           <div className="transactions-history">
             <div className="history-header">
               <h3>История транзакций дропа</h3>
-              {isAdminOrTeamlead && (
+              {isAdminOrTeamlead && selectedDropId && (
                 <button
                   className="toggle-filters-btn"
                   onClick={() => setShowFilters(!showFilters)}
@@ -209,8 +209,14 @@ const Drops = () => {
               )}
             </div>
 
-            {/* Фильтры для admin/teamlead */}
-            {isAdminOrTeamlead && showFilters && (
+            {!selectedDropId ? (
+              <div className="history-placeholder">
+                <p>Выберите дроп для просмотра истории</p>
+              </div>
+            ) : (
+              <>
+                {/* Фильтры для admin/teamlead */}
+                {isAdminOrTeamlead && showFilters && (
               <div className="filters-section">
                 <div className="filters-row">
                   <div className="filter-group">
@@ -384,8 +390,10 @@ const Drops = () => {
                 )}
               </>
             )}
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
