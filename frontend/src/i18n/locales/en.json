@@ -55,7 +55,7 @@
     "operatorDashboard": "Workspace",
     "banks": "Banks",
     "drops": "Drops",
-    "dropNeoBanks": "Neo-Banks",
+    "dropNeoBanks": "Withdrawal Banks",
     "teamleadDashboard": "Team Lead",
     "users": "Users",
     "withdraw": "Withdraw",
@@ -340,19 +340,19 @@
     "frozen": "Frozen"
   },
   "dropNeoBanks": {
-    "title": "Neo-Banks (Drop Accounts)",
-    "subtitle": "Manage neo-bank accounts for receiving payments",
-    "addNeoBank": "Add Neo-Bank",
-    "editNeoBank": "Edit Neo-Bank",
+    "title": "Withdrawal Banks (Platform Accounts)",
+    "subtitle": "Manage withdrawal bank accounts for receiving payments",
+    "addNeoBank": "Add Withdrawal Bank",
+    "editNeoBank": "Edit Withdrawal Bank",
     "updateBalance": "Update Balance",
-    "deleteConfirm": "Are you sure you want to delete this neo-bank?",
+    "deleteConfirm": "Are you sure you want to delete this withdrawal bank?",
     "filters": {
-      "allDrops": "All Drops",
+      "allPlatforms": "All Platforms",
       "allProviders": "All Providers",
       "allStatuses": "All Statuses"
     },
     "table": {
-      "drop": "Drop",
+      "platform": "Platform",
       "provider": "Provider",
       "accountId": "Account ID",
       "currentBalance": "Current Balance",
@@ -361,8 +361,8 @@
       "actions": "Actions"
     },
     "form": {
-      "drop": "Drop",
-      "selectDrop": "Select Drop",
+      "platform": "Platform",
+      "selectPlatform": "Select Platform",
       "provider": "Provider",
       "accountId": "Account ID",
       "accountIdPlaceholder": "e.g., cuenta.ivan2024",
@@ -377,15 +377,15 @@
       "delete": "Delete"
     },
     "messages": {
-      "created": "Neo-bank created successfully",
-      "updated": "Neo-bank updated successfully",
-      "deleted": "Neo-bank deleted successfully",
+      "created": "Withdrawal bank created successfully",
+      "updated": "Withdrawal bank updated successfully",
+      "deleted": "Withdrawal bank deleted successfully",
       "balanceUpdated": "Balance updated successfully",
-      "createError": "Failed to create neo-bank",
-      "updateError": "Failed to update neo-bank",
-      "deleteError": "Failed to delete neo-bank",
+      "createError": "Failed to create withdrawal bank",
+      "updateError": "Failed to update withdrawal bank",
+      "deleteError": "Failed to delete withdrawal bank",
       "balanceError": "Failed to update balance",
-      "notFound": "Neo-banks not found"
+      "notFound": "Withdrawal banks not found"
     },
     "info": {
       "currentBalance": "Current Balance"

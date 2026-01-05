@@ -88,7 +88,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     enabled: isOpen,
   });
 
-  // Получить активные нео-банки платформы текущей смены
+  // Получить активные банки вывода платформы текущей смены
   const { data: neoBanks = [], isLoading: neoBanksLoading } = useQuery({
     queryKey: ['neo-banks-for-platform', currentShift?.platformId],
     queryFn: async () => {
@@ -260,7 +260,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
         <div className="modal-header">
           <h2>
             {step === 'loading' && 'Получить реквизит'}
-            {step === 'select-source' && 'Выберите нео-банк для вывода'}
+            {step === 'select-source' && 'Выберите банк вывода для вывода'}
             {step === 'amount' && 'Введите сумму вывода'}
             {step === 'success' && 'Операция выполнена'}
           </h2>
@@ -353,12 +353,12 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
               {neoBanksLoading ? (
                 <div className="step-loading">
                   <Loader size={48} className="spin" />
-                  <p>Загрузка нео-банков...</p>
+                  <p>Загрузка банков вывода...</p>
                 </div>
               ) : neoBanks.length === 0 ? (
                 <div className="empty-state">
                   <Wallet size={48} />
-                  <p>Нет доступных нео-банков для этого дропа</p>
+                  <p>Нет доступных банков вывода для этого дропа</p>
                   <small>Обратитесь к администратору</small>
                 </div>
               ) : (

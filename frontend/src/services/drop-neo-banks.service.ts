@@ -7,7 +7,12 @@ export interface DropNeoBank {
   status: 'active' | 'frozen';
   currentBalance: number;
   comment?: string;
-  drop: {
+  drop?: {
+    id: number;
+    name: string;
+    status?: string;
+  };
+  platform?: {
     id: number;
     name: string;
     status?: string;
@@ -16,7 +21,7 @@ export interface DropNeoBank {
 }
 
 export interface CreateDropNeoBankDto {
-  dropId: number;
+  platformId: number;
   provider: 'ripio' | 'lemon_cash' | 'satoshi_tango' | 'yont';
   accountId: string;
   currentBalance?: number;

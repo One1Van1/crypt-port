@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
 import dropNeoBanksService, { DropNeoBank, CreateDropNeoBankDto, UpdateDropNeoBankDto } from '../../services/drop-neo-banks.service';
-import { dropsService, Drop } from '../../services/drops.service';
+import { platformsService, Platform } from '../../services/platforms.service';
 import './DropNeoBanks.css';
 
 const PROVIDERS = [
@@ -21,13 +21,15 @@ export default function DropNeoBanks() {
   const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
   const [editingNeoBank, setEditingNeoBank] = useState<DropNeoBank | null>(null);
   const [balanceNeoBank, setBalanceNeoBank] = useState<DropNeoBank | null>(null);
-  const [filterDropId, setFilterDropId] = useState<number | undefined>();
+  const [filterPlatformId, setFilterPlatformId] = useState<number | undefined>();
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [openModalDropdown, setOpenModalDropdown] = useState<string | null>(null);
 
   // Форма
   const [formData, setFormData] = useState<CreateDropNeoBankDto>({
-    dropId: 0,
+    platformId: 0,
     provider: 'ripio',
     accountId: '',
     currentBalance: 0,
@@ -36,23 +38,41 @@ export default function DropNeoBanks() {
 
   const [balanceAmount, setBalanceAmount] = useState<string>('');
 
-  // Получить все нео-банки
+  // Закрытие dropdown при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.custom-filter')) {
+        setOpenDropdown(null);
+      }
+      if (!target.closest('.modal-custom-select')) {
+        setOpenModalDropdown(null);
+      }
+    };
+
+    if (openDropdown || openModalDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openDropdown, openModalDropdown]);
+
+  // Получить все банки вывода
   const { data: neoBanks, isLoading } = useQuery({
-    queryKey: ['drop-neo-banks', filterDropId, filterProvider, filterStatus],
+    queryKey: ['drop-neo-banks', filterPlatformId, filterProvider, filterStatus],
     queryFn: () => dropNeoBanksService.getAll({ 
-      dropId: filterDropId, 
+      platformId: filterPlatformId, 
       provider: filterProvider || undefined,
       status: filterStatus || undefined 
     }),
   });
 
-  // Получить дропы для селектора
-  const { data: drops } = useQuery({
-    queryKey: ['drops'],
-    queryFn: () => dropsService.getAll({}),
+  // Получить площадки для селектора
+  const { data: platforms } = useQuery({
+    queryKey: ['platforms'],
+    queryFn: () => platformsService.getAll({}),
   });
 
-  // Создать нео-банк
+  // Создать банк вывода
   const createMutation = useMutation({
     mutationFn: (data: CreateDropNeoBankDto) => dropNeoBanksService.create(data),
     onSuccess: () => {
@@ -65,7 +85,7 @@ export default function DropNeoBanks() {
     },
   });
 
-  // Обновить нео-банк
+  // Обновить банк вывода
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateDropNeoBankDto }) => 
       dropNeoBanksService.update(id, data),
@@ -93,7 +113,7 @@ export default function DropNeoBanks() {
     },
   });
 
-  // Удалить нео-банк
+  // Удалить банк вывода
   const deleteMutation = useMutation({
     mutationFn: (id: number) => dropNeoBanksService.delete(id),
     onSuccess: () => {
@@ -108,7 +128,7 @@ export default function DropNeoBanks() {
   const openCreateModal = () => {
     setEditingNeoBank(null);
     setFormData({
-      dropId: 0,
+      platformId: 0,
       provider: 'ripio',
       accountId: '',
       currentBalance: 0,
@@ -120,7 +140,7 @@ export default function DropNeoBanks() {
   const openEditModal = (neoBank: DropNeoBank) => {
     setEditingNeoBank(neoBank);
     setFormData({
-      dropId: neoBank.drop?.id || 0,
+      platformId: neoBank.platform?.id || 0,
       provider: neoBank.provider,
       accountId: neoBank.accountId,
       currentBalance: neoBank.currentBalance,
@@ -218,41 +238,125 @@ export default function DropNeoBanks() {
 
       {/* Filters */}
       <div className="filters">
-        <select
-          value={filterDropId || ''}
-          onChange={(e) => setFilterDropId(e.target.value ? Number(e.target.value) : undefined)}
-          className="filter-select"
-        >
-          <option value="">{t('dropNeoBanks.filters.allDrops')}</option>
-          {drops?.items.map((drop: Drop) => (
-            <option key={drop.id} value={drop.id}>
-              {drop.name}
-            </option>
-          ))}
-        </select>
+        {/* Platform Filter */}
+        <div className="custom-filter">
+          <button
+            className="filter-button"
+            onClick={() => setOpenDropdown(openDropdown === 'platform' ? null : 'platform')}
+          >
+            <span>{filterPlatformId ? platforms?.items.find(p => p.id === filterPlatformId)?.name : t('dropNeoBanks.filters.allPlatforms')}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          {openDropdown === 'platform' && (
+            <div className="filter-dropdown">
+              <div
+                className={`filter-option ${!filterPlatformId ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterPlatformId(undefined);
+                  setOpenDropdown(null);
+                }}
+              >
+                {t('dropNeoBanks.filters.allPlatforms')}
+              </div>
+              {platforms?.items.map((platform: Platform) => (
+                <div
+                  key={platform.id}
+                  className={`filter-option ${filterPlatformId === platform.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setFilterPlatformId(platform.id);
+                    setOpenDropdown(null);
+                  }}
+                >
+                  {platform.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <select
-          value={filterProvider}
-          onChange={(e) => setFilterProvider(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">{t('dropNeoBanks.filters.allProviders')}</option>
-          {PROVIDERS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </select>
+        {/* Provider Filter */}
+        <div className="custom-filter">
+          <button
+            className="filter-button"
+            onClick={() => setOpenDropdown(openDropdown === 'provider' ? null : 'provider')}
+          >
+            <span>{filterProvider ? PROVIDERS.find(p => p.value === filterProvider)?.label : t('dropNeoBanks.filters.allProviders')}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          {openDropdown === 'provider' && (
+            <div className="filter-dropdown">
+              <div
+                className={`filter-option ${!filterProvider ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterProvider('');
+                  setOpenDropdown(null);
+                }}
+              >
+                {t('dropNeoBanks.filters.allProviders')}
+              </div>
+              {PROVIDERS.map((p) => (
+                <div
+                  key={p.value}
+                  className={`filter-option ${filterProvider === p.value ? 'active' : ''}`}
+                  onClick={() => {
+                    setFilterProvider(p.value);
+                    setOpenDropdown(null);
+                  }}
+                >
+                  {p.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="filter-select"
-        >
-          <option value="">{t('dropNeoBanks.filters.allStatuses')}</option>
-          <option value="active">{t('statuses.active')}</option>
-          <option value="frozen">{t('statuses.frozen')}</option>
-        </select>
+        {/* Status Filter */}
+        <div className="custom-filter">
+          <button
+            className="filter-button"
+            onClick={() => setOpenDropdown(openDropdown === 'status' ? null : 'status')}
+          >
+            <span>{filterStatus ? t(`statuses.${filterStatus}`) : t('dropNeoBanks.filters.allStatuses')}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          {openDropdown === 'status' && (
+            <div className="filter-dropdown">
+              <div
+                className={`filter-option ${!filterStatus ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterStatus('');
+                  setOpenDropdown(null);
+                }}
+              >
+                {t('dropNeoBanks.filters.allStatuses')}
+              </div>
+              <div
+                className={`filter-option ${filterStatus === 'active' ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterStatus('active');
+                  setOpenDropdown(null);
+                }}
+              >
+                {t('statuses.active')}
+              </div>
+              <div
+                className={`filter-option ${filterStatus === 'frozen' ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterStatus('frozen');
+                  setOpenDropdown(null);
+                }}
+              >
+                {t('statuses.frozen')}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Table */}
@@ -260,7 +364,7 @@ export default function DropNeoBanks() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>{t('dropNeoBanks.table.drop')}</th>
+              <th>{t('dropNeoBanks.table.platform')}</th>
               <th>{t('dropNeoBanks.table.provider')}</th>
               <th>{t('dropNeoBanks.table.accountId')}</th>
               <th>{t('dropNeoBanks.table.currentBalance')}</th>
@@ -274,7 +378,7 @@ export default function DropNeoBanks() {
               <tr key={neoBank.id}>
                 <td>
                   <div className="drop-cell">
-                    <strong>{neoBank.drop?.name || '-'}</strong>
+                    <strong>{neoBank.platform?.name || '-'}</strong>
                   </div>
                 </td>
                 <td>
@@ -344,36 +448,78 @@ export default function DropNeoBanks() {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.drop')} *</label>
-                <select
-                  value={formData.dropId}
-                  onChange={(e) => setFormData({ ...formData, dropId: Number(e.target.value) })}
-                  required
-                  disabled={!!editingNeoBank}
-                >
-                  <option value={0}>{t('dropNeoBanks.form.selectDrop')}</option>
-                  {drops?.items.map((drop: Drop) => (
-                    <option key={drop.id} value={drop.id}>
-                      {drop.name}
-                    </option>
-                  ))}
-                </select>
+                <label>{t('dropNeoBanks.form.platform')} *</label>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    onClick={() => setOpenModalDropdown(openModalDropdown === 'platform' ? null : 'platform')}
+                    disabled={!!editingNeoBank}
+                  >
+                    <span>{formData.platformId ? platforms?.items.find(p => p.id === formData.platformId)?.name : t('dropNeoBanks.form.selectPlatform')}</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </button>
+                  {openModalDropdown === 'platform' && !editingNeoBank && (
+                    <div className="modal-dropdown">
+                      <div
+                        className={`modal-option ${formData.platformId === 0 ? 'active' : ''}`}
+                        onClick={() => {
+                          setFormData({ ...formData, platformId: 0 });
+                          setOpenModalDropdown(null);
+                        }}
+                      >
+                        {t('dropNeoBanks.form.selectPlatform')}
+                      </div>
+                      {platforms?.items.map((platform: Platform) => (
+                        <div
+                          key={platform.id}
+                          className={`modal-option ${formData.platformId === platform.id ? 'active' : ''}`}
+                          onClick={() => {
+                            setFormData({ ...formData, platformId: platform.id });
+                            setOpenModalDropdown(null);
+                          }}
+                        >
+                          {platform.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
                 <label>{t('dropNeoBanks.form.provider')} *</label>
-                <select
-                  value={formData.provider}
-                  onChange={(e) => setFormData({ ...formData, provider: e.target.value as any })}
-                  required
-                  disabled={!!editingNeoBank}
-                >
-                  {PROVIDERS.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    onClick={() => setOpenModalDropdown(openModalDropdown === 'provider' ? null : 'provider')}
+                    disabled={!!editingNeoBank}
+                  >
+                    <span>{PROVIDERS.find(p => p.value === formData.provider)?.label}</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </button>
+                  {openModalDropdown === 'provider' && !editingNeoBank && (
+                    <div className="modal-dropdown">
+                      {PROVIDERS.map((p) => (
+                        <div
+                          key={p.value}
+                          className={`modal-option ${formData.provider === p.value ? 'active' : ''}`}
+                          onClick={() => {
+                            setFormData({ ...formData, provider: p.value as any });
+                            setOpenModalDropdown(null);
+                          }}
+                        >
+                          {p.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -436,7 +582,7 @@ export default function DropNeoBanks() {
             </div>
 
             <div className="balance-info">
-              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {balanceNeoBank.drop?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {balanceNeoBank.platform?.name || '-'}</p>
               <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {PROVIDERS.find(p => p.value === balanceNeoBank.provider)?.label}</p>
               <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {balanceNeoBank.accountId}</p>
               <p><strong>{t('dropNeoBanks.info.currentBalance')}:</strong> {formatCurrency(balanceNeoBank.currentBalance)}</p>
