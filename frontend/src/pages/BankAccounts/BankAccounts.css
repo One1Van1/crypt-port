@@ -39,7 +39,7 @@
 }
 
 .bank-account-card {
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
@@ -162,7 +162,7 @@
 
 .limit-section {
   padding: 1rem;
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
@@ -190,7 +190,7 @@
 
 .limit-bar {
   height: 8px;
-  background: var(--bg-secondary);
+  background: var(--bg-tertiary);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -235,7 +235,7 @@
   padding: 0.5rem;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 0.95rem;
   text-align: center;
@@ -265,7 +265,7 @@
 
 .btn-edit {
   padding: 0.5rem 1rem;
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   color: var(--text-primary);
@@ -335,7 +335,7 @@
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: 6px;
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   font-size: 0.95rem;
   transition: all 0.2s;
@@ -460,7 +460,7 @@
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
+  background: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
 }

@@ -8,15 +8,14 @@ import {
   Mail, 
   Phone, 
   CreditCard,
-  ChevronDown,
-  Plus,
   RefreshCw,
   Send
 } from 'lucide-react';
 import { usersService, User } from '../../services/users.service';
 import { bankAccountsService, BankAccount as BankAccountType } from '../../services/bank-accounts.service';
+import { shiftsService } from '../../services/shifts.service';
 import { useAuthStore } from '../../store/authStore';
-import AddOperatorModal from '../../components/AddOperatorModal/AddOperatorModal';
+
 import { UserRole } from '../../types/user.types';
 import './Operators.css';
 
@@ -34,8 +33,6 @@ export default function Operators() {
   const user = useAuthStore((state) => state.user);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
-  const [expandedOperators, setExpandedOperators] = useState<Set<string>>(new Set());
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Check if user is admin
   useEffect(() => {
@@ -44,14 +41,27 @@ export default function Operators() {
     }
   }, [user, navigate]);
 
+  // Fetch all shifts to determine user status
+  const { data: shiftsData } = useQuery({
+    queryKey: ['all-shifts'],
+    queryFn: () => shiftsService.getAll({ limit: 1000 }),
+    refetchInterval: 1000, // Обновление каждую секунду
+    staleTime: 0, // Данные всегда считаются устаревшими
+    refetchOnWindowFocus: true, // Обновлять при фокусе на окне
+  });
+
   // Fetch real users from API
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['users', searchQuery],
+    queryKey: ['users', searchQuery, shiftsData?.items.filter(s => s.status === 'active').map(s => s.operator?.id).join(',')],
     queryFn: async () => {
       const response = await usersService.getAll({ 
         search: searchQuery,
         limit: 100 
       });
+      
+      // Get active shifts
+      const activeShifts = shiftsData?.items.filter(shift => shift.status === 'active') || [];
+      const activeUserIds = new Set(activeShifts.map(shift => shift.operator?.id).filter(Boolean));
       
       // Fetch bank accounts for each user
       const operators: Operator[] = await Promise.all(
@@ -64,14 +74,14 @@ export default function Operators() {
             
             return {
               ...user,
-              status: 'Active' as const,
+              status: activeUserIds.has(Number(user.id)) ? 'Active' as const : 'Inactive' as const,
               bankAccounts: accountsResponse.items
             };
           } catch (error) {
             console.error(`Failed to fetch accounts for user ${user.id}:`, error);
             return {
               ...user,
-              status: 'Active' as const,
+              status: activeUserIds.has(Number(user.id)) ? 'Active' as const : 'Inactive' as const,
               bankAccounts: []
             };
           }
@@ -80,17 +90,8 @@ export default function Operators() {
       
       return operators;
     },
+    enabled: !!shiftsData,
   });
-
-  const toggleExpand = (operatorId: string) => {
-    const newExpanded = new Set(expandedOperators);
-    if (newExpanded.has(operatorId)) {
-      newExpanded.delete(operatorId);
-    } else {
-      newExpanded.add(operatorId);
-    }
-    setExpandedOperators(newExpanded);
-  };
 
   const getStatusBadgeClass = (status: string) => {
     return status.toLowerCase();
@@ -146,10 +147,6 @@ export default function Operators() {
           <h1 className="operators-title">{t('operators.title')}</h1>
           <p className="operators-subtitle">{t('operators.subtitle')}</p>
         </div>
-        <button className="btn-primary" onClick={() => setIsAddModalOpen(true)}>
-          <UserPlus size={18} />
-          {t('operators.addOperator')}
-        </button>
       </div>
 
       <div className="operators-filters">
@@ -220,72 +217,23 @@ export default function Operators() {
                 <Mail size={14} />
                 <span>{operator.email}</span>
               </div>
-              {operator.phone && (
-                <div className="contact-item">
-                  <Phone size={14} />
-                  <span>{operator.phone}</span>
-                </div>
-              )}
-              {operator.telegram && (
-                <div className="contact-item">
-                  <Send size={14} />
-                  <span>{operator.telegram}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="operator-divider"></div>
-
-            <div className="bank-accounts-section">
-              <div 
-                className="bank-accounts-header"
-                onClick={() => toggleExpand(operator.id)}
-              >
-                <div className="bank-accounts-title">
-                  <CreditCard size={16} />
-                  <span>{t('operators.bankAccounts')} ({operator.bankAccounts.length})</span>
-                </div>
-                <ChevronDown 
-                  size={18} 
-                  className={`chevron ${expandedOperators.has(operator.id) ? 'expanded' : ''}`}
-                />
+              <div className="contact-item">
+                <Phone size={14} />
+                <span>{operator.phone || t('common.notFilled')}</span>
               </div>
-
-              {expandedOperators.has(operator.id) && (
-                <div className="bank-accounts-list">
-                  {operator.bankAccounts.length > 0 ? (
-                    operator.bankAccounts.map((account) => (
-                      <div key={account.id} className="bank-account-item">
-                        <div className="bank-account-info">
-                          <div className="bank-icon">
-                            <CreditCard size={16} />
-                          </div>
-                          <div className="bank-details">
-                            <div className="bank-name">{account.bank?.name || 'Unknown Bank'}</div>
-                            <div className="bank-meta">
-                              <span>CBU: {account.cbu.slice(0, 6)}...{account.cbu.slice(-4)}</span>
-                              <span>Alias: {account.alias}</span>
-                              <span>Priority: {account.priority}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <span className={`status-badge small ${account.status.toLowerCase()}`}>
-                          {account.status}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="empty-accounts">
-                      <p>{t('operators.noAccounts')}</p>
-                    </div>
-                  )}
-                  <button className="btn-add-account">
-                    <Plus size={14} />
-                    {t('operators.addAccount')}
-                  </button>
-                </div>
-              )}
+              <div className="contact-item">
+                <Send size={14} />
+                <span>{operator.telegram || t('common.notFilled')}</span>
+              </div>
             </div>
+
+            <button 
+              className="btn-withdrawal-history"
+              onClick={() => navigate(`/transactions?userId=${operator.id}`)}
+            >
+              <CreditCard size={16} />
+              <span>{t('operators.withdrawalHistory')}</span>
+            </button>
           </div>
         ))}
       </div>
@@ -297,11 +245,6 @@ export default function Operators() {
           <p>{t('operators.noOperatorsText')}</p>
         </div>
       )}
-
-      <AddOperatorModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-      />
     </div>
   );
 }

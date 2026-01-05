@@ -19,7 +19,8 @@
     "unknownBank": "Неизвестный банк",
     "unknownPlatform": "Неизвестная площадка",
     "comingSoon": "Скоро...",
-    "fillRequired": "Заполните обязательные поля"
+    "fillRequired": "Заполните обязательные поля",
+    "notFilled": "Не заполнено"
   },
   "errors": {
     "accessDenied": "Доступ запрещен",
@@ -62,21 +63,25 @@
     "analytics": "Аналитика",
     "operators": "Сотрудники",
     "bankAccounts": "Банковские счета",
-    "transactions": "Транзакции",
+    "transactions": "История выводов",
     "shifts": "Смены",
     "settings": "Настройки",
     "profile": "Профиль"
   },
   "transactions": {
-    "title": "Мои операции",
-    "subtitle": "История всех выполненных операций",
+    "title": "История выводов",
+    "subtitle": "История всех выполненных выводов",
     "searchPlaceholder": "Поиск по банку, CBU, Alias...",
     "totalOperations": "Всего операций",
     "refresh": "Обновить",
     "noTransactions": "Операции не найдены",
     "myTransactions": "Мои операции",
-    "operatorsTransactions": "Операции операторов",
-    "operator": "Оператор"
+    "operatorsTransactions": "Все операции",
+    "operator": "Оператор",
+    "physicalBank": "Физ. банк:",
+    "withdrawalBank": "Банк вывода:",
+    "employee": "Сотрудник:",
+    "platform": "Площадка:"
   },
   "dashboard": {
     "title": "Главная",
@@ -149,6 +154,7 @@
     "all": "Все",
     "active": "Активные",
     "inactive": "Неактивные",
+    "withdrawalHistory": "История выводов",
     "bankAccounts": "Банковские счета",
     "addAccount": "Добавить счёт",
     "noOperators": "Сотрудники не найдены",

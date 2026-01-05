@@ -19,7 +19,8 @@
     "unknownBank": "Unknown Bank",
     "unknownPlatform": "Unknown Platform",
     "comingSoon": "Coming Soon...",
-    "fillRequired": "Fill in the required fields"
+    "fillRequired": "Fill in required fields",
+    "notFilled": "Not filled"
   },
   "errors": {
     "accessDenied": "Access Denied",
@@ -62,21 +63,25 @@
     "analytics": "Analytics",
     "operators": "Employees",
     "bankAccounts": "Bank Accounts",
-    "transactions": "Transactions",
+    "transactions": "Withdrawal History",
     "shifts": "Shifts",
     "settings": "Settings",
     "profile": "Profile"
   },
   "transactions": {
-    "title": "My Transactions",
-    "subtitle": "History of all completed operations",
+    "title": "Withdrawal History",
+    "subtitle": "History of all completed withdrawals",
     "searchPlaceholder": "Search by bank, CBU, Alias...",
     "totalOperations": "Total operations",
     "refresh": "Refresh",
     "noTransactions": "No transactions found",
     "myTransactions": "My Transactions",
-    "operatorsTransactions": "Operators Transactions",
-    "operator": "Operator"
+    "operatorsTransactions": "All Operations",
+    "operator": "Operator",
+    "physicalBank": "Physical Bank:",
+    "withdrawalBank": "Withdrawal Bank:",
+    "employee": "Employee:",
+    "platform": "Platform:"
   },
   "dashboard": {
     "title": "Home",
@@ -233,6 +238,7 @@
     "all": "All",
     "active": "Active",
     "inactive": "Inactive",
+    "withdrawalHistory": "Withdrawal History",
     "bankAccounts": "Bank Accounts",
     "addAccount": "Add Account",
     "noOperators": "No employees found",

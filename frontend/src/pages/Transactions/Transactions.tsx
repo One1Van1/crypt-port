@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Search, 
   Building, 
@@ -26,6 +27,7 @@ export default function Transactions() {
   const { t, i18n } = useTranslation();
   const timeFormat = useAppStore((state) => state.timeFormat);
   const user = useAuthStore((state) => state.user);
+  const [searchParams] = useSearchParams();
   const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -42,6 +44,15 @@ export default function Transactions() {
   const limit = 10;
 
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+
+  // Auto-apply userId filter from URL params
+  useEffect(() => {
+    const userIdParam = searchParams.get('userId');
+    if (userIdParam && isTeamLeadOrAdmin) {
+      setViewMode('all');
+      setSelectedUserId(userIdParam);
+    }
+  }, [searchParams, isTeamLeadOrAdmin]);
 
   // Fetch shifts for filter
   const { data: shiftsData } = useQuery({
@@ -402,19 +413,19 @@ export default function Transactions() {
                   </div>
                   <div className="bank-content">
                     <h3 className="bank-name">
-                      Физ. банк: {transaction.bank?.name || t('common.unknownBank')}
+                      {t('transactions.physicalBank')} {transaction.bank?.name || t('common.unknownBank')}
                     </h3>
                     <div className="bank-details">
                       <span>CBU: ...{(transaction.bankAccount?.cbu || '').slice(-4)}</span>
                     </div>
                     {transaction.dropNeoBank && (
                       <div className="bank-details">
-                        <span>Банк вывода: {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}</span>
+                        <span>{t('transactions.withdrawalBank')} {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}</span>
                       </div>
                     )}
                     {transaction.user && (
                       <div className="operator-info">
-                        <span className="operator-label">Сотрудник:</span>
+                        <span className="operator-label">{t('transactions.employee')}</span>
                         <span className="operator-name">
                           {transaction.user.username}
                         </span>
@@ -422,7 +433,7 @@ export default function Transactions() {
                     )}
                     {transaction.platform && (
                       <div className="platform-info">
-                        <span className="platform-label">Площадка:</span>
+                        <span className="platform-label">{t('transactions.platform')}</span>
                         <span className="platform-name"> {transaction.platform.name}</span>
                       </div>
                     )}
