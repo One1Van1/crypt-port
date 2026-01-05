@@ -120,7 +120,7 @@ export default function DropNeoBanks() {
   const openEditModal = (neoBank: DropNeoBank) => {
     setEditingNeoBank(neoBank);
     setFormData({
-      dropId: neoBank.drop.id,
+      dropId: neoBank.drop?.id || 0,
       provider: neoBank.provider,
       accountId: neoBank.accountId,
       currentBalance: neoBank.currentBalance,
@@ -274,7 +274,7 @@ export default function DropNeoBanks() {
               <tr key={neoBank.id}>
                 <td>
                   <div className="drop-cell">
-                    <strong>{neoBank.drop.name}</strong>
+                    <strong>{neoBank.drop?.name || '-'}</strong>
                   </div>
                 </td>
                 <td>
@@ -436,7 +436,7 @@ export default function DropNeoBanks() {
             </div>
 
             <div className="balance-info">
-              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {balanceNeoBank.drop.name}</p>
+              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {balanceNeoBank.drop?.name || '-'}</p>
               <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {PROVIDERS.find(p => p.value === balanceNeoBank.provider)?.label}</p>
               <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {balanceNeoBank.accountId}</p>
               <p><strong>{t('dropNeoBanks.info.currentBalance')}:</strong> {formatCurrency(balanceNeoBank.currentBalance)}</p>

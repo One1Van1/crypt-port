@@ -220,7 +220,9 @@ function RequisitesSection() {
                 const initialLimitAmount = account.initialLimitAmount || 0;
                 const currentLimitAmount = account.currentLimitAmount || 0;
                 const withdrawnAmount = account.withdrawnAmount || 0;
-                const usagePercent = (withdrawnAmount / initialLimitAmount) * 100;
+                const available = currentLimitAmount;
+                const limitAmount = initialLimitAmount;
+                const usagePercent = initialLimitAmount > 0 ? (withdrawnAmount / initialLimitAmount) * 100 : 0;
                 return (
                   <tr 
                     key={account.id}
