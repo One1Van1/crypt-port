@@ -1,7 +1,8 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GetAllWithdrawalsService } from './get-all-withdrawals.service';
 import { GetAllWithdrawalsResponseDto } from './get-all-withdrawals.response.dto';
+import { GetAllWithdrawalsQueryDto } from './get-all-withdrawals.query.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -17,7 +18,7 @@ export class GetAllWithdrawalsController {
   @Get('all')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
   @ApiGetAllWithdrawals()
-  async handle(): Promise<GetAllWithdrawalsResponseDto> {
-    return this.service.execute();
+  async handle(@Query() query: GetAllWithdrawalsQueryDto): Promise<GetAllWithdrawalsResponseDto> {
+    return this.service.execute(query);
   }
 }

@@ -118,8 +118,9 @@ class CashWithdrawalsService {
     await apiClient.patch(`/cash-withdrawals/conversions/${id}/confirm`);
   }
 
-  async getAllWithdrawals(): Promise<GetAllWithdrawalsResponse> {
-    const response = await apiClient.get('/cash-withdrawals/all');
+  async getAllWithdrawals(date?: string): Promise<GetAllWithdrawalsResponse> {
+    const params = date ? { date } : {};
+    const response = await apiClient.get('/cash-withdrawals/all', { params });
     return response.data;
   }
 

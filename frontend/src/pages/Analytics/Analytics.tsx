@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   Users,
@@ -11,7 +12,13 @@ import {
   BarChart3,
   AlertCircle,
   XCircle,
+  DollarSign,
+  Edit3,
+  Check,
+  History,
+  ArrowRight,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
   LineChart,
   Line,
@@ -26,8 +33,11 @@ import {
   Cell,
 } from 'recharts';
 import { analyticsService } from '../../services/analytics.service';
+import { platformsService } from '../../services/platforms.service';
+import { transactionsService } from '../../services/transactions.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
+import DatePicker from '../../components/DatePicker/DatePicker';
 import './Analytics.css';
 
 type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'custom';
@@ -95,6 +105,8 @@ const mockSpeedData = [
 export default function Analytics() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [dateFilter, setDateFilter] = useState<DateFilter>('week');
   const [platformFilter] = useState<PlatformFilter>('all');
@@ -102,10 +114,68 @@ export default function Analytics() {
   const [viewMode, setViewMode] = useState<ViewMode>('amount');
   const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
   const [selectedOperator, setSelectedOperator] = useState<string | null>(null);
+  const [editingPlatformId, setEditingPlatformId] = useState<number | null>(null);
+  const [newRate, setNewRate] = useState<string>('');
+  const [withdrawalDate, setWithdrawalDate] = useState<Date | null>(new Date());
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
     queryFn: analyticsService.getGeneral,
+  });
+
+  // Fetch platforms
+  const { data: platformsData } = useQuery({
+    queryKey: ['platforms'],
+    queryFn: () => platformsService.getAll(),
+  });
+
+  // Fetch withdrawals history (transactions for selected date)
+  const { data: withdrawalsData } = useQuery({
+    queryKey: ['withdrawals-transactions', withdrawalDate],
+    queryFn: () => {
+      console.log('Analytics: fetching transactions for date:', withdrawalDate);
+      
+      if (!withdrawalDate) {
+        console.log('Analytics: no date selected, fetching all');
+        return transactionsService.getAll({ page: 1, limit: 100 });
+      }
+      
+      const year = withdrawalDate.getFullYear();
+      const month = String(withdrawalDate.getMonth() + 1).padStart(2, '0');
+      const day = String(withdrawalDate.getDate()).padStart(2, '0');
+      const startDate = `${year}-${month}-${day}T00:00:00`;
+      
+      const nextDay = new Date(withdrawalDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const endYear = nextDay.getFullYear();
+      const endMonth = String(nextDay.getMonth() + 1).padStart(2, '0');
+      const endDay = String(nextDay.getDate()).padStart(2, '0');
+      const endDate = `${endYear}-${endMonth}-${endDay}T00:00:00`;
+      
+      console.log('Analytics: requesting transactions with dates:', { startDate, endDate });
+      
+      return transactionsService.getAll({ 
+        page: 1, 
+        limit: 100,
+        startDate,
+        endDate
+      });
+    },
+  });
+
+  // Update platform rate mutation
+  const updateRateMutation = useMutation({
+    mutationFn: ({ id, rate }: { id: number; rate: number }) => 
+      platformsService.updateRate(id, rate),
+    onSuccess: () => {
+      toast.success('Курс обновлен');
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+      setEditingPlatformId(null);
+      setNewRate('');
+    },
+    onError: () => {
+      toast.error('Ошибка обновления курса');
+    },
   });
 
   // Access control
@@ -200,27 +270,180 @@ export default function Analytics() {
         <div className="analytics-left-column">
           {/* KPI Cards Grid 2x2 */}
           <div className="analytics-kpi-sidebar">
-          <div className="kpi-card" onClick={() => setSelectedFunnelStage('pending')}>
-            <div className="kpi-header">{t('statuses.pending').toUpperCase()} {t('nav.transactions').toUpperCase()}</div>
-            <div className="kpi-value">{data?.pendingTransactions || 245}</div>
-            <div className="kpi-progress">
-              <div className="kpi-progress-bar" style={{ width: '75%', backgroundColor: '#f59e0b' }} />
+          {/* Platform Exchange Rates Widget */}
+          <div className="kpi-card">
+            <div className="kpi-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <DollarSign size={20} />
+              КУРСЫ ПЛОЩАДОК
             </div>
-            <div className="kpi-footer">for {dateFilter === 'week' ? t('teamlead.week').toLowerCase() : dateFilter === 'month' ? t('teamlead.month').toLowerCase() : 'period'}</div>
+            <div style={{ marginTop: '16px' }}>
+              {platformsData?.items.map((platform) => (
+                <div key={platform.id} style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  padding: '12px',
+                  borderBottom: '1px solid var(--border-color)',
+                  transition: 'background 0.2s'
+                }}>
+                  <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>
+                    {platform.name}
+                  </div>
+                  {editingPlatformId === platform.id ? (
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        value={newRate}
+                        onChange={(e) => setNewRate(e.target.value)}
+                        placeholder="Новый курс"
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid var(--border-color)',
+                          backgroundColor: 'var(--bg-tertiary)',
+                          color: 'var(--text-primary)',
+                          width: '120px'
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          const rate = parseFloat(newRate);
+                          if (!isNaN(rate) && rate > 0) {
+                            updateRateMutation.mutate({ id: platform.id, rate });
+                          }
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <Check size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingPlatformId(null);
+                          setNewRate('');
+                        }}
+                        style={{
+                          padding: '4px 8px',
+                          borderRadius: '6px',
+                          backgroundColor: 'var(--bg-tertiary)',
+                          color: 'var(--text-secondary)',
+                          border: '1px solid var(--border-color)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#6366f1' }}>
+                        {platform.exchangeRate.toFixed(2)} ARS
+                      </span>
+                      {user?.role === UserRole.ADMIN && (
+                        <button
+                          onClick={() => {
+                            setEditingPlatformId(platform.id);
+                            setNewRate(platform.exchangeRate.toString());
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: 'var(--bg-tertiary)',
+                            border: '1px solid var(--border-color)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: 'var(--text-secondary)'
+                          }}
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="kpi-card" onClick={() => setSelectedFunnelStage('completed')}>
-            <div className="kpi-header">{t('statuses.completed').toUpperCase()} {t('nav.transactions').toUpperCase()}</div>
-            <div className="kpi-value">{data?.completedTransactions || 26}</div>
-            <div className="kpi-progress">
-              <div className="kpi-progress-bar" style={{ width: '92%', backgroundColor: '#10b981' }} />
+          {/* Withdrawal History Widget */}
+          <div className="kpi-card">
+            <div className="kpi-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <History size={20} />
+              ИСТОРИЯ ВЫВОДОВ
             </div>
-            <div className="kpi-footer">for {dateFilter === 'week' ? t('teamlead.week').toLowerCase() : dateFilter === 'month' ? t('teamlead.month').toLowerCase() : 'period'}</div>
+            <div style={{ marginTop: '12px' }}>
+              <div style={{ marginBottom: '10px' }}>
+                <DatePicker
+                  selected={withdrawalDate}
+                  onChange={(date) => setWithdrawalDate(date)}
+                  placeholder="Выберите дату"
+                />
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                    Всего выводов
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                    {withdrawalsData?.total || 0}
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    if (withdrawalDate) {
+                      const dateStr = `${withdrawalDate.getFullYear()}-${String(withdrawalDate.getMonth() + 1).padStart(2, '0')}-${String(withdrawalDate.getDate()).padStart(2, '0')}`;
+                      navigate('/transactions', { 
+                        state: { filterDate: dateStr } 
+                      });
+                    }
+                  }}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '6px',
+                    backgroundColor: '#6366f1',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: '500',
+                    fontSize: '0.75rem',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#5558e3';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#6366f1';
+                  }}
+                >
+                  Все операции
+                  <ArrowRight size={12} />
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="kpi-card">
             <div className="kpi-header">{t('shifts.activeShift').toUpperCase()}</div>
-            <div className="kpi-value">{data?.activeShifts || 2}</div>
+            <div className="kpi-value">{data?.activeOperators || 2}</div>
             <div className="kpi-progress">
               <div className="kpi-progress-bar" style={{ width: '65%', backgroundColor: '#6366f1' }} />
             </div>
@@ -229,7 +452,7 @@ export default function Analytics() {
 
           <div className="kpi-card">
             <div className="kpi-header">{t('dashboard.withdrawalAmount').toUpperCase()}</div>
-            <div className="kpi-value">{formatCurrency(data?.completedAmount || 10650000)}</div>
+            <div className="kpi-value">{formatCurrency(data?.totalWithdrawn || 10650000)}</div>
             <div className="kpi-progress">
               <div className="kpi-progress-bar" style={{ width: '88%', backgroundColor: '#8b5cf6' }} />
             </div>
@@ -378,7 +601,7 @@ export default function Analytics() {
                     border: '1px solid var(--border-color)',
                     borderRadius: '8px',
                   }}
-                  formatter={(value: any, name: string) => [
+                  formatter={(value: any, name?: string) => [
                     viewMode === 'amount' ? formatCurrencyFull(value) : value,
                     name === 'completed' ? t('statuses.completed') : t('statuses.pending'),
                   ]}

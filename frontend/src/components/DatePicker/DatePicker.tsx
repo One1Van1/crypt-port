@@ -3,6 +3,7 @@ import { ru } from 'date-fns/locale';
 import { Calendar, X } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import './DatePicker.css';
+import './DatePickerOverrides.css';
 
 registerLocale('ru', ru);
 

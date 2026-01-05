@@ -1,0 +1,61 @@
+/* Overrides для react-datepicker - загружается после дефолтных стилей */
+
+/* Все элементы календаря */
+.react-datepicker * {
+  color: var(--text-primary) !important;
+}
+
+/* Месяцы и годы в dropdown */
+.react-datepicker__month-option,
+.react-datepicker__year-option {
+  color: var(--text-primary) !important;
+  background: var(--bg-secondary) !important;
+}
+
+/* Выбранные месяц/год в выпадающем списке */
+.react-datepicker__month-option--selected_month,
+.react-datepicker__year-option--selected_year {
+  color: var(--text-primary) !important;
+}
+
+/* Дни месяца */
+.react-datepicker__day {
+  color: var(--text-primary) !important;
+}
+
+/* Выбранный день */
+.react-datepicker__day--selected,
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range {
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
+/* Сегодняшний день */
+.react-datepicker__day--today {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+/* Названия дней недели */
+.react-datepicker__day-name {
+  color: var(--text-secondary) !important;
+}
+
+/* Текущий месяц и год в заголовке */
+.react-datepicker__current-month,
+.react-datepicker-time__header,
+.react-datepicker-year-header {
+  color: var(--text-primary) !important;
+}
+
+/* Дни вне текущего месяца */
+.react-datepicker__day--outside-month {
+  color: var(--text-tertiary) !important;
+}
+
+/* Отключенные дни */
+.react-datepicker__day--disabled {
+  color: var(--text-tertiary) !important;
+  opacity: 0.3 !important;
+}

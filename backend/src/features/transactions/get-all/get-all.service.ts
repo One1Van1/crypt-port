@@ -66,14 +66,15 @@ export class GetAllTransactionsService {
 
     // Фильтр по дате
     if (query.startDate && query.endDate) {
-      queryBuilder.andWhere('transaction.createdAt BETWEEN :startDate AND :endDate', {
+      console.log('Filtering transactions by date:', { startDate: query.startDate, endDate: query.endDate });
+      queryBuilder.andWhere('transaction.createdAt >= :startDate AND transaction.createdAt < :endDate', {
         startDate: query.startDate,
         endDate: query.endDate,
       });
     } else if (query.startDate) {
       queryBuilder.andWhere('transaction.createdAt >= :startDate', { startDate: query.startDate });
     } else if (query.endDate) {
-      queryBuilder.andWhere('transaction.createdAt <= :endDate', { endDate: query.endDate });
+      queryBuilder.andWhere('transaction.createdAt < :endDate', { endDate: query.endDate });
     }
 
     // Сортировка
@@ -83,6 +84,13 @@ export class GetAllTransactionsService {
       .take(query.limit || 10)
       .skip(((query.page || 1) - 1) * (query.limit || 10))
       .getManyAndCount();
+
+    console.log(`Found ${total} transactions (returning ${items.length} items)`);
+    if (query.startDate && query.endDate) {
+      items.forEach(t => {
+        console.log(`Transaction ${t.id}: createdAt = ${t.createdAt}`);
+      });
+    }
 
     return new GetAllTransactionsResponseDto(
       items.map((t) => new TransactionItemDto(t)),

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { 
   Search, 
   Building, 
@@ -28,6 +28,7 @@ export default function Transactions() {
   const timeFormat = useAppStore((state) => state.timeFormat);
   const user = useAuthStore((state) => state.user);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -44,6 +45,24 @@ export default function Transactions() {
   const limit = 10;
 
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+
+  // Auto-apply date filter from location state
+  useEffect(() => {
+    const state = location.state as { filterDate?: string } | null;
+    if (state?.filterDate) {
+      // Parse date as local date to avoid timezone issues
+      const [year, month, day] = state.filterDate.split('-').map(Number);
+      const dateFrom = new Date(year, month - 1, day);
+      const dateTo = new Date(year, month - 1, day);
+      dateTo.setDate(dateTo.getDate() + 1); // Next day
+      setDateFrom(dateFrom);
+      setDateTo(dateTo);
+      setShowFilters(true);
+      setViewMode('all');
+      // Clear location state to prevent reapplying on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   // Auto-apply userId filter from URL params
   useEffect(() => {
@@ -104,6 +123,24 @@ export default function Transactions() {
   const { data: allTransactionsData } = useQuery({
     queryKey: ['all-transactions', page, selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, searchQuery, dateFrom, dateTo, minAmount, maxAmount],
     queryFn: () => {
+      // Prepare dates as ISO strings in local timezone
+      let startDate: string | undefined;
+      let endDate: string | undefined;
+      
+      if (dateFrom) {
+        const year = dateFrom.getFullYear();
+        const month = String(dateFrom.getMonth() + 1).padStart(2, '0');
+        const day = String(dateFrom.getDate()).padStart(2, '0');
+        startDate = `${year}-${month}-${day}T00:00:00.000Z`;
+      }
+      
+      if (dateTo) {
+        const year = dateTo.getFullYear();
+        const month = String(dateTo.getMonth() + 1).padStart(2, '0');
+        const day = String(dateTo.getDate()).padStart(2, '0');
+        endDate = `${year}-${month}-${day}T00:00:00.000Z`;
+      }
+      
       const params = {
         page,
         limit,
@@ -112,8 +149,8 @@ export default function Transactions() {
         bankId: selectedBankId ? Number(selectedBankId) : undefined,
         dropNeoBankId: selectedDropNeoBankId ? Number(selectedDropNeoBankId) : undefined,
         search: searchQuery || undefined,
-        startDate: dateFrom ? dateFrom.toISOString() : undefined,
-        endDate: dateTo ? dateTo.toISOString() : undefined,
+        startDate,
+        endDate,
         minAmount: minAmount ? parseFloat(minAmount) : undefined,
         maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
       };
@@ -334,7 +371,12 @@ export default function Transactions() {
             <label>Дата от</label>
             <DatePicker
               selected={dateFrom}
-              onChange={setDateFrom}
+              onChange={(date) => {
+                if (date) {
+                  date.setHours(0, 0, 0, 0);
+                }
+                setDateFrom(date);
+              }}
               placeholder="Выберите дату"
               maxDate={dateTo || undefined}
             />
@@ -344,7 +386,12 @@ export default function Transactions() {
             <label>Дата до</label>
             <DatePicker
               selected={dateTo}
-              onChange={setDateTo}
+              onChange={(date) => {
+                if (date) {
+                  date.setHours(0, 0, 0, 0);
+                }
+                setDateTo(date);
+              }}
               placeholder="Выберите дату"
               minDate={dateFrom || undefined}
             />
