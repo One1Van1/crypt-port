@@ -24,9 +24,15 @@ export default function Sidebar() {
   const user = useAuthStore((state) => state.user);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  const getTeamleadDashboardLabel = () => {
+    if (user?.role === 'admin') return 'Панель админа';
+    if (user?.role === 'teamlead') return 'Панель тимлида';
+    return t('nav.teamleadDashboard');
+  };
+
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
-    { to: '/teamlead-dashboard', icon: Award, label: t('nav.teamleadDashboard'), roles: ['teamlead', 'admin'] },
+    { to: '/teamlead-dashboard', icon: Award, label: getTeamleadDashboardLabel(), roles: ['teamlead', 'admin'] },
     { to: '/working-deposit', icon: TrendingUp, label: 'График', roles: ['admin'] },
     { to: '/banks', icon: Building2, label: t('nav.banks'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drops', icon: UserSquare2, label: t('nav.drops'), roles: ['operator', 'teamlead', 'admin'] },

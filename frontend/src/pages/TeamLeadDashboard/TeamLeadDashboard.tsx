@@ -33,7 +33,7 @@ export default function TeamLeadDashboard() {
         <div className="teamlead-title">
           <Award size={32} className="title-icon" />
           <div>
-            <h1>{t('teamlead.dashboard')}</h1>
+            <h1>{user?.role === UserRole.ADMIN ? 'Панель админа' : 'Панель тимлида'}</h1>
             <p className="subtitle">{t('teamlead.subtitle')}</p>
           </div>
         </div>
