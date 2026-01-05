@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workingDepositService } from '../../services/workingDepositService';
 import toast from 'react-hot-toast';
-import { PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const WorkingDepositChart = () => {
   const queryClient = useQueryClient();
@@ -15,9 +15,9 @@ const WorkingDepositChart = () => {
     queryFn: workingDepositService.getSections,
   });
 
-  const { data: history, isLoading: isLoadingHistory } = useQuery({
-    queryKey: ['workingDepositHistory', historyDays],
-    queryFn: () => workingDepositService.getHistory(historyDays),
+  const { data: profitHistory, isLoading: isLoadingHistory } = useQuery({
+    queryKey: ['profitHistory', historyDays],
+    queryFn: () => workingDepositService.getProfitHistory(historyDays),
   });
 
   const setInitialDepositMutation = useMutation({
@@ -68,6 +68,14 @@ const WorkingDepositChart = () => {
 
   const isProfitable = (sections.summary.profit || 0) >= 0;
 
+  // Debug: log unpaid pesos data
+  console.log('📊 Working Deposit Data:', {
+    unpaidPesos: sections.unpaidPesos,
+    blockedPesos: sections.blockedPesos,
+    platformBalances: sections.platformBalances,
+    freeUsdt: sections.freeUsdt
+  });
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -108,33 +116,51 @@ const WorkingDepositChart = () => {
       )}
 
       {/* Summary Card */}
-      <div className="card mb-6 p-6">
-        <h2 className="text-xl font-bold mb-4">Итого</h2>
+      <div className="card mb-6 p-6" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1))', border: '2px solid rgba(99, 102, 241, 0.3)' }}>
+        <div className="mb-6 text-center">
+          <div className="text-sm" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>💰 Всего денег в системе</div>
+          <div className="text-5xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+            {(sections.summary.totalUsdt || 0).toFixed(2)} USDT
+          </div>
+        </div>
+        
+        <div className="h-px" style={{ background: 'linear-gradient(90deg, transparent, var(--border-color), transparent)', margin: '24px 0' }}></div>
+        
+        <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Детали</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <div className="text-sm text-gray-500">Начальный депозит</div>
-            <div className="text-2xl font-bold">
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+            <div className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>💼 Начальный депозит</div>
+            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {(sections.summary.initialDeposit || 0).toFixed(2)} USDT
             </div>
+            {sections.summary.initialDeposit === 0 && (
+              <div className="mt-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                ⚠️ Не установлен
+              </div>
+            )}
           </div>
-          <div>
-            <div className="text-sm text-gray-500">Текущий депозит</div>
-            <div className="text-2xl font-bold">
+          <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
+            <div className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>💰 Текущий депозит</div>
+            <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {(sections.summary.totalUsdt || 0).toFixed(2)} USDT
             </div>
           </div>
-          <div>
-            <div className="text-sm text-gray-500">
-              {isProfitable ? 'Профит' : 'Дефицит'}
+          <div className="p-4 rounded-lg" style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `2px solid ${isProfitable ? '#10b981' : '#ef4444'}` }}>
+            <div className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+              {isProfitable ? '📈 Профит' : '📉 Дефицит'}
             </div>
             <div
-              className={`text-2xl font-bold ${
-                isProfitable ? 'text-green-600' : 'text-red-600'
-              }`}
+              className="text-2xl font-bold"
+              style={{ color: isProfitable ? '#10b981' : '#ef4444' }}
             >
               {isProfitable ? '+' : ''}
               {(sections.summary.profit || 0).toFixed(2)} USDT
             </div>
+            {sections.summary.initialDeposit > 0 && (
+              <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                ROI: {((sections.summary.profit / sections.summary.initialDeposit) * 100).toFixed(2)}%
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -192,24 +218,17 @@ const WorkingDepositChart = () => {
           <div className="flex items-center justify-center h-96">
             <div className="text-lg" style={{ color: 'var(--text-secondary)' }}>⏳ Загрузка истории...</div>
           </div>
-        ) : history && history.history && history.history.length > 0 ? (
+        ) : profitHistory && profitHistory.history && profitHistory.history.length > 0 ? (
           <ResponsiveContainer width="100%" height={450}>
-            <LineChart 
-              data={history.history}
+            <ComposedChart 
+              data={profitHistory.history}
               margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
             >
               <defs>
-                <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
+                {/* Gradient for area fill */}
+                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="lossGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0.05}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.3} />
@@ -236,7 +255,11 @@ const WorkingDepositChart = () => {
                 }}
                 labelStyle={{ color: 'var(--text-primary)', fontWeight: 'bold', marginBottom: '8px' }}
                 itemStyle={{ color: 'var(--text-secondary)', padding: '4px 0' }}
-                formatter={(value: any) => [`${Number(value).toFixed(2)} USDT`, '']}
+                formatter={(value: any, name: any) => {
+                  if (name === '💰 Текущий депозит') return [`${Number(value).toFixed(2)} USDT`, name];
+                  if (name === '📊 Начальный депозит') return [`${Number(value).toFixed(2)} USDT`, name];
+                  return [`${Number(value).toFixed(2)} USDT`, name];
+                }}
                 labelFormatter={(label) => `📅 ${label}`}
               />
               <Legend 
@@ -244,16 +267,16 @@ const WorkingDepositChart = () => {
                 iconType="line"
                 formatter={(value) => <span style={{ color: 'var(--text-primary)', fontSize: '14px' }}>{value}</span>}
               />
-              <Line 
-                type="monotone" 
-                dataKey="totalUsdt" 
-                stroke="#6366f1" 
-                strokeWidth={3}
-                name="💰 Общий депозит"
-                dot={{ r: 5, fill: '#6366f1', strokeWidth: 2, stroke: '#fff' }}
-                activeDot={{ r: 7, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }}
-                fill="url(#totalGradient)"
+              
+              {/* Area fill for current deposit */}
+              <Area
+                type="monotone"
+                dataKey="totalUsdt"
+                fill="url(#areaGradient)"
+                stroke="none"
               />
+              
+              {/* Reference line - Initial Deposit (baseline) */}
               <Line 
                 type="monotone" 
                 dataKey="initialDeposit" 
@@ -262,17 +285,20 @@ const WorkingDepositChart = () => {
                 strokeDasharray="8 4"
                 name="📊 Начальный депозит"
                 dot={false}
+                strokeOpacity={0.7}
               />
+              
+              {/* Main line - Current Total */}
               <Line 
                 type="monotone" 
-                dataKey="profit" 
-                stroke={isProfitable ? '#10b981' : '#ef4444'}
-                strokeWidth={3}
-                name={isProfitable ? '📈 Профит' : '📉 Убыток'}
-                dot={{ r: 4, fill: isProfitable ? '#10b981' : '#ef4444', strokeWidth: 2, stroke: '#fff' }}
-                activeDot={{ r: 6 }}
+                dataKey="totalUsdt" 
+                stroke="#6366f1" 
+                strokeWidth={4}
+                name="💰 Текущий депозит"
+                dot={{ r: 6, fill: '#6366f1', strokeWidth: 3, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#6366f1', stroke: '#fff', strokeWidth: 3 }}
               />
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-96" style={{ backgroundColor: 'var(--bg-tertiary)', borderRadius: '8px' }}>
@@ -285,7 +311,7 @@ const WorkingDepositChart = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
         {/* Pie Chart - Distribution */}
         <div className="card p-6" style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
           <h3 className="text-lg font-bold mb-6" style={{ color: 'var(--text-primary)' }}>🥧 Распределение депозита</h3>
@@ -339,85 +365,112 @@ const WorkingDepositChart = () => {
           </ResponsiveContainer>
         </div>
 
-        {/* Bar Chart - Comparison */}
-        <div className="card p-6" style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-          <h3 className="text-lg font-bold mb-6" style={{ color: 'var(--text-primary)' }}>📊 Сравнение секций</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <BarChart
-              data={[
-                { name: '💎 Платформы', usdt: sections.platformBalances.total || 0, fill: '#6366f1' },
-                { name: '🔒 Заблок.', usdt: sections.blockedPesos.totalUsdt || 0, fill: '#ef4444' },
-                { name: '⏳ Неопл.', usdt: sections.unpaidPesos.totalUsdt || 0, fill: '#f59e0b' },
-                { name: '✨ Свободн.', usdt: sections.freeUsdt.total || 0, fill: '#10b981' },
-                { name: '⚠️ Дефицит', usdt: -(sections.deficit.totalUsdt || 0), fill: '#f97316' },
-              ]}
-              margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
-            >
-              <defs>
-                <linearGradient id="barGradient1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="barGradient2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ef4444" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#ef4444" stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="barGradient3" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="barGradient4" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.7}/>
-                </linearGradient>
-                <linearGradient id="barGradient5" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f97316" stopOpacity={1}/>
-                  <stop offset="100%" stopColor="#f97316" stopOpacity={0.7}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
-                tick={{ fontSize: 11, fill: 'var(--text-tertiary)' }}
-                stroke="var(--border-color)"
-              />
-              <YAxis 
-                tick={{ fontSize: 12, fill: 'var(--text-tertiary)' }}
-                stroke="var(--border-color)"
-                tickFormatter={(value) => `${(value / 1000).toFixed(1)}k`}
-              />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }}
-                labelStyle={{ color: 'var(--text-primary)', fontWeight: 'bold' }}
-                itemStyle={{ color: 'var(--text-secondary)' }}
-                formatter={(value: any) => [`${Math.abs(Number(value)).toFixed(2)} USDT`, '']}
-                cursor={{ fill: 'var(--bg-hover)', opacity: 0.3 }}
-              />
-              <Bar 
-                dataKey="usdt" 
-                radius={[8, 8, 0, 0]}
-                maxBarSize={80}
-              >
-                {[
-                  { name: '💎 Платформы', usdt: sections.platformBalances.total || 0, fill: 'url(#barGradient1)' },
-                  { name: '🔒 Заблок.', usdt: sections.blockedPesos.totalUsdt || 0, fill: 'url(#barGradient2)' },
-                  { name: '⏳ Неопл.', usdt: sections.unpaidPesos.totalUsdt || 0, fill: 'url(#barGradient3)' },
-                  { name: '✨ Свободн.', usdt: sections.freeUsdt.total || 0, fill: 'url(#barGradient4)' },
-                  { name: '⚠️ Дефицит', usdt: -(sections.deficit.totalUsdt || 0), fill: 'url(#barGradient5)' },
-                ].map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Deposit Summary Table */}
+        <div className="mt-6">
+          <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>📊 Детальное распределение</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '0', backgroundColor: 'var(--bg-tertiary)', borderRadius: '12px', overflow: 'hidden' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                  <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-primary)', fontWeight: 'bold', borderBottom: '2px solid var(--border-color)' }}>Показатель</th>
+                  <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 'bold', borderBottom: '2px solid var(--border-color)' }}>Сумма (USDT)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: '500' }}>💰 Рабочий депозит</td>
+                  <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
+                    {(sections.summary.totalUsdt || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
+                  <td style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                    {isProfitable ? '📈 Профит' : '📉 Дефицит'}
+                  </td>
+                  <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem', color: isProfitable ? '#10b981' : '#ef4444' }}>
+                    {isProfitable ? '+' : ''}{(sections.summary.profit || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                  <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 'bold', color: 'var(--text-primary)', borderTop: '2px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                    Секции:
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: '#6366f1', marginRight: '8px' }}>●</span>
+                    💎 Платформы
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.platformBalances.total || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: '#ef4444', marginRight: '8px' }}>●</span>
+                    🔒 Заблокированные песо
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.blockedPesos.totalUsdt || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: 'rgba(245, 158, 11, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: '#f59e0b', marginRight: '8px' }}>●</span>
+                    ⏳ Неоплаченные песо
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.unpaidPesos.totalUsdt || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: 'rgba(16, 185, 129, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: '#10b981', marginRight: '8px' }}>●</span>
+                    ✨ Свободные USDT
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.freeUsdt.total || 0).toFixed(2)}
+                  </td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
         </div>
       </div>
+
+      {/* Profit History Table */}
+      {profitHistory && profitHistory.history && profitHistory.history.length > 0 && (
+        <div className="card p-6 mb-6" style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+          <h3 className="text-lg font-bold mb-4" style={{ color: 'var(--text-primary)' }}>📊 История профита по дням</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ borderCollapse: 'separate', borderSpacing: '0' }}>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                  <th style={{ padding: '12px', textAlign: 'left', color: 'var(--text-primary)', fontWeight: 'bold', borderTopLeftRadius: '8px' }}>Дата</th>
+                  <th style={{ padding: '12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 'bold' }}>Рабочий депозит</th>
+                  <th style={{ padding: '12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 'bold', borderTopRightRadius: '8px' }}>Профит/Дефицит</th>
+                </tr>
+              </thead>
+              <tbody>
+                {profitHistory.history.slice().reverse().slice(0, 10).map((point, index) => {
+                  const isProfit = (point.profit || 0) >= 0;
+                  return (
+                    <tr key={index} style={{ borderBottom: index < 9 ? '1px solid var(--border-color)' : 'none' }}>
+                      <td style={{ padding: '12px', color: 'var(--text-secondary)' }}>{point.date}</td>
+                      <td style={{ padding: '12px', textAlign: 'right', color: 'var(--text-primary)' }}>
+                        {(point.totalUsdt || 0).toFixed(2)} USDT
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'right', fontWeight: 'bold', color: isProfit ? '#10b981' : '#ef4444' }}>
+                        {isProfit ? '+' : ''}{(point.profit || 0).toFixed(2)} USDT
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -5,6 +5,11 @@ import { PesoToUsdtConversion } from '../entities/peso-to-usdt-conversion.entity
 import { BankAccount } from '../entities/bank-account.entity';
 import { Shift } from '../entities/shift.entity';
 import { Platform } from '../entities/platform.entity';
+import { DailyProfit } from '../entities/daily-profit.entity';
+import { DropNeoBank } from '../entities/drop-neo-bank.entity';
+import { Transaction } from '../entities/transaction.entity';
+import { Profit } from '../entities/profit.entity';
+import { SystemSetting } from '../entities/system-setting.entity';
 import { WithdrawCashController } from '../features/cash-withdrawals/withdraw/withdraw-cash.controller';
 import { WithdrawCashService } from '../features/cash-withdrawals/withdraw/withdraw-cash.service';
 import { ConvertToUsdtController } from '../features/cash-withdrawals/convert-to-usdt/convert-to-usdt.controller';
@@ -26,6 +31,11 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
       BankAccount,
       Shift,
       Platform,
+      DailyProfit,
+      DropNeoBank,
+      Transaction,
+      Profit,
+      SystemSetting,
     ]),
   ],
   controllers: [

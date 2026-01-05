@@ -161,8 +161,8 @@ class UnpaidPesosSection {
   accounts: AccountDto[];
 
   constructor(total: number, totalUsdt: number, accounts: AccountDto[]) {
-    this.total = Number(total);
-    this.totalUsdt = Number(totalUsdt);
+    this.total = Number(total) || 0;
+    this.totalUsdt = Number(totalUsdt) || 0;
     this.accounts = accounts;
   }
 }

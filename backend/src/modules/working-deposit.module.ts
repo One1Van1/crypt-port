@@ -10,6 +10,7 @@ import { Drop } from '../entities/drop.entity';
 import { UsdtToPesoExchange } from '../entities/usdt-to-peso-exchange.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { SystemSetting } from '../entities/system-setting.entity';
+import { DailyProfit } from '../entities/daily-profit.entity';
 
 // Get Sections
 import { GetWorkingDepositSectionsController } from '../features/working-deposit/get-sections/get-sections.controller';
@@ -18,6 +19,10 @@ import { GetWorkingDepositSectionsService } from '../features/working-deposit/ge
 // Get History
 import { GetWorkingDepositHistoryController } from '../features/working-deposit/get-history/get-history.controller';
 import { GetWorkingDepositHistoryService } from '../features/working-deposit/get-history/get-history.service';
+
+// Get Profit History
+import { GetProfitHistoryController } from '../features/working-deposit/get-profit-history/get-profit-history.controller';
+import { GetProfitHistoryService } from '../features/working-deposit/get-profit-history/get-profit-history.service';
 
 @Module({
   imports: [
@@ -32,15 +37,18 @@ import { GetWorkingDepositHistoryService } from '../features/working-deposit/get
       UsdtToPesoExchange,
       Transaction,
       SystemSetting,
+      DailyProfit,
     ]),
   ],
   controllers: [
     GetWorkingDepositSectionsController,
     GetWorkingDepositHistoryController,
+    GetProfitHistoryController,
   ],
   providers: [
     GetWorkingDepositSectionsService,
     GetWorkingDepositHistoryService,
+    GetProfitHistoryService,
   ],
 })
 export class WorkingDepositModule {}

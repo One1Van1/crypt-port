@@ -84,6 +84,17 @@ export interface WorkingDepositHistory {
   history: HistoryPoint[];
 }
 
+export interface DailyProfitPoint {
+  date: string;
+  totalUsdt: number;
+  initialDeposit: number;
+  profit: number;
+}
+
+export interface ProfitHistory {
+  history: DailyProfitPoint[];
+}
+
 export const workingDepositService = {
   getSections: async (): Promise<WorkingDepositSections> => {
     const response = await apiClient.get('/working-deposit/sections');
@@ -92,6 +103,13 @@ export const workingDepositService = {
 
   getHistory: async (days: number = 30): Promise<WorkingDepositHistory> => {
     const response = await apiClient.get('/working-deposit/history', {
+      params: { days },
+    });
+    return response.data;
+  },
+
+  getProfitHistory: async (days: number = 30): Promise<ProfitHistory> => {
+    const response = await apiClient.get('/working-deposit/profit-history', {
       params: { days },
     });
     return response.data;

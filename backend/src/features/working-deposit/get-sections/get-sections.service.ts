@@ -172,11 +172,11 @@ export class GetWorkingDepositSectionsService {
     });
 
     for (const neoBank of activeNeoBanks) {
-      const balance = Number(neoBank.currentBalance);
+      const balance = Number(neoBank.currentBalance) || 0;
       
       // Используем сохраненный курс и USDT эквивалент
-      const rate = neoBank.exchangeRate || 1100; // fallback если нет курса
-      const balanceUsdt = neoBank.usdtEquivalent || (balance / rate);
+      const rate = Number(neoBank.exchangeRate) || 1100;
+      const balanceUsdt = Number(neoBank.usdtEquivalent) || (balance / rate);
       
       // Получаем платформу для отображения
       const platform = neoBank.platform;
@@ -206,7 +206,7 @@ export class GetWorkingDepositSectionsService {
     });
 
     for (const transaction of pendingTransactions) {
-      const amount = Number(transaction.amount);
+      const amount = Number(transaction.amount) || 0;
       const rate = Number(transaction.exchangeRate) || 1100;
       const amountUsdt = amount / rate;
 
@@ -224,6 +224,11 @@ export class GetWorkingDepositSectionsService {
           rate,
         ),
       );
+    }
+
+    // Убеждаемся что totalUsdt не NaN
+    if (isNaN(totalUsdt)) {
+      totalUsdt = 0;
     }
 
     return new UnpaidPesosSection(total, totalUsdt, accountDtos);
