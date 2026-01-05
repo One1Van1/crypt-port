@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CashWithdrawal } from '../../../entities/cash-withdrawal.entity';
 import { PesoToUsdtConversion } from '../../../entities/peso-to-usdt-conversion.entity';
+import { CashWithdrawalStatus } from '../../../common/enums/cash-withdrawal-status.enum';
 import { ConvertToUsdtDto } from './convert-to-usdt.dto';
 import { ConvertToUsdtResponseDto } from './convert-to-usdt.response.dto';
 
@@ -26,7 +27,7 @@ export class ConvertToUsdtService {
     }
 
     // Проверить что статус pending
-    if (withdrawal.status !== 'pending') {
+    if (withdrawal.status !== CashWithdrawalStatus.PENDING) {
       throw new BadRequestException('This withdrawal has already been converted');
     }
 
@@ -47,7 +48,7 @@ export class ConvertToUsdtService {
     // Обновить статус withdrawal
     await this.cashWithdrawalRepository.update(
       { id: withdrawal.id },
-      { status: 'converted' },
+      { status: CashWithdrawalStatus.CONVERTED },
     );
 
     return new ConvertToUsdtResponseDto(savedConversion);

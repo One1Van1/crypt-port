@@ -14,8 +14,6 @@ export class GetMyTransactionsService {
   ) {}
 
   async execute(user: User, query: GetMyTransactionsQueryDto): Promise<GetMyTransactionsResponseDto> {
-    console.log('🔍 GetMyTransactionsService.execute called');
-    console.log('👤 User:', { id: user.id, username: user.username, role: user.role });
 
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
@@ -57,12 +55,7 @@ export class GetMyTransactionsService {
     // Сортировка
     queryBuilder.orderBy('transaction.createdAt', 'DESC');
 
-    console.log('📝 SQL:', queryBuilder.getSql());
-    console.log('📊 Parameters:', queryBuilder.getParameters());
-
     const [items, total] = await queryBuilder.getManyAndCount();
-
-    console.log('✅ Found items:', items.length, 'Total:', total);
 
     const transactionItems = items.map((transaction) => {
       const item = new TransactionItemDto();

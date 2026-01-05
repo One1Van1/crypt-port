@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { PesoToUsdtConversion } from './peso-to-usdt-conversion.entity';
+import { CashWithdrawalStatus } from '../common/enums/cash-withdrawal-status.enum';
 
 @Entity('cash_withdrawals')
 export class CashWithdrawal extends BaseEntity {
@@ -16,9 +17,10 @@ export class CashWithdrawal extends BaseEntity {
 
   @Column({
     type: 'varchar',
-    default: 'pending',
+    length: 30,
+    default: CashWithdrawalStatus.PENDING,
   })
-  status: 'pending' | 'converted';
+  status: CashWithdrawalStatus;
 
   @Column({ name: 'withdrawn_by_user_id' })
   withdrawnByUserId: number;

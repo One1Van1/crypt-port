@@ -232,8 +232,10 @@ function RequisitesSection() {
                 const status = getStatusBadge(account.status);
                 const initialLimitAmount = account.initialLimitAmount || 0;
                 const currentLimitAmount = account.currentLimitAmount || 0;
+                const withdrawnAmount = account.withdrawnAmount || 0;
                 const available = currentLimitAmount;
                 const limitAmount = initialLimitAmount;
+                const usagePercent = initialLimitAmount > 0 ? (withdrawnAmount / initialLimitAmount) * 100 : 0;
                 return (
                   <tr 
                     key={account.id}
@@ -434,6 +436,12 @@ function WithdrawalsSection() {
       ]);
       const accounts = accountsData.items || [];
       
+      console.log('Loaded accounts:', accounts);
+      if (accounts.length > 0) {
+        console.log('First account structure:', accounts[0]);
+        console.log('First account keys:', Object.keys(accounts[0]));
+      }
+      
       setBankAccounts(accounts);
       setWithdrawals(withdrawalsResponse.items as any);
       
@@ -454,10 +462,13 @@ function WithdrawalsSection() {
       
       const uniqueBanks = Array.from(banksMap.values());
       
+      console.log('Unique banks:', uniqueBanks);
+      
       setBanks(uniqueBanks);
       
       // Выбираем первый банк по умолчанию
       if (uniqueBanks.length > 0) {
+        console.log('Setting default bank:', uniqueBanks[0]);
         setSelectedBankId(uniqueBanks[0].id);
       }
     } catch (error) {
@@ -723,7 +734,6 @@ function ConversionsSection() {
     : '0.00';
 
   // Подсчитать общую сумму собранных пesos текущим пользователем (только pending)
-  // Подсчитать общую сумму собранных pesos текущим пользователем (только pending)
   const totalCollectedPesos = useMemo(() => {
     if (!Array.isArray(withdrawals) || !user?.id) return 0;
     
@@ -731,7 +741,7 @@ function ConversionsSection() {
       .filter(w => 
         w?.withdrawnByUser?.id && 
         String(w.withdrawnByUser.id) === String(user.id) &&
-        w?.status === 'pending' // Только те, что еще не отправлены в конвертацию
+        w?.status === 'pending' // Только те, что еще не конвертированы
       )
       .reduce((sum, w) => sum + (Number(w.amountPesos) || 0), 0);
   }, [withdrawals, user?.id]);
@@ -744,15 +754,33 @@ function ConversionsSection() {
         cashWithdrawalsService.getAllWithdrawals(),
       ]);
       
+      console.log('Conversions data:', conversionsData);
+      console.log('Withdrawals data:', withdrawalsData);
+      
       // Проверяем разные возможные структуры ответа
-      let conversionsArray: any[] = [];
+      let conversionsArray = [];
       if (Array.isArray(conversionsData)) {
         conversionsArray = conversionsData;
       } else if (conversionsData && Array.isArray(conversionsData.conversions)) {
         conversionsArray = conversionsData.conversions;
+        console.log('Conversions array items:', conversionsArray);
+        conversionsArray.forEach((conv, idx) => {
+          console.log(`Conversion ${idx}:`, {
+            id: conv?.id,
+            usdtAmount: conv?.usdtAmount,
+            pesosAmount: conv?.pesosAmount,
+            exchangeRate: conv?.exchangeRate,
+            status: conv?.status,
+            convertedByUser: conv?.convertedByUser,
+            withdrawnByUser: conv?.withdrawnByUser,
+            createdAt: conv?.createdAt
+          });
+        });
+      } else if (conversionsData && Array.isArray(conversionsData.items)) {
+        conversionsArray = conversionsData.items;
       }
       
-      let withdrawalsArray: any[] = [];
+      let withdrawalsArray = [];
       if (Array.isArray(withdrawalsData)) {
         withdrawalsArray = withdrawalsData;
       } else if (withdrawalsData && Array.isArray(withdrawalsData.items)) {

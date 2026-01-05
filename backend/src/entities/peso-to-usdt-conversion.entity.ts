@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
 import { User } from './user.entity';
 import { CashWithdrawal } from './cash-withdrawal.entity';
+import { ConversionStatus } from '../common/enums/conversion-status.enum';
 
 @Entity('peso_to_usdt_conversions')
 export class PesoToUsdtConversion extends BaseEntity {
@@ -27,4 +28,14 @@ export class PesoToUsdtConversion extends BaseEntity {
   @OneToOne(() => CashWithdrawal, withdrawal => withdrawal.conversion)
   @JoinColumn({ name: 'cash_withdrawal_id' })
   cashWithdrawal: CashWithdrawal;
+
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: ConversionStatus.PENDING,
+  })
+  status: ConversionStatus;
+
+  @Column({ type: 'text', nullable: true })
+  comment: string;
 }

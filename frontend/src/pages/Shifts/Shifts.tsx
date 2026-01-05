@@ -47,18 +47,6 @@ export default function Shifts() {
   // Определяем, является ли пользователь тимлидом или админом
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
 
-  // Debug: log when viewMode changes
-  useEffect(() => {
-    const token = useAuthStore.getState().accessToken;
-    console.log('📋 ViewMode changed:', {
-      viewMode,
-      isTeamLeadOrAdmin,
-      userRole: user?.role,
-      hasToken: !!token,
-      tokenLength: token?.length || 0,
-    });
-  }, [viewMode, isTeamLeadOrAdmin, user?.role]);
-
   // Update current time every second
   useEffect(() => {
     const timer = setInterval(() => {
@@ -87,7 +75,6 @@ export default function Shifts() {
     queryKey: ['current-shift'],
     queryFn: async () => {
       const result = await shiftsService.getMyCurrentShift();
-      console.log('Current shift loaded:', result);
       return result;
     },
     staleTime: 60000,
@@ -99,7 +86,6 @@ export default function Shifts() {
     queryKey: ['my-shifts'],
     queryFn: async () => {
       const result = await shiftsService.getMyShifts();
-      console.log('My shifts loaded:', result);
       return result;
     },
     staleTime: 60000,
@@ -111,7 +97,6 @@ export default function Shifts() {
     queryKey: ['all-shifts'],
     queryFn: async () => {
       const result = await shiftsService.getAll({ limit: 1000 });
-      console.log('All shifts loaded:', result);
       return result;
     },
     enabled: isTeamLeadOrAdmin,
@@ -130,8 +115,7 @@ export default function Shifts() {
   // Start shift mutation
   const startShiftMutation = useMutation({
     mutationFn: (platformId: number) => shiftsService.startShift({ platformId }),
-    onSuccess: (data) => {
-      console.log('Shift started successfully:', data);
+    onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ['current-shift'] });
       queryClient.refetchQueries({ queryKey: ['my-shifts'] });
       setSelectedPlatform(null);
@@ -211,17 +195,6 @@ export default function Shifts() {
   const shiftsToShow = viewMode === 'my' 
     ? (myShiftsData?.items || [])
     : (allShiftsData?.items || []);
-
-  console.log('🔍 Shifts Debug:', { 
-    viewMode,
-    isTeamLeadOrAdmin,
-    userRole: user?.role,
-    myShiftsCount: myShiftsData?.items?.length || 0,
-    allShiftsCount: allShiftsData?.items?.length || 0,
-    shiftsToShowCount: shiftsToShow.length,
-    isLoadingAllShifts,
-    allShiftsData: allShiftsData,
-  });
 
   // Filter shifts
   const filteredShifts = shiftsToShow.filter((shift: any) => {

@@ -1,27 +1,27 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { WithdrawCashService } from './withdraw-cash.service';
-import { WithdrawCashDto } from './withdraw-cash.dto';
-import { WithdrawCashResponseDto } from './withdraw-cash.response.dto';
+import { DirectConvertService } from './direct-convert.service';
+import { DirectConvertDto } from './direct-convert.dto';
+import { DirectConvertResponseDto } from './direct-convert.response.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { UserRole } from '../../../common/enums/user.enum';
-import { ApiWithdrawCash } from './openapi.decorator';
+import { ApiDirectConvert } from './openapi.decorator';
 
 @Controller('cash-withdrawals')
-@ApiTags('CashWithdrawals')
+@ApiTags('DirectConvert')
 @UseGuards(JwtAuthGuard, RolesGuard)
-export class WithdrawCashController {
-  constructor(private readonly service: WithdrawCashService) {}
+export class DirectConvertController {
+  constructor(private readonly service: DirectConvertService) {}
 
-  @Post('withdraw')
+  @Post('direct-convert')
   @Roles(UserRole.ADMIN, UserRole.TEAMLEAD)
-  @ApiWithdrawCash()
+  @ApiDirectConvert()
   async handle(
-    @Body() dto: WithdrawCashDto,
+    @Body() dto: DirectConvertDto,
     @Request() req,
-  ): Promise<WithdrawCashResponseDto> {
+  ): Promise<DirectConvertResponseDto> {
     const userId = Number(req.user.userId || req.user.id);
     return this.service.execute(dto, userId);
   }

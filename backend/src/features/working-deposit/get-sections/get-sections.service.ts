@@ -15,6 +15,7 @@ import { SystemSetting } from '../../../entities/system-setting.entity';
 import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
+import { CashWithdrawalStatus } from '../../../common/enums/cash-withdrawal-status.enum';
 import {
   GetWorkingDepositSectionsResponseDto,
   PlatformBalanceDto,
@@ -258,7 +259,7 @@ export class GetWorkingDepositSectionsService {
 
   private async calculateDeficit(): Promise<DeficitSection> {
     const pendingWithdrawals = await this.cashWithdrawalRepository.find({
-      where: { status: 'pending' },
+      where: { status: CashWithdrawalStatus.PENDING },
       order: { createdAt: 'DESC' },
     });
 
