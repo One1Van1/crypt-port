@@ -14,57 +14,35 @@ export enum TransactionStatus {
 
 export interface Transaction {
   id: string;
-  bankAccountId: string;
   amount: number;
-  amountUSDT?: number;
-  exchangeRate?: number;
   status: TransactionStatus;
-  receipt?: string;
-  comment?: string;
-  // Source neo-bank
-  sourceDropNeoBank?: {
+  // Physical bank
+  bank: {
+    id: number;
+    name: string;
+  };
+  // User who created transaction
+  user: {
+    id: number;
+    username: string;
+    email: string;
+  };
+  // Platform
+  platform: {
+    id: number;
+    name: string;
+  };
+  // Withdrawal bank (Drop Neo Bank)
+  dropNeoBank?: {
     id: number;
     provider: string;
     accountId: string;
-    drop: {
-      id: number;
-      name: string;
-    };
   };
-  // Target bank account
-  bankAccount?: {
-    id: string;
+  // Bank account info
+  bankAccount: {
     cbu: string;
-    alias: string;
-    bank?: {
-      name: string;
-    };
-    drop?: {
-      id: number;
-      name: string;
-    };
-  };
-  // Platform
-  platform?: {
-    id: number;
-    name: string;
-    exchangeRate: number;
-  };
-  // Shift and User
-  shift?: {
-    id: string;
-    platformId: number;
-    platform?: {
-      name: string;
-    };
-  };
-  user?: {
-    id: number;
-    name: string;
-    email: string;
   };
   createdAt: string;
-  updatedAt: string;
 }
 
 export interface GetTransactionsResponse {
@@ -128,13 +106,24 @@ class TransactionsService {
   async getAll(params?: {
     page?: number;
     limit?: number;
-    operatorId?: string;
+    userId?: number;
+    platformId?: number;
+    bankId?: number;
+    dropNeoBankId?: number;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    minAmount?: number;
+    maxAmount?: number;
     status?: string;
-    type?: string;
   }): Promise<GetTransactionsResponse> {
-    console.log('🔍 transactionsService.getAll called');
-    const response = await apiClient.get<GetTransactionsResponse>('/transactions', { params });
-    console.log('📋 getAll response:', response.data);
+    // Удаляем undefined значения
+    const filteredParams = Object.fromEntries(
+      Object.entries(params || {}).filter(([_, value]) => value !== undefined)
+    );
+    const response = await apiClient.get<GetTransactionsResponse>('/transactions', { 
+      params: filteredParams 
+    });
     return response.data;
   }
 

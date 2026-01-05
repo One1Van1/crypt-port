@@ -195,6 +195,22 @@
   color: var(--text-tertiary);
 }
 
+/* Date input styling */
+.filter-input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.filter-input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0.6);
+}
+
+.filter-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.4);
+}
+
 .transactions-list {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -204,7 +220,7 @@
 }
 
 .transaction-card {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
@@ -218,16 +234,19 @@
 
 .transaction-card-header {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
   align-items: flex-start;
   margin-bottom: 1rem;
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
 }
 
-.bank-info {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
+.bank-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .bank-icon {
@@ -261,10 +280,13 @@
   gap: 0.5rem;
   font-size: 0.85rem;
   margin-top: 0.5rem;
-  padding: 0.35rem 0.75rem;
-  background: var(--bg-tertiary);
-  border-radius: 6px;
-  width: fit-content;
+}
+
+.platform-info {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
 }
 
 .operator-label {
@@ -272,7 +294,17 @@
   font-weight: 500;
 }
 
+.platform-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .operator-name {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.platform-name {
   color: var(--primary);
   font-weight: 600;
 }
@@ -293,12 +325,15 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
 }
 
 .transaction-meta-grid {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
 }

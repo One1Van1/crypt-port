@@ -3,20 +3,23 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { 
   Search, 
-  RefreshCw, 
   Building, 
   Calendar, 
   Hash,
-  Clock,
   Filter,
   X
 } from 'lucide-react';
 import { transactionsService } from '../../services/transactions.service';
 import { shiftsService } from '../../services/shifts.service';
+import { platformsService } from '../../services/platforms.service';
+import { usersService } from '../../services/users.service';
+import { banksService } from '../../services/banks.service';
+import dropNeoBanksService from '../../services/drop-neo-banks.service';
 import { useAppStore } from '../../store/appStore';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import CustomSelect from '../../components/CustomSelect/CustomSelect';
+import DatePicker from '../../components/DatePicker/DatePicker';
 import './Transactions.css';
 
 export default function Transactions() {
@@ -28,6 +31,11 @@ export default function Transactions() {
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
   const [selectedBankId, setSelectedBankId] = useState<string>('');
+  const [selectedPlatformId, setSelectedPlatformId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedDropNeoBankId, setSelectedDropNeoBankId] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
   const [minAmount, setMinAmount] = useState<string>('');
   const [maxAmount, setMaxAmount] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
@@ -43,15 +51,37 @@ export default function Transactions() {
 
   // Fetch banks for filter
   const { data: banksData } = useQuery({
-    queryKey: ['my-banks'],
-    queryFn: () => transactionsService.getMyBanks(),
+    queryKey: ['banks'],
+    queryFn: () => banksService.getAll(),
+  });
+
+  // Fetch platforms for filter
+  const { data: platformsData } = useQuery({
+    queryKey: ['platforms'],
+    queryFn: () => platformsService.getAll(),
+  });
+
+  // Fetch users for filter (only for teamlead and admin)
+  const { data: usersData } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => usersService.getAll(),
+    enabled: isTeamLeadOrAdmin,
+  });
+
+  // Fetch neo-banks for filter
+  const { data: neoBanksData } = useQuery({
+    queryKey: ['neo-banks'],
+    queryFn: () => dropNeoBanksService.getAll(),
   });
 
   const shifts = shiftsData?.items || [];
   const banks = banksData?.items || [];
+  const platforms = platformsData?.items || [];
+  const users = usersData?.items || [];
+  const neoBanks = neoBanksData?.items || [];
 
   // Fetch MY transactions
-  const { data: myTransactionsData, refetch: refetchMy } = useQuery({
+  const { data: myTransactionsData } = useQuery({
     queryKey: ['my-transactions-view', page, selectedShiftId],
     queryFn: () => transactionsService.getMyTransactions({ 
       shiftId: selectedShiftId || undefined,
@@ -60,22 +90,33 @@ export default function Transactions() {
   });
 
   // Fetch ALL transactions (для админа/тимлида)
-  const { data: allTransactionsData, refetch: refetchAll } = useQuery({
-    queryKey: ['all-transactions', page, selectedShiftId],
-    queryFn: () => transactionsService.getAll({ 
-      page, 
-      limit,
-    }),
+  const { data: allTransactionsData } = useQuery({
+    queryKey: ['all-transactions', page, selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, searchQuery, dateFrom, dateTo, minAmount, maxAmount],
+    queryFn: () => {
+      const params = {
+        page,
+        limit,
+        userId: selectedUserId ? Number(selectedUserId) : undefined,
+        platformId: selectedPlatformId ? Number(selectedPlatformId) : undefined,
+        bankId: selectedBankId ? Number(selectedBankId) : undefined,
+        dropNeoBankId: selectedDropNeoBankId ? Number(selectedDropNeoBankId) : undefined,
+        search: searchQuery || undefined,
+        startDate: dateFrom ? dateFrom.toISOString() : undefined,
+        endDate: dateTo ? dateTo.toISOString() : undefined,
+        minAmount: minAmount ? parseFloat(minAmount) : undefined,
+        maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
+      };
+      return transactionsService.getAll(params);
+    },
     enabled: isTeamLeadOrAdmin && viewMode === 'all',
   });
 
   const data = viewMode === 'my' ? myTransactionsData : allTransactionsData;
-  const refetch = viewMode === 'my' ? refetchMy : refetchAll;
 
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedShiftId, selectedBankId, minAmount, maxAmount, searchQuery]);
+  }, [selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, dateFrom, dateTo, minAmount, maxAmount, searchQuery]);
 
   const transactions = data?.items || [];
   const total = data?.total || 0;
@@ -96,52 +137,30 @@ export default function Transactions() {
     return `ARS ${value.toLocaleString('es-AR')}`;
   };
 
-  // Filter transactions by search and filters
-  const filteredTransactions = transactions.filter((transaction) => {
-    // Search filter
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      const bankName = (transaction.bankName || transaction.bankAccount?.bank?.name || '').toLowerCase();
-      const cbu = transaction.bankAccountCbu || transaction.bankAccount?.cbu || '';
-      const alias = transaction.bankAccount?.alias?.toLowerCase() || '';
-      
-      if (!bankName.includes(searchLower) && 
-          !cbu.includes(searchLower) && 
-          !alias.includes(searchLower)) {
-        return false;
-      }
-    }
-
-    // Bank filter
-    if (selectedBankId) {
-      const bankName = transaction.bankName || transaction.bankAccount?.bank?.name || '';
-      const selectedBank = banks.find(b => b.id === selectedBankId);
-      
-      if (!selectedBank || !bankName || bankName !== selectedBank.name) {
-        return false;
-      }
-    }
-
-    // Amount filter
-    if (minAmount && transaction.amount < parseFloat(minAmount)) {
-      return false;
-    }
-    if (maxAmount && transaction.amount > parseFloat(maxAmount)) {
-      return false;
-    }
-
-    return true;
-  });
-
   const clearFilters = () => {
     setSelectedShiftId('');
     setSelectedBankId('');
+    setSelectedPlatformId('');
+    setSelectedUserId('');
+    setSelectedDropNeoBankId('');
+    setDateFrom(null);
+    setDateTo(null);
     setMinAmount('');
     setMaxAmount('');
     setSearchQuery('');
   };
 
-  const hasActiveFilters = selectedShiftId || selectedBankId || minAmount || maxAmount || searchQuery;
+  const hasActiveFilters = 
+    selectedShiftId || 
+    selectedBankId || 
+    selectedPlatformId || 
+    selectedUserId || 
+    selectedDropNeoBankId || 
+    dateFrom || 
+    dateTo || 
+    minAmount || 
+    maxAmount || 
+    searchQuery;
 
   return (
     <div className="transactions-page">
@@ -188,7 +207,16 @@ export default function Transactions() {
           <Filter size={18} />
           Фильтры
           {hasActiveFilters && <span className="filter-badge">{[
-            selectedShiftId, selectedBankId, minAmount, maxAmount, searchQuery
+            selectedShiftId, 
+            selectedBankId, 
+            selectedPlatformId, 
+            selectedUserId, 
+            selectedDropNeoBankId, 
+            dateFrom, 
+            dateTo, 
+            minAmount, 
+            maxAmount, 
+            searchQuery
           ].filter(Boolean).length}</span>}
         </button>
 
@@ -202,13 +230,29 @@ export default function Transactions() {
         <div className="transactions-stats">
           <span className="stat-item">
             <Hash size={16} />
-            {t('transactions.totalOperations')}: <strong>{filteredTransactions.length}</strong>
+            {t('transactions.totalOperations')}: <strong>{total}</strong>
           </span>
         </div>
       </div>
 
       {showFilters && (
         <div className="filters-panel">
+          <div className="filter-group">
+            <label>Площадка</label>
+            <CustomSelect
+              value={selectedPlatformId}
+              onChange={setSelectedPlatformId}
+              options={[
+                { value: '', label: 'Все площадки' },
+                ...platforms.map((platform) => ({
+                  value: String(platform.id),
+                  label: platform.name
+                }))
+              ]}
+              placeholder="Все площадки"
+            />
+          </div>
+
           <div className="filter-group">
             <label>Смена</label>
             <CustomSelect
@@ -225,8 +269,26 @@ export default function Transactions() {
             />
           </div>
 
+          {viewMode === 'all' && isTeamLeadOrAdmin && (
+            <div className="filter-group">
+              <label>Сотрудник</label>
+              <CustomSelect
+                value={selectedUserId}
+                onChange={setSelectedUserId}
+                options={[
+                  { value: '', label: 'Все сотрудники' },
+                  ...users.map((user) => ({
+                    value: String(user.id),
+                    label: `${user.username} (${user.email})`
+                  }))
+                ]}
+                placeholder="Все сотрудники"
+              />
+            </div>
+          )}
+
           <div className="filter-group">
-            <label>Банк</label>
+            <label>Физ. банк</label>
             <CustomSelect
               value={selectedBankId}
               onChange={setSelectedBankId}
@@ -238,6 +300,42 @@ export default function Transactions() {
                 }))
               ]}
               placeholder="Все банки"
+            />
+          </div>
+
+          <div className="filter-group">
+            <label>Банк вывода</label>
+            <CustomSelect
+              value={selectedDropNeoBankId}
+              onChange={setSelectedDropNeoBankId}
+              options={[
+                { value: '', label: 'Все банки вывода' },
+                ...neoBanks.map((neoBank) => ({
+                  value: String(neoBank.id),
+                  label: `${neoBank.provider} - ${neoBank.accountId}`
+                }))
+              ]}
+              placeholder="Все банки вывода"
+            />
+          </div>
+
+          <div className="filter-group">
+            <label>Дата от</label>
+            <DatePicker
+              selected={dateFrom}
+              onChange={setDateFrom}
+              placeholder="Выберите дату"
+              maxDate={dateTo || undefined}
+            />
+          </div>
+
+          <div className="filter-group">
+            <label>Дата до</label>
+            <DatePicker
+              selected={dateTo}
+              onChange={setDateTo}
+              placeholder="Выберите дату"
+              minDate={dateFrom || undefined}
             />
           </div>
 
@@ -265,7 +363,7 @@ export default function Transactions() {
         </div>
       )}
 
-      {filteredTransactions.length === 0 ? (
+      {transactions.length === 0 ? (
         <div className="empty-state">
           <Building size={48} />
           <p>{t('transactions.noTransactions')}</p>
@@ -296,36 +394,38 @@ export default function Transactions() {
           )}
 
           <div className="transactions-list">
-            {filteredTransactions.map((transaction) => (
+            {transactions.map((transaction) => (
               <div key={transaction.id} className="transaction-card">
                 <div className="transaction-card-header">
-                  <div className="bank-info">
-                    <div className="bank-icon">
-                      <Building size={20} />
-                    </div>
-                    <div>
-                      <h3 className="bank-name">
-                        {transaction.bankName || transaction.bankAccount?.bank?.name || t('common.unknownBank')}
-                      </h3>
-                      <div className="bank-details">
-                        <span>CBU: ...{(transaction.bankAccountCbu || transaction.bankAccount?.cbu || '').slice(-4)}</span>
-                      </div>
-                      {/* Показываем оператора только во вкладке "Операции операторов" */}
-                      {viewMode === 'all' && transaction.operatorUsername && (
-                        <div className="operator-info">
-                          <span className="operator-label">{t('transactions.operator')}:</span>
-                          <span className="operator-name">
-                            {transaction.operatorUsername}
-                            {transaction.operatorEmail && (
-                              <span className="operator-email"> ({transaction.operatorEmail})</span>
-                            )}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="bank-icon">
+                    <Building size={20} />
                   </div>
-                  <div className="transaction-amount">
-                    {formatCurrency(transaction.amount)}
+                  <div className="bank-content">
+                    <h3 className="bank-name">
+                      Физ. банк: {transaction.bank?.name || t('common.unknownBank')}
+                    </h3>
+                    <div className="bank-details">
+                      <span>CBU: ...{(transaction.bankAccount?.cbu || '').slice(-4)}</span>
+                    </div>
+                    {transaction.dropNeoBank && (
+                      <div className="bank-details">
+                        <span>Банк вывода: {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}</span>
+                      </div>
+                    )}
+                    {transaction.user && (
+                      <div className="operator-info">
+                        <span className="operator-label">Сотрудник:</span>
+                        <span className="operator-name">
+                          {transaction.user.username}
+                        </span>
+                      </div>
+                    )}
+                    {transaction.platform && (
+                      <div className="platform-info">
+                        <span className="platform-label">Площадка:</span>
+                        <span className="platform-name"> {transaction.platform.name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -335,22 +435,10 @@ export default function Transactions() {
                       <Calendar size={14} />
                       <span>{formatTime(transaction.createdAt)}</span>
                     </div>
-                    {transaction.shift?.platform && (
-                      <div className="meta-item">
-                        <Clock size={14} />
-                        <span>
-                          Смена: {transaction.shift.platform.name}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {transaction.comment && (
-                    <div className="transaction-comment">
-                      <span className="comment-label">Комментарий:</span>
-                      <span>{transaction.comment}</span>
+                    <div className="transaction-amount">
+                      {formatCurrency(transaction.amount)}
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}

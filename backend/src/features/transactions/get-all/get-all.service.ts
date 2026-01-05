@@ -20,26 +20,48 @@ export class GetAllTransactionsService {
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
-      .leftJoinAndSelect('transaction.user', 'user');
+      .leftJoinAndSelect('transaction.user', 'user')
+      .leftJoinAndSelect('transaction.sourceDropNeoBank', 'sourceDropNeoBank');
 
     // Фильтр по статусу
     if (query.status) {
       queryBuilder.andWhere('transaction.status = :status', { status: query.status });
     }
 
-    // Фильтр по пользователю
+    // Фильтр по пользователю (оператору)
     if (query.userId) {
-      queryBuilder.andWhere('transaction.userId = :userId', { userId: query.userId });
+      queryBuilder.andWhere('user.id = :userId', { userId: query.userId });
     }
 
     // Фильтр по платформе
     if (query.platformId) {
-      queryBuilder.andWhere('transaction.platformId = :platformId', { platformId: query.platformId });
+      queryBuilder.andWhere('platform.id = :platformId', { platformId: query.platformId });
     }
 
-    // Фильтр по смене
-    if (query.shiftId) {
-      queryBuilder.andWhere('transaction.shiftId = :shiftId', { shiftId: query.shiftId });
+    // Фильтр по банку
+    if (query.bankId) {
+      queryBuilder.andWhere('bank.id = :bankId', { bankId: query.bankId });
+    }
+
+    // Фильтр по банку вывода
+    if (query.dropNeoBankId) {
+      queryBuilder.andWhere('sourceDropNeoBank.id = :dropNeoBankId', { dropNeoBankId: query.dropNeoBankId });
+    }
+
+    // Поиск
+    if (query.search) {
+      queryBuilder.andWhere(
+        '(LOWER(bank.name) LIKE LOWER(:search) OR LOWER(bankAccount.cbu) LIKE LOWER(:search) OR LOWER(drop.name) LIKE LOWER(:search))',
+        { search: `%${query.search}%` }
+      );
+    }
+
+    // Фильтр по сумме
+    if (query.minAmount !== undefined) {
+      queryBuilder.andWhere('transaction.amount >= :minAmount', { minAmount: query.minAmount });
+    }
+    if (query.maxAmount !== undefined) {
+      queryBuilder.andWhere('transaction.amount <= :maxAmount', { maxAmount: query.maxAmount });
     }
 
     // Фильтр по дате

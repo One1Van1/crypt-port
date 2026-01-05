@@ -1,4 +1,4 @@
-import { IsOptional, IsNumber, IsEnum, IsUUID, IsDateString, Min, Max } from 'class-validator';
+import { IsOptional, IsNumber, IsEnum, IsString, IsDateString, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
@@ -41,31 +41,73 @@ export class GetAllTransactionsQueryDto {
   status?: TransactionStatus;
 
   @ApiProperty({
-    description: 'Filter by user ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Filter by user ID (operator)',
+    example: 12,
     required: false,
   })
   @IsOptional()
-  @IsUUID()
-  userId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  userId?: number;
 
   @ApiProperty({
     description: 'Filter by platform ID',
-    example: '550e8400-e29b-41d4-a716-446655440001',
+    example: 1,
     required: false,
   })
   @IsOptional()
-  @IsUUID()
-  platformId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  platformId?: number;
 
   @ApiProperty({
-    description: 'Filter by shift ID',
-    example: '550e8400-e29b-41d4-a716-446655440002',
+    description: 'Filter by bank ID',
+    example: 1,
     required: false,
   })
   @IsOptional()
-  @IsUUID()
-  shiftId?: string;
+  @Type(() => Number)
+  @IsNumber()
+  bankId?: number;
+
+  @ApiProperty({
+    description: 'Filter by drop neo bank ID',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  dropNeoBankId?: number;
+
+  @ApiProperty({
+    description: 'Search by bank name, CBU, or drop name',
+    example: 'Santander',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiProperty({
+    description: 'Minimum transaction amount',
+    example: 1000,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  minAmount?: number;
+
+  @ApiProperty({
+    description: 'Maximum transaction amount',
+    example: 100000,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  maxAmount?: number;
 
   @ApiProperty({
     description: 'Filter by start date (from)',

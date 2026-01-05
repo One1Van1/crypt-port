@@ -50,11 +50,10 @@ export default function Operators() {
     queryFn: async () => {
       const response = await usersService.getAll({ 
         search: searchQuery,
-        role: UserRole.OPERATOR,
         limit: 100 
       });
       
-      // Fetch bank accounts for each operator
+      // Fetch bank accounts for each user
       const operators: Operator[] = await Promise.all(
         response.items.map(async (user) => {
           try {
@@ -204,12 +203,11 @@ export default function Operators() {
                 </div>
                 <div className="operator-details">
                   <h3 className="operator-name">{operator.username}</h3>
-                  {operator.telegram && (
-                    <span className="operator-telegram">
-                      <Send size={12} />
-                      {operator.telegram}
+                  <div className="operator-meta">
+                    <span className={`role-badge role-${operator.role}`}>
+                      {t(`users.roles.${operator.role}`)}
                     </span>
-                  )}
+                  </div>
                 </div>
               </div>
               <span className={`status-badge ${getStatusBadgeClass(operator.status)}`}>
@@ -226,6 +224,12 @@ export default function Operators() {
                 <div className="contact-item">
                   <Phone size={14} />
                   <span>{operator.phone}</span>
+                </div>
+              )}
+              {operator.telegram && (
+                <div className="contact-item">
+                  <Send size={14} />
+                  <span>{operator.telegram}</span>
                 </div>
               )}
             </div>
@@ -261,7 +265,6 @@ export default function Operators() {
                             <div className="bank-meta">
                               <span>CBU: {account.cbu.slice(0, 6)}...{account.cbu.slice(-4)}</span>
                               <span>Alias: {account.alias}</span>
-                              <span>Type: {account.accountType}</span>
                               <span>Priority: {account.priority}</span>
                             </div>
                           </div>
