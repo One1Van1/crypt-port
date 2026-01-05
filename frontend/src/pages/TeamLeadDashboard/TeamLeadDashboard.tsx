@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, TrendingUp, DollarSign, ArrowRightLeft, Award } from 'lucide-react';
+import { TrendingUp, DollarSign, ArrowRightLeft, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
-import { usersService } from '../../services/users.service';
-import { shiftsService } from '../../services/shifts.service';
 import { bankAccountsService } from '../../services/bank-accounts.service';
 import { cashWithdrawalsService, CashWithdrawal } from '../../services/cash-withdrawals.service';
 import './TeamLeadDashboard.css';
@@ -13,7 +11,7 @@ import './TeamLeadDashboard.css';
 export default function TeamLeadDashboard() {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
-  const [activeTab, setActiveTab] = useState<'requisites' | 'operators' | 'withdrawals' | 'conversions'>('requisites');
+  const [activeTab, setActiveTab] = useState<'requisites' | 'withdrawals' | 'conversions'>('requisites');
 
   // Проверка доступа - переместили ПОСЛЕ всех хуков
   useEffect(() => {
@@ -50,13 +48,6 @@ export default function TeamLeadDashboard() {
           <span>{t('teamlead.requisites')}</span>
         </button>
         <button
-          className={`teamlead-tab ${activeTab === 'operators' ? 'active' : ''}`}
-          onClick={() => setActiveTab('operators')}
-        >
-          <Users size={20} />
-          <span>{t('teamlead.operators')}</span>
-        </button>
-        <button
           className={`teamlead-tab ${activeTab === 'withdrawals' ? 'active' : ''}`}
           onClick={() => setActiveTab('withdrawals')}
         >
@@ -74,7 +65,6 @@ export default function TeamLeadDashboard() {
 
       <div className="teamlead-content">
         {activeTab === 'requisites' && <RequisitesSection />}
-        {activeTab === 'operators' && <OperatorsSection />}
         {activeTab === 'withdrawals' && <WithdrawalsSection />}
         {activeTab === 'conversions' && <ConversionsSection />}
       </div>
@@ -287,119 +277,6 @@ function RequisitesSection() {
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-  );
-}
-// Секция контроля операторов
-function OperatorsSection() {
-  const { t } = useTranslation();
-  const [operators, setOperators] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [usersData, shiftsData] = await Promise.all([
-        usersService.getAll({ role: 'operator', limit: 100 }),
-        shiftsService.getAll({ status: 'active', limit: 100 }),
-      ]);
-      
-      setOperators(usersData.items || []);
-      setShifts(shiftsData.items || []);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDuration = (minutes?: number) => {
-    if (!minutes) return '-';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
-  const getCurrentShift = (operatorId: string) => {
-    return shifts.find(shift => shift.operator?.id === parseInt(operatorId));
-  };
-
-  if (loading) {
-    return (
-      <div className="section operators-section">
-        <div className="section-header">
-          <h2>{t('teamlead.operatorsTitle')}</h2>
-          <p className="section-description">{t('teamlead.operatorsDescription')}</p>
-        </div>
-        <div className="section-content">
-          <p className="placeholder">{t('common.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="section operators-section">
-      <div className="section-header">
-        <h2>{t('teamlead.operatorsTitle')}</h2>
-        <p className="section-description">{t('teamlead.operatorsDescription')}</p>
-      </div>
-      <div className="section-content">
-        <div className="operators-grid">
-          {operators.map((operator) => {
-            const currentShift = getCurrentShift(operator.id);
-            const isWorking = !!currentShift;
-            
-            return (
-              <div key={operator.id} className={`operator-card ${isWorking ? 'working' : ''}`}>
-                <div className="operator-header">
-                  <div className="operator-info">
-                    <h3>{operator.username}</h3>
-                    <p className="operator-email">{operator.email}</p>
-                  </div>
-                  <div className={`operator-status ${isWorking ? 'active' : 'inactive'}`}>
-                    {isWorking ? t('teamlead.working') : t('teamlead.offline')}
-                  </div>
-                </div>
-                
-                {isWorking && currentShift ? (
-                  <div className="shift-info">
-                    <div className="shift-detail">
-                      <span className="shift-label">{t('teamlead.platform')}:</span>
-                      <span className="shift-value">{currentShift.platformName}</span>
-                    </div>
-                    <div className="shift-detail">
-                      <span className="shift-label">{t('teamlead.duration')}:</span>
-                      <span className="shift-value">{formatDuration(currentShift.currentDuration)}</span>
-                    </div>
-                    <div className="shift-detail">
-                      <span className="shift-label">{t('teamlead.operations')}:</span>
-                      <span className="shift-value">{currentShift.operationsCount}</span>
-                    </div>
-                    <div className="shift-detail">
-                      <span className="shift-label">{t('teamlead.totalAmount')}:</span>
-                      <span className="shift-value">${currentShift.totalAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="no-shift">
-                    <p>{t('teamlead.noActiveShift')}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        
-        {operators.length === 0 && (
-          <p className="placeholder">{t('teamlead.noOperators')}</p>
-        )}
       </div>
     </div>
   );
