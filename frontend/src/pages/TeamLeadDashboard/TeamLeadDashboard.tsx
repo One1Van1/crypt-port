@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Users, TrendingUp, Clock, Award } from 'lucide-react';
+import { Users, TrendingUp, DollarSign, ArrowRightLeft, Award } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import { usersService } from '../../services/users.service';
 import { shiftsService } from '../../services/shifts.service';
 import { bankAccountsService } from '../../services/bank-accounts.service';
-import { analyticsService } from '../../services/analytics.service';
+import { cashWithdrawalsService, CashWithdrawal } from '../../services/cash-withdrawals.service';
 import './TeamLeadDashboard.css';
 
 export default function TeamLeadDashboard() {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
-  const [activeTab, setActiveTab] = useState<'requisites' | 'operators' | 'analytics'>('requisites');
+  const [activeTab, setActiveTab] = useState<'requisites' | 'operators' | 'withdrawals' | 'conversions'>('requisites');
 
   // Проверка доступа
   if (user?.role !== UserRole.TEAMLEAD && user?.role !== UserRole.ADMIN) {
@@ -52,18 +53,26 @@ export default function TeamLeadDashboard() {
           <span>{t('teamlead.operators')}</span>
         </button>
         <button
-          className={`teamlead-tab ${activeTab === 'analytics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('analytics')}
+          className={`teamlead-tab ${activeTab === 'withdrawals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('withdrawals')}
         >
-          <Clock size={20} />
-          <span>{t('teamlead.analytics')}</span>
+          <DollarSign size={20} />
+          <span>{t('teamlead.withdrawals')}</span>
+        </button>
+        <button
+          className={`teamlead-tab ${activeTab === 'conversions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('conversions')}
+        >
+          <ArrowRightLeft size={20} />
+          <span>{t('teamlead.conversions')}</span>
         </button>
       </div>
 
       <div className="teamlead-content">
         {activeTab === 'requisites' && <RequisitesSection />}
         {activeTab === 'operators' && <OperatorsSection />}
-        {activeTab === 'analytics' && <AnalyticsSection />}
+        {activeTab === 'withdrawals' && <WithdrawalsSection />}
+        {activeTab === 'conversions' && <ConversionsSection />}
       </div>
     </div>
   );
@@ -394,42 +403,139 @@ function OperatorsSection() {
   );
 }
 
-// Секция аналитики
-function AnalyticsSection() {
+// Секция обналички песо
+function WithdrawalsSection() {
   const { t } = useTranslation();
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('week');
+  const [withdrawals, setWithdrawals] = useState<CashWithdrawal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [selectedBankAccount, setSelectedBankAccount] = useState<any | null>(null);
+  const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
+  const [banks, setBanks] = useState<any[]>([]);
+  
+  const [formData, setFormData] = useState({
+    amountPesos: '',
+    comment: '',
+  });
 
   useEffect(() => {
-    loadAnalytics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadData();
   }, []);
 
-  const loadAnalytics = async () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const data = await analyticsService.getOperators();
-      setAnalytics(data);
+      const [accountsData, withdrawalsData] = await Promise.all([
+        bankAccountsService.getAll(),
+        cashWithdrawalsService.getAll(),
+      ]);
+      const accounts = accountsData.items || [];
+      
+      console.log('Loaded accounts:', accounts);
+      if (accounts.length > 0) {
+        console.log('First account structure:', accounts[0]);
+        console.log('First account keys:', Object.keys(accounts[0]));
+      }
+      
+      setBankAccounts(accounts);
+      setWithdrawals(withdrawalsData);
+      
+      // Получаем уникальные банки по bankName (используем alias для определения банка)
+      const banksMap = new Map();
+      accounts.forEach((acc: any) => {
+        if (acc.bankName) {
+          // Создаем уникальный ID на основе имени банка
+          const bankId = acc.bankName;
+          if (!banksMap.has(bankId)) {
+            banksMap.set(bankId, {
+              id: bankId,
+              name: acc.bankName
+            });
+          }
+        }
+      });
+      
+      const uniqueBanks = Array.from(banksMap.values());
+      
+      console.log('Unique banks:', uniqueBanks);
+      
+      setBanks(uniqueBanks);
+      
+      // Выбираем первый банк по умолчанию
+      if (uniqueBanks.length > 0) {
+        console.log('Setting default bank:', uniqueBanks[0]);
+        setSelectedBankId(uniqueBanks[0].id);
+      }
     } catch (error) {
-      console.error('Failed to load analytics:', error);
+      console.error('Failed to load data:', error);
+      setBankAccounts([]);
+      setWithdrawals([]);
+      setBanks([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
+  const openWithdrawModal = (account: any) => {
+    setSelectedBankAccount(account);
+    setFormData({ amountPesos: '', comment: '' });
+    setIsModalOpen(true);
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedBankAccount || !formData.amountPesos) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+
+    try {
+      await cashWithdrawalsService.withdraw({
+        bankAccountId: selectedBankAccount.id,
+        amountPesos: parseFloat(formData.amountPesos),
+        comment: formData.comment,
+      });
+      
+      toast.success(t('teamlead.withdrawalCreated'));
+      setIsModalOpen(false);
+      setSelectedBankAccount(null);
+      setFormData({ amountPesos: '', comment: '' });
+      loadData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || t('teamlead.withdrawalError'));
+    }
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const getWithdrawalsForAccount = (accountId: number) => {
+    return withdrawals.filter(w => w.bankAccountId === accountId);
+  };
+
+  const getStatusBadge = (status: string) => {
+    return status === 'converted' ? 'status-success' : 'status-pending';
+  };
+
+  const filteredAccounts = selectedBankId 
+    ? bankAccounts.filter(acc => acc.bankName === selectedBankId)
+    : [];
 
   if (loading) {
     return (
-      <div className="section analytics-section">
+      <div className="section withdrawals-section">
         <div className="section-header">
-          <h2>{t('teamlead.analyticsTitle')}</h2>
-          <p className="section-description">{t('teamlead.analyticsDescription')}</p>
+          <h2>{t('teamlead.withdrawalsTitle')}</h2>
+          <p className="section-description">{t('teamlead.withdrawalsDescription')}</p>
         </div>
         <div className="section-content">
           <p className="placeholder">{t('common.loading')}</p>
@@ -439,67 +545,254 @@ function AnalyticsSection() {
   }
 
   return (
-    <div className="section analytics-section">
+    <div className="section withdrawals-section">
       <div className="section-header">
-        <div>
-          <h2>{t('teamlead.analyticsTitle')}</h2>
-          <p className="section-description">{t('teamlead.analyticsDescription')}</p>
-        </div>
-        <div className="period-selector">
-          <button
-            className={`period-btn ${period === 'today' ? 'active' : ''}`}
-            onClick={() => setPeriod('today')}
-          >
-            {t('teamlead.today')}
-          </button>
-          <button
-            className={`period-btn ${period === 'week' ? 'active' : ''}`}
-            onClick={() => setPeriod('week')}
-          >
-            {t('teamlead.week')}
-          </button>
-          <button
-            className={`period-btn ${period === 'month' ? 'active' : ''}`}
-            onClick={() => setPeriod('month')}
-          >
-            {t('teamlead.month')}
-          </button>
-        </div>
+        <h2>{t('teamlead.withdrawalsTitle')}</h2>
+        <p className="section-description">{t('teamlead.withdrawalsDescription')}</p>
       </div>
+
+      {/* Bank Selector */}
+      <div className="bank-selector">
+        {banks.length > 0 ? (
+          banks.map((bank) => (
+            <button
+              key={bank.id}
+              className={`bank-selector-btn ${selectedBankId === bank.id ? 'active' : ''}`}
+              onClick={() => setSelectedBankId(bank.id)}
+            >
+              🏦 {bank.name}
+            </button>
+          ))
+        ) : (
+          <p className="placeholder">{t('common.loading')}</p>
+        )}
+      </div>
+      
       <div className="section-content">
-        {analytics?.operators && analytics.operators.length > 0 ? (
-          <div className="analytics-table">
+        {filteredAccounts.length > 0 ? (
+          <div className="bank-accounts-grid">
+            {filteredAccounts.map((account) => {
+              const accountWithdrawals = getWithdrawalsForAccount(account.id);
+              const availableBalance = account.withdrawnAmount || 0;
+              
+              return (
+                <div key={account.id} className="bank-account-card">
+                  <div className="bank-account-header">
+                    <div className="bank-account-info">
+                      <h3>💳 {account.alias || `Счет #${account.id}`}</h3>
+                      <p className="bank-account-details">
+                        <span>CBU: {account.cbu}</span>
+                      </p>
+                      <p className="bank-account-balance">
+                        {t('teamlead.availableForWithdrawal')}: <strong>${availableBalance.toLocaleString()} ARS</strong>
+                      </p>
+                    </div>
+                    <button 
+                      className="btn btn-primary btn-withdraw"
+                      onClick={() => openWithdrawModal(account)}
+                      disabled={availableBalance <= 0}
+                    >
+                      <DollarSign size={18} />
+                      {t('teamlead.withdraw')}
+                    </button>
+                  </div>
+
+                  <div className="bank-account-history">
+                    <h4>{t('teamlead.withdrawalHistory')}</h4>
+                    {accountWithdrawals.length > 0 ? (
+                      <div className="withdrawal-history-list">
+                        {accountWithdrawals.map((withdrawal) => (
+                          <div key={withdrawal.id} className="withdrawal-history-item">
+                            <div className="withdrawal-info">
+                              <span className="withdrawal-date">{formatDate(withdrawal.createdAt)}</span>
+                              <span className="withdrawal-user">
+                                {withdrawal.withdrawnByUser?.username || `User #${withdrawal.withdrawnByUserId}`}
+                              </span>
+                              <span className="withdrawal-amount">${withdrawal.amountPesos.toLocaleString()}</span>
+                              <span className="withdrawal-rate">@ {withdrawal.withdrawalRate.toFixed(2)}</span>
+                              <span className={`status-badge ${getStatusBadge(withdrawal.status)}`}>
+                                {withdrawal.status === 'converted' ? t('teamlead.converted') : t('teamlead.pending')}
+                              </span>
+                            </div>
+                            {withdrawal.comment && (
+                              <p className="withdrawal-comment">{withdrawal.comment}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="history-empty">{t('teamlead.historyEmpty')}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="placeholder">
+            {selectedBankId ? t('teamlead.noAccountsForBank') : t('teamlead.selectBank')}
+          </p>
+        )}
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && selectedBankAccount && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('teamlead.withdrawFrom')} {selectedBankAccount.bank?.name}</h2>
+              <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+
+            <div className="bank-info">
+              <p><strong>{t('teamlead.dropAccount')}:</strong> {selectedBankAccount.alias || `#${selectedBankAccount.id}`}</p>
+              <p><strong>CBU:</strong> {selectedBankAccount.cbu}</p>
+              <p><strong>{t('teamlead.availableForWithdrawal')}:</strong> ${(selectedBankAccount.withdrawnAmount || 0).toLocaleString()} ARS</p>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>{t('teamlead.amountPesos')} *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.amountPesos}
+                  onChange={(e) => setFormData({ ...formData, amountPesos: e.target.value })}
+                  placeholder="100000.00"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.comment')}</label>
+                <textarea
+                  value={formData.comment}
+                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                  placeholder={t('teamlead.commentPlaceholder')}
+                  rows={3}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {t('teamlead.withdraw')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Секция конвертации в USDT
+function ConversionsSection() {
+  const { t } = useTranslation();
+  const [withdrawals, setWithdrawals] = useState<CashWithdrawal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<CashWithdrawal | null>(null);
+  const [exchangeRate, setExchangeRate] = useState('');
+
+  useEffect(() => {
+    loadWithdrawals();
+  }, []);
+
+  const loadWithdrawals = async () => {
+    setLoading(true);
+    try {
+      const data = await cashWithdrawalsService.getAll();
+      setWithdrawals(data);
+    } catch (error) {
+      console.error('Failed to load withdrawals:', error);
+      setWithdrawals([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConvert = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedWithdrawal || !exchangeRate) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+
+    try {
+      await cashWithdrawalsService.convertToUsdt(selectedWithdrawal.id, {
+        exchangeRate: parseFloat(exchangeRate),
+      });
+      
+      toast.success(t('teamlead.conversionCreated'));
+      setIsModalOpen(false);
+      setSelectedWithdrawal(null);
+      setExchangeRate('');
+      loadWithdrawals();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || t('teamlead.conversionError'));
+    }
+  };
+
+  const openConvertModal = (withdrawal: CashWithdrawal) => {
+    setSelectedWithdrawal(withdrawal);
+    setExchangeRate(withdrawal.withdrawalRate.toString());
+    setIsModalOpen(true);
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString('ru-RU');
+  };
+
+  const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending');
+
+  return (
+    <div className="section conversions-section">
+      <div className="section-header">
+        <h2>{t('teamlead.conversionsTitle')}</h2>
+        <p className="section-description">{t('teamlead.conversionsDescription')}</p>
+      </div>
+      
+      <div className="section-content">
+        {loading ? (
+          <p className="placeholder">{t('common.loading')}</p>
+        ) : pendingWithdrawals.length > 0 ? (
+          <div className="conversions-table">
             <table>
               <thead>
                 <tr>
-                  <th>{t('teamlead.operator')}</th>
-                  <th>{t('teamlead.shifts')}</th>
-                  <th>{t('teamlead.totalHours')}</th>
-                  <th>{t('teamlead.transactions')}</th>
-                  <th>{t('teamlead.totalAmount')}</th>
-                  <th>{t('teamlead.successRate')}</th>
-                  <th>{t('teamlead.avgPerHour')}</th>
+                  <th>{t('teamlead.date')}</th>
+                  <th>{t('teamlead.bankAccount')}</th>
+                  <th>{t('teamlead.amountPesos')}</th>
+                  <th>{t('teamlead.suggestedRate')}</th>
+                  <th>{t('teamlead.expectedUsdt')}</th>
+                  <th>{t('teamlead.actions')}</th>
                 </tr>
               </thead>
               <tbody>
-                {analytics.operators.map((op: any) => {
-                  const avgPerHour = op.totalDuration > 0 
-                    ? (op.completedAmount / (op.totalDuration / 60)).toFixed(2)
-                    : '0.00';
-                  
+                {pendingWithdrawals.map((withdrawal) => {
+                  const expectedUsdt = withdrawal.amountPesos / withdrawal.withdrawalRate;
                   return (
-                    <tr key={op.operatorId}>
-                      <td className="operator-name">{op.operatorUsername}</td>
-                      <td>{op.totalShifts}</td>
-                      <td>{formatDuration(op.totalDuration)}</td>
-                      <td>{op.completedTransactions} / {op.totalTransactions}</td>
-                      <td className="amount-cell">${op.completedAmount.toFixed(2)}</td>
+                    <tr key={withdrawal.id}>
+                      <td>{formatDate(withdrawal.createdAt)}</td>
+                      <td>#{withdrawal.bankAccountId}</td>
+                      <td className="amount-cell">${withdrawal.amountPesos.toLocaleString()}</td>
+                      <td>{withdrawal.withdrawalRate.toFixed(2)}</td>
+                      <td className="amount-cell">{expectedUsdt.toFixed(2)} USDT</td>
                       <td>
-                        <span className={`success-rate ${op.successRate >= 90 ? 'high' : op.successRate >= 70 ? 'medium' : 'low'}`}>
-                          {op.successRate.toFixed(1)}%
-                        </span>
+                        <button 
+                          className="btn btn-sm btn-primary"
+                          onClick={() => openConvertModal(withdrawal)}
+                        >
+                          <ArrowRightLeft size={16} />
+                          {t('teamlead.convert')}
+                        </button>
                       </td>
-                      <td className="amount-cell">${avgPerHour}</td>
                     </tr>
                   );
                 })}
@@ -507,9 +800,55 @@ function AnalyticsSection() {
             </table>
           </div>
         ) : (
-          <p className="placeholder">{t('teamlead.noAnalytics')}</p>
+          <p className="placeholder">{t('teamlead.noPendingWithdrawals')}</p>
         )}
       </div>
+
+      {/* Modal */}
+      {isModalOpen && selectedWithdrawal && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('teamlead.convertToUsdt')}</h2>
+              <button className="modal-close" onClick={() => setIsModalOpen(false)}>×</button>
+            </div>
+
+            <div className="conversion-info">
+              <p><strong>{t('teamlead.amountPesos')}:</strong> ${selectedWithdrawal.amountPesos.toLocaleString()}</p>
+              <p><strong>{t('teamlead.suggestedRate')}:</strong> {selectedWithdrawal.withdrawalRate.toFixed(2)}</p>
+            </div>
+
+            <form onSubmit={handleConvert}>
+              <div className="form-group">
+                <label>{t('teamlead.exchangeRate')} *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={exchangeRate}
+                  onChange={(e) => setExchangeRate(e.target.value)}
+                  placeholder="1050.00"
+                  required
+                  autoFocus
+                />
+                {exchangeRate && (
+                  <p className="helper-text">
+                    {t('teamlead.willReceive')}: <strong>{(selectedWithdrawal.amountPesos / parseFloat(exchangeRate)).toFixed(2)} USDT</strong>
+                  </p>
+                )}
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  {t('teamlead.convert')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -499,6 +499,241 @@
   color: #ef4444;
 }
 
+/* Withdrawals & Conversions Sections */
+.withdrawals-section,
+.conversions-section {
+  margin-top: 1rem;
+}
+
+/* Bank Selector */
+.bank-selector {
+  display: flex;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1rem 2rem;
+  flex-wrap: wrap;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.bank-selector-btn {
+  padding: 0.875rem 1.75rem;
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.bank-selector-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.bank-selector-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+/* Bank Accounts Grid */
+.bank-accounts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.bank-account-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.bank-account-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bank-account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bank-account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bank-account-info h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.bank-account-details {
+  margin: 0.25rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.bank-account-balance {
+  margin: 0.75rem 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.bank-account-balance strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.btn-withdraw {
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+/* Withdrawal History */
+.bank-account-history h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.withdrawal-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.withdrawal-history-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.withdrawal-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+}
+
+.withdrawal-date {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.withdrawal-user {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.withdrawal-amount {
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.withdrawal-rate {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.withdrawal-comment {
+  margin: 0.5rem 0 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.history-empty {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.bank-info {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.bank-info p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.withdrawals-table,
+.conversions-table {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.conversion-info {
+  background: var(--bg-secondary);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.conversion-info p {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.helper-text {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.modal-small {
+  max-width: 500px;
+}
+
+/* Status badges */
+.status-pending {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.status-success {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .teamlead-dashboard {
