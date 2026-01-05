@@ -49,6 +49,9 @@ export class GetGeneralStatsResponseDto {
   @ApiProperty({ description: 'Total balance across all platforms' })
   totalBalance: number;
 
+  @ApiProperty({ description: 'Total withdrawn amount from bank accounts (ARS)' })
+  totalWithdrawnFromBanks: number;
+
   constructor(data: {
     totalUsers: number;
     totalOperators: number;
@@ -66,6 +69,7 @@ export class GetGeneralStatsResponseDto {
     totalAmount: number;
     completedAmount: number;
     totalBalance: number;
+    totalWithdrawnFromBanks: number;
   }) {
     this.totalUsers = data.totalUsers;
     this.totalOperators = data.totalOperators;
@@ -83,5 +87,6 @@ export class GetGeneralStatsResponseDto {
     this.totalAmount = Math.round(data.totalAmount * 100) / 100;
     this.completedAmount = Math.round(data.completedAmount * 100) / 100;
     this.totalBalance = Math.round(data.totalBalance * 100) / 100;
+    this.totalWithdrawnFromBanks = Math.round(data.totalWithdrawnFromBanks * 100) / 100;
   }
 }

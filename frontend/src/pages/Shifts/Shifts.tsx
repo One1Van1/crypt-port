@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -23,6 +23,7 @@ import './Shifts.css';
 export default function Shifts() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
   const timeFormat = useAppStore((state) => state.timeFormat);
@@ -43,6 +44,14 @@ export default function Shifts() {
       navigate('/dashboard');
     }
   }, [user?.role, navigate]);
+
+  // Set viewMode from navigation state
+  useEffect(() => {
+    const state = location.state as { viewMode?: 'my' | 'all' };
+    if (state?.viewMode) {
+      setViewMode(state.viewMode);
+    }
+  }, [location.state]);
 
   // Определяем, является ли пользователь тимлидом или админом
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;

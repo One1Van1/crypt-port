@@ -209,11 +209,12 @@
     }
   },
   "shifts": {
-    "title": "Мои смены",
+    "title": "Все смены",
     "subtitle": "Управление рабочими сменами",
     "myShifts": "Мои смены",
-    "operatorsShifts": "Смены операторов",
+    "operatorsShifts": "Смены сотрудников",
     "activeShift": "Активная смена",
+    "activeShifts": "Активные смены",
     "noActiveShift": "Нет активной смены",
     "selectPlatformToStart": "Выберите площадку, чтобы начать смену",
     "startShift": "Начать смену",

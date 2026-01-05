@@ -5,7 +5,8 @@ export interface GeneralAnalytics {
   currentBalance: number;
   totalEarnings: number;
   totalOperators: number;
-  activeOperators: number;
+  activeShifts: number;
+  totalWithdrawnFromBanks: number;
   trend: {
     date: string;
     deposits: number;

@@ -394,7 +394,18 @@ export default function Analytics() {
           </div>
 
           {/* Withdrawal History Widget */}
-          <div className="kpi-card">
+          <div 
+            className="kpi-card"
+            onDoubleClick={() => {
+              if (withdrawalDate) {
+                const dateStr = `${withdrawalDate.getFullYear()}-${String(withdrawalDate.getMonth() + 1).padStart(2, '0')}-${String(withdrawalDate.getDate()).padStart(2, '0')}`;
+                navigate('/transactions', { 
+                  state: { filterDate: dateStr } 
+                });
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="kpi-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <History size={20} />
               ИСТОРИЯ ВЫВОДОВ
@@ -407,74 +418,37 @@ export default function Analytics() {
                   placeholder="Выберите дату"
                 />
               </div>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                    Всего выводов
-                  </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                    {withdrawalsData?.total || 0}
-                  </div>
+              <div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                  Всего выводов
                 </div>
-                <button
-                  onClick={() => {
-                    if (withdrawalDate) {
-                      const dateStr = `${withdrawalDate.getFullYear()}-${String(withdrawalDate.getMonth() + 1).padStart(2, '0')}-${String(withdrawalDate.getDate()).padStart(2, '0')}`;
-                      navigate('/transactions', { 
-                        state: { filterDate: dateStr } 
-                      });
-                    }
-                  }}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: '#6366f1',
-                    color: 'white',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontWeight: '500',
-                    fontSize: '0.75rem',
-                    transition: 'all 0.2s',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#5558e3';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#6366f1';
-                  }}
-                >
-                  Все операции
-                  <ArrowRight size={12} />
-                </button>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                  {withdrawalsData?.total || 0}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="kpi-card">
-            <div className="kpi-header">{t('shifts.activeShift').toUpperCase()}</div>
-            <div className="kpi-value">{data?.activeOperators || 2}</div>
-            <div className="kpi-progress">
-              <div className="kpi-progress-bar" style={{ width: '65%', backgroundColor: '#6366f1' }} />
+          <div 
+            className="kpi-card" 
+            onDoubleClick={() => navigate('/shifts', { state: { viewMode: 'all' } })}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="kpi-header">{t('shifts.activeShifts').toUpperCase()}</div>
+            <div className="kpi-value">
+              {data?.activeShifts || 0}/{data?.totalOperators || 0}
             </div>
-            <div className="kpi-footer">{t('analytics.activeOperators').toLowerCase()}</div>
+            <div className="kpi-footer">активных из всех операторов</div>
           </div>
 
-          <div className="kpi-card">
-            <div className="kpi-header">{t('dashboard.withdrawalAmount').toUpperCase()}</div>
-            <div className="kpi-value">{formatCurrency(data?.totalWithdrawn || 10650000)}</div>
-            <div className="kpi-progress">
-              <div className="kpi-progress-bar" style={{ width: '88%', backgroundColor: '#8b5cf6' }} />
-            </div>
-            <div className="kpi-footer">ARS for {dateFilter === 'week' ? t('teamlead.week').toLowerCase() : dateFilter === 'month' ? t('teamlead.month').toLowerCase() : 'period'}</div>
+          <div 
+            className="kpi-card"
+            onDoubleClick={() => navigate('/banks')}
+            style={{ cursor: 'pointer' }}
+          >
+            <div className="kpi-header">СУММА НА ФИЗ БАНКАХ</div>
+            <div className="kpi-value">{formatCurrency(data?.totalWithdrawnFromBanks || 0)}</div>
+            <div className="kpi-footer">ARS на физических банках</div>
           </div>
         </div>
 

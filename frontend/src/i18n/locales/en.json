@@ -190,11 +190,12 @@
     }
   },
   "shifts": {
-    "title": "My Shifts",
+    "title": "All Shifts",
     "subtitle": "Manage your work shifts",
     "myShifts": "My Shifts",
-    "operatorsShifts": "Operators Shifts",
+    "operatorsShifts": "Employee Shifts",
     "activeShift": "Active Shift",
+    "activeShifts": "Active Shifts",
     "noActiveShift": "No Active Shift",
     "selectPlatformToStart": "Select a platform to start your shift",
     "startShift": "Start Shift",

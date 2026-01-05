@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User } from '../../../entities/user.entity';
 import { Bank } from '../../../entities/bank.entity';
 import { Drop } from '../../../entities/drop.entity';
@@ -36,7 +36,11 @@ export class GetGeneralStatsService {
   async execute(): Promise<GetGeneralStatsResponseDto> {
     // Пользователи
     const totalUsers = await this.userRepository.count();
-    const totalOperators = await this.userRepository.count({ where: { role: UserRole.OPERATOR } });
+    const totalOperators = await this.userRepository.count({ 
+      where: { 
+        role: In([UserRole.OPERATOR, UserRole.TEAMLEAD, UserRole.ADMIN]) 
+      } 
+    });
     const totalTeamleads = await this.userRepository.count({ where: { role: UserRole.TEAMLEAD } });
 
     // Банки и дропы
@@ -70,6 +74,10 @@ export class GetGeneralStatsService {
     const allPlatforms = await this.platformRepository.find();
     const totalBalance = allPlatforms.reduce((sum, p) => sum + Number(p.balance), 0);
 
+    // Сумма на физ банках (выведенные деньги из bank_accounts)
+    const allBankAccounts = await this.bankAccountRepository.find();
+    const totalWithdrawnFromBanks = allBankAccounts.reduce((sum, acc) => sum + Number(acc.withdrawnAmount || 0), 0);
+
     return new GetGeneralStatsResponseDto({
       totalUsers,
       totalOperators,
@@ -87,6 +95,7 @@ export class GetGeneralStatsService {
       totalAmount,
       completedAmount,
       totalBalance,
+      totalWithdrawnFromBanks,
     });
   }
 }
