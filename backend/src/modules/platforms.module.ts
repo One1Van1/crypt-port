@@ -26,6 +26,10 @@ import { UpdatePlatformStatusService } from '../features/platforms/update-status
 import { UpdateExchangeRateController } from '../features/platforms/update-rate/update-rate.controller';
 import { UpdateExchangeRateService } from '../features/platforms/update-rate/update-rate.service';
 
+// Delete
+import { DeletePlatformController } from '../features/platforms/delete/delete.controller';
+import { DeletePlatformService } from '../features/platforms/delete/delete.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([Platform])],
   controllers: [
@@ -35,6 +39,7 @@ import { UpdateExchangeRateService } from '../features/platforms/update-rate/upd
     UpdatePlatformController,
     UpdatePlatformStatusController,
     UpdateExchangeRateController,
+    DeletePlatformController,
   ],
   providers: [
     CreatePlatformService,
@@ -43,6 +48,7 @@ import { UpdateExchangeRateService } from '../features/platforms/update-rate/upd
     UpdatePlatformService,
     UpdatePlatformStatusService,
     UpdateExchangeRateService,
+    DeletePlatformService,
   ],
 })
 export class PlatformsModule {}

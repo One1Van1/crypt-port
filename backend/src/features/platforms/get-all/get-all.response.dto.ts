@@ -19,6 +19,9 @@ class PlatformItemDto {
   @ApiProperty({ description: 'Exchange rate (1 USDT = X ARS)', example: 1150.50 })
   exchangeRate: number;
 
+  @ApiProperty({ description: 'Platform balance in ARS', example: 50000.00 })
+  balance: number;
+
   @ApiProperty({ description: 'Creation date' })
   createdAt: Date;
 
@@ -27,6 +30,7 @@ class PlatformItemDto {
     this.name = platform.name;
     this.status = platform.status;
     this.exchangeRate = Number(platform.exchangeRate);
+    this.balance = Number(platform.balance);
     this.createdAt = platform.createdAt;
   }
 }

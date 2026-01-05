@@ -49,6 +49,32 @@
   }
 }
 
+/* Custom Scrollbar for Platforms Widget */
+.platforms-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.platforms-scroll::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+}
+
+.platforms-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.platforms-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* Firefox */
+.platforms-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-tertiary);
+}
+
 /* Top Filter Panel - Compact Style */
 .analytics-filter-panel-compact {
   background-color: var(--bg-secondary);

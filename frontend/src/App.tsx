@@ -18,6 +18,7 @@ import Transactions from './pages/Transactions/Transactions';
 import Banks from './pages/Banks/Banks';
 import Drops from './pages/Drops/Drops';
 import DropNeoBanks from './pages/DropNeoBanks/DropNeoBanks';
+import Platforms from './pages/Platforms/Platforms';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
 import WorkingDepositChart from './pages/WorkingDeposit/WorkingDepositChart';
 
@@ -81,6 +82,7 @@ function App() {
                   <Route path="/banks" element={<Banks />} />
                   <Route path="/drops" element={<Drops />} />
                   <Route path="/drop-neo-banks" element={<DropNeoBanks />} />
+                  <Route path="/platforms" element={<Platforms />} />
                   <Route path="/teamlead-dashboard" element={<TeamLeadDashboard />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/bank-accounts" element={<BankAccounts />} />

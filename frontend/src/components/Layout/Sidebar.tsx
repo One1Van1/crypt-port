@@ -34,6 +34,7 @@ export default function Sidebar() {
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
     { to: '/teamlead-dashboard', icon: Award, label: getTeamleadDashboardLabel(), roles: ['teamlead', 'admin'] },
     { to: '/working-deposit', icon: TrendingUp, label: 'График', roles: ['admin'] },
+    { to: '/platforms', icon: Building2, label: 'Площадки', roles: ['admin'] },
     { to: '/banks', icon: Building2, label: t('nav.banks'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drops', icon: UserSquare2, label: t('nav.drops'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drop-neo-banks', icon: Wallet, label: t('nav.dropNeoBanks'), roles: ['admin', 'teamlead'] },

@@ -5,6 +5,7 @@ export interface Platform {
   name: string;
   status: 'active' | 'inactive';
   exchangeRate: number;
+  balance: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +33,20 @@ class PlatformsService {
   async updateRate(id: number, exchangeRate: number): Promise<Platform> {
     const response = await apiClient.patch<Platform>(`/platforms/${id}/rate`, { exchangeRate });
     return response.data;
+  }
+
+  async create(data: { name: string; exchangeRate?: number }): Promise<Platform> {
+    const response = await apiClient.post<Platform>('/platforms', data);
+    return response.data;
+  }
+
+  async update(id: number, data: { name?: string; exchangeRate?: number; balance?: number }): Promise<Platform> {
+    const response = await apiClient.patch<Platform>(`/platforms/${id}`, data);
+    return response.data;
+  }
+
+  async delete(id: number): Promise<void> {
+    await apiClient.delete(`/platforms/${id}`);
   }
 }
 

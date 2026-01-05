@@ -271,22 +271,35 @@ export default function Analytics() {
           {/* KPI Cards Grid 2x2 */}
           <div className="analytics-kpi-sidebar">
           {/* Platform Exchange Rates Widget */}
-          <div className="kpi-card">
+          <div 
+            className="kpi-card" 
+            onDoubleClick={() => navigate('/platforms')}
+            style={{ cursor: 'pointer' }}
+          >
             <div className="kpi-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <DollarSign size={20} />
-              КУРСЫ ПЛОЩАДОК
+              <DollarSign size={18} />
+              <span style={{ fontSize: '0.75rem' }}>КУРСЫ ПЛОЩАДОК</span>
             </div>
-            <div style={{ marginTop: '16px' }}>
+            <div style={{ 
+              marginTop: '10px', 
+              maxHeight: '144px', 
+              overflowY: (platformsData?.items.length || 0) > 2 ? 'auto' : 'hidden' 
+            }} className="platforms-scroll">
               {platformsData?.items.map((platform) => (
                 <div key={platform.id} style={{ 
                   display: 'flex', 
                   justifyContent: 'space-between', 
                   alignItems: 'center',
-                  padding: '12px',
+                  padding: '10px',
                   borderBottom: '1px solid var(--border-color)',
-                  transition: 'background 0.2s'
+                  transition: 'background 0.2s',
+                  minHeight: '50px'
                 }}>
-                  <div style={{ fontWeight: '500', color: 'var(--text-primary)' }}>
+                  <div style={{ 
+                    fontWeight: '500', 
+                    color: 'var(--text-primary)',
+                    fontSize: '0.875rem'
+                  }}>
                     {platform.name}
                   </div>
                   {editingPlatformId === platform.id ? (
@@ -344,18 +357,23 @@ export default function Analytics() {
                       </button>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#6366f1' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span style={{ 
+                        fontSize: '0.9rem', 
+                        fontWeight: '600', 
+                        color: '#6366f1' 
+                      }}>
                         {platform.exchangeRate.toFixed(2)} ARS
                       </span>
                       {user?.role === UserRole.ADMIN && (
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setEditingPlatformId(platform.id);
                             setNewRate(platform.exchangeRate.toString());
                           }}
                           style={{
-                            padding: '4px 8px',
+                            padding: '4px 6px',
                             borderRadius: '6px',
                             backgroundColor: 'var(--bg-tertiary)',
                             border: '1px solid var(--border-color)',
@@ -365,7 +383,7 @@ export default function Analytics() {
                             color: 'var(--text-secondary)'
                           }}
                         >
-                          <Edit3 size={14} />
+                          <Edit3 size={12} />
                         </button>
                       )}
                     </div>

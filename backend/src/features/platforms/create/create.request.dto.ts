@@ -22,4 +22,16 @@ export class CreatePlatformRequestDto {
   @IsNumber()
   @Min(0)
   exchangeRate?: number;
+
+  @ApiProperty({
+    description: 'Platform balance in ARS',
+    example: 50000.00,
+    minimum: 0,
+    required: false,
+    default: 0,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  balance?: number;
 }
