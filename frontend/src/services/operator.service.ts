@@ -54,6 +54,8 @@ export interface TransactionForOperator {
   bankAccountAlias: string;
   dropName?: string;
   bankName?: string;
+  userName?: string;
+  userRole?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -97,7 +99,7 @@ export const operatorService = {
 
   getBankTransactions: async (
     bankId: number,
-    params?: { page?: number; limit?: number }
+    params?: DropTransactionsParams
   ): Promise<TransactionsForOperatorResponse> => {
     const response = await apiClient.get(`/banks/${bankId}/transactions/operator`, {
       params,

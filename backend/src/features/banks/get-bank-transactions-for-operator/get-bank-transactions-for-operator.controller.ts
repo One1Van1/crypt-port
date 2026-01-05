@@ -26,6 +26,6 @@ export class GetBankTransactionsForOperatorController {
     @Query() query: GetBankTransactionsForOperatorQueryDto,
     @CurrentUser() user: User,
   ): Promise<GetBankTransactionsForOperatorResponseDto> {
-    return this.service.execute(bankId, user.id, query);
+    return this.service.execute(bankId, user.id, query, user.role);
   }
 }

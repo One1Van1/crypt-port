@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Transaction } from '../../../entities/transaction.entity';
 import { GetBankTransactionsForOperatorQueryDto } from './get-bank-transactions-for-operator.query.dto';
 import { GetBankTransactionsForOperatorResponseDto } from './get-bank-transactions-for-operator.response.dto';
+import { UserRole } from '../../../common/enums/user.enum';
 
 @Injectable()
 export class GetBankTransactionsForOperatorService {
@@ -16,6 +17,7 @@ export class GetBankTransactionsForOperatorService {
     bankId: number,
     userId: number,
     query: GetBankTransactionsForOperatorQueryDto,
+    userRole?: UserRole,
   ): Promise<GetBankTransactionsForOperatorResponseDto> {
     const limit = query.limit || 5;
     const page = query.page || 1;
@@ -26,13 +28,22 @@ export class GetBankTransactionsForOperatorService {
       .leftJoinAndSelect('t.bankAccount', 'ba')
       .leftJoinAndSelect('ba.bank', 'bank')
       .leftJoinAndSelect('ba.drop', 'drop')
-      .where('bank.id = :bankId', { bankId })
-      .andWhere('t.userId = :userId', { userId })
+      .leftJoinAndSelect('t.user', 'user')
+      .where('bank.id = :bankId', { bankId });
+
+    // Для операторов только свои транзакции, для админов/тимлидов - все
+    if (userRole === UserRole.OPERATOR) {
+      queryBuilder.andWhere('t.userId = :userId', { userId });
+    }
+
+    queryBuilder
       .orderBy('t.createdAt', 'DESC')
       .take(limit)
       .skip(skip);
 
     const [items, total] = await queryBuilder.getManyAndCount();
+
+    const isAdminOrTeamlead = userRole === UserRole.ADMIN || userRole === UserRole.TEAMLEAD;
 
     const transactions = items.map((t) => ({
       id: t.id,
@@ -45,6 +56,10 @@ export class GetBankTransactionsForOperatorService {
       bankAccountCbu: t.bankAccount?.cbu || 'Unknown',
       bankAccountAlias: t.bankAccount?.alias || 'Unknown',
       dropName: t.bankAccount?.drop?.name || 'Unknown',
+      ...(isAdminOrTeamlead && {
+        userName: t.user?.username || 'Unknown',
+        userRole: t.user?.role || 'Unknown',
+      }),
     }));
 
     return new GetBankTransactionsForOperatorResponseDto(transactions, total);

@@ -5,16 +5,20 @@ import {
   OperatorBank,
   TransactionForOperator,
 } from '../../services/operator.service';
+import { useAuthStore } from '../../store/authStore';
 import './Banks.css';
 
 const Banks = () => {
   const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
   const [banks, setBanks] = useState<OperatorBank[]>([]);
   const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
   const [bankTransactions, setBankTransactions] = useState<TransactionForOperator[]>([]);
   const [bankTransactionsTotal, setBankTransactionsTotal] = useState(0);
   const [showFullBankHistory, setShowFullBankHistory] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const isAdminOrTeamlead = user?.role === 'admin' || user?.role === 'teamlead';
 
   useEffect(() => {
     fetchBanks();
@@ -135,7 +139,7 @@ const Banks = () => {
                         <div className="account-limits">
                           <span>
                             {formatCurrency(account.withdrawnAmount)} /{' '}
-                            {formatCurrency(account.limitAmount)}
+                            {formatCurrency(account.initialLimitAmount)}
                           </span>
                         </div>
                         <span className={`status-badge ${getStatusBadge(account.status)}`}>
@@ -189,6 +193,11 @@ const Banks = () => {
                             {tx.bankAccountAlias} ({tx.bankAccountCbu})
                           </span>
                           {tx.dropName && <span>Дроп: {tx.dropName}</span>}
+                          {isAdminOrTeamlead && tx.userName && (
+                            <span className="transaction-user">
+                              Оператор: {tx.userName} ({tx.userRole})
+                            </span>
+                          )}
                         </div>
                         <div className="transaction-meta">
                           <span>{formatDate(tx.createdAt)}</span>

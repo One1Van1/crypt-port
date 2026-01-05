@@ -97,6 +97,8 @@ export class GetDropTransactionsForOperatorService {
 
     const [items, total] = await queryBuilder.getManyAndCount();
 
+    const isAdminOrTeamlead = userRole === UserRole.ADMIN || userRole === UserRole.TEAMLEAD;
+
     const transactions = items.map((t) => ({
       id: t.id,
       amount: Number(t.amount),
@@ -108,6 +110,10 @@ export class GetDropTransactionsForOperatorService {
       bankAccountCbu: t.bankAccount?.cbu || 'Unknown',
       bankAccountAlias: t.bankAccount?.alias || 'Unknown',
       bankName: t.bankAccount?.bank?.name || 'Unknown',
+      ...(isAdminOrTeamlead && {
+        userName: t.user?.username || 'Unknown',
+        userRole: t.user?.role || 'Unknown',
+      }),
     }));
 
     return new GetDropTransactionsForOperatorResponseDto(transactions, total);
