@@ -214,16 +214,15 @@ function RequisitesSection() {
                 <th>CBU</th>
                 <th>Alias</th>
                 <th>Статус</th>
-                <th>Доступно / Лимит</th>
+                <th>Выведенно / Доступно</th>
               </tr>
             </thead>
             <tbody>
               {accounts.map((account) => {
                 const status = getStatusBadge(account.status);
-                const initialLimitAmount = account.initialLimitAmount || 0;
                 const currentLimitAmount = account.currentLimitAmount || 0;
+                const withdrawn = account.withdrawnAmount || 0;
                 const available = currentLimitAmount;
-                const limitAmount = initialLimitAmount;
                 return (
                   <tr 
                     key={account.id}
@@ -266,7 +265,7 @@ function RequisitesSection() {
                       </span>
                     </td>
                     <td className="amount-cell">
-                      ${available.toFixed(2)} / ${limitAmount.toFixed(2)}
+                      ${withdrawn.toFixed(2)} / ${available.toFixed(2)}
                       {updating === account.id && (
                         <span className="saving-indicator"> (сохранение...)</span>
                       )}
