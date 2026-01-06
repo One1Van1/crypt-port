@@ -26,6 +26,7 @@ import { analyticsService } from '../../services/analytics.service';
 import { platformsService } from '../../services/platforms.service';
 import { transactionsService } from '../../services/transactions.service';
 import { workingDepositService } from '../../services/workingDepositService';
+import { profitsService } from '../../services/profits.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import DatePicker from '../../components/DatePicker/DatePicker';
@@ -106,6 +107,9 @@ export default function Analytics() {
   const [isEditingInitialDeposit, setIsEditingInitialDeposit] = useState(false);
   const [initialDepositDraft, setInitialDepositDraft] = useState<string>('');
 
+  const [profitWithdrawDraft, setProfitWithdrawDraft] = useState<string>('');
+  const [profitAdminRateDraft, setProfitAdminRateDraft] = useState<string>('');
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
     queryFn: analyticsService.getGeneral,
@@ -163,6 +167,12 @@ export default function Analytics() {
     queryFn: () => workingDepositService.getSections(),
   });
 
+  const { data: profitWithdrawalsHistory, isLoading: isProfitHistoryLoading } = useQuery({
+    queryKey: ['profitWithdrawalsHistory'],
+    queryFn: () => profitsService.getHistory(),
+    enabled: user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD,
+  });
+
   const setInitialDepositMutation = useMutation({
     mutationFn: (amount: number) => workingDepositService.setInitialDeposit(amount),
     onSuccess: () => {
@@ -172,6 +182,21 @@ export default function Analytics() {
     },
     onError: () => {
       toast.error('Ошибка обновления начального депозита');
+    },
+  });
+
+  const withdrawProfitMutation = useMutation({
+    mutationFn: (dto: { profitUsdtAmount: number; adminRate: number }) =>
+      profitsService.withdrawSimple(dto),
+    onSuccess: () => {
+      toast.success('Профит выведен');
+      queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
+      queryClient.invalidateQueries({ queryKey: ['profitWithdrawalsHistory'] });
+      setProfitWithdrawDraft('');
+    },
+    onError: (e: any) => {
+      const msg = e?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка вывода профита');
     },
   });
 
@@ -959,17 +984,154 @@ export default function Analytics() {
                     }
 
                     if (selectedSection === 'profit') {
+                      const parsedProfitUsdtAmount = Number(String(profitWithdrawDraft).replace(',', '.'));
+                      const parsedAdminRate = Number(String(profitAdminRateDraft).replace(',', '.'));
+                      const computedPesos =
+                        Number.isFinite(parsedProfitUsdtAmount) && Number.isFinite(parsedAdminRate)
+                          ? parsedProfitUsdtAmount * parsedAdminRate
+                          : null;
+
                       return (
                         <div>
-                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>{isProfitable ? '📈 Профит' : '📉 Дефицит'}</div>
-                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: isProfitable ? '#10b981' : '#ef4444', marginBottom: 10 }}>
+                          <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, fontSize: '1rem' }}>{isProfitable ? '📈 Профит' : '📉 Дефицит'}</div>
+                          <div style={{ fontSize: '1.35rem', fontWeight: 900, color: isProfitable ? '#10b981' : '#ef4444', marginBottom: 10 }}>
                             {isProfitable ? '+' : ''}{displayedProfit.toFixed(2)} USDT
                           </div>
                           {Number(workingDepositData.summary.initialDeposit || 0) > 0 && (
-                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 12 }}>
                               ROI: {((displayedProfit / Number(workingDepositData.summary.initialDeposit || 0)) * 100).toFixed(2)}%
                             </div>
                           )}
+
+                          {(user?.role === UserRole.ADMIN) && (
+                            <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 4 }}>
+                              <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10, fontSize: '0.95rem' }}>Забрать профит</div>
+                              <div style={{ display: 'grid', gap: 10 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Сумма (USDT)</span>
+                                  <input
+                                    value={profitWithdrawDraft}
+                                    onChange={(e) => setProfitWithdrawDraft(e.target.value)}
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    style={{
+                                      width: 140,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                      textAlign: 'right',
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Курс админа (ARS/USDT)</span>
+                                  <input
+                                    value={profitAdminRateDraft}
+                                    onChange={(e) => setProfitAdminRateDraft(e.target.value)}
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    style={{
+                                      width: 140,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                      textAlign: 'right',
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 2 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Вы получите (ARS)</span>
+                                  <span style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '0.95rem' }}>
+                                    {computedPesos === null ? '—' : computedPesos.toFixed(2)}
+                                  </span>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  disabled={withdrawProfitMutation.isPending}
+                                  onClick={() => {
+                                    const profitUsdtAmount = parsedProfitUsdtAmount;
+                                    const adminRate = parsedAdminRate;
+
+                                    if (!Number.isFinite(profitUsdtAmount) || profitUsdtAmount <= 0) {
+                                      toast.error('Введите сумму профита в USDT');
+                                      return;
+                                    }
+
+                                    if (!Number.isFinite(adminRate) || adminRate <= 0) {
+                                      toast.error('Введите корректный курс админа');
+                                      return;
+                                    }
+
+                                    withdrawProfitMutation.mutate({
+                                      profitUsdtAmount,
+                                      adminRate,
+                                    });
+                                  }}
+                                  style={{
+                                    marginTop: 4,
+                                    padding: '10px 12px',
+                                    borderRadius: 12,
+                                    border: '1px solid var(--border-color)',
+                                    background: 'transparent',
+                                    color: 'var(--text-primary)',
+                                    fontWeight: 800,
+                                    fontSize: '0.95rem',
+                                    cursor: withdrawProfitMutation.isPending ? 'not-allowed' : 'pointer',
+                                    opacity: withdrawProfitMutation.isPending ? 0.6 : 1,
+                                  }}
+                                >
+                                  {withdrawProfitMutation.isPending ? 'Вывод...' : 'Забрать профит'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 12 }}>
+                            <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10, fontSize: '0.95rem' }}>История выводов</div>
+                            {isProfitHistoryLoading ? (
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Загрузка...</div>
+                            ) : profitWithdrawalsHistory?.items?.length ? (
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                                <thead>
+                                  <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Дата</th>
+                                    <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                    <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>Курс</th>
+                                    <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>ARS</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {profitWithdrawalsHistory.items.slice(0, 10).map((item) => (
+                                    <tr key={item.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                      <td style={{ padding: '8px', color: 'var(--text-primary)' }}>
+                                        {new Date(item.createdAt).toLocaleString('ru-RU')}
+                                      </td>
+                                      <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 700 }}>
+                                        {Number(item.withdrawnUsdt || 0).toFixed(2)}
+                                      </td>
+                                      <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>
+                                        {Number(item.adminRate || 0).toFixed(2)}
+                                      </td>
+                                      <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 700 }}>
+                                        {Number(item.profitPesos || 0).toFixed(2)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            ) : (
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Пока нет выводов</div>
+                            )}
+                          </div>
                         </div>
                       );
                     }

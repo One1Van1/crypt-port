@@ -19,6 +19,7 @@ import { ExchangeRatesModule } from './modules/exchange-rates.module';
 import { CashWithdrawalsModule } from './modules/cash-withdrawals.module';
 import { ProfitsModule } from './modules/profits.module';
 import { WorkingDepositModule } from './modules/working-deposit.module';
+import { FreeUsdtModule } from './modules/free-usdt.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { WorkingDepositModule } from './modules/working-deposit.module';
     CashWithdrawalsModule,
     ProfitsModule,
     WorkingDepositModule,
+    FreeUsdtModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -10,6 +10,8 @@ import { DropNeoBank } from '../entities/drop-neo-bank.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { Profit } from '../entities/profit.entity';
 import { SystemSetting } from '../entities/system-setting.entity';
+import { FreeUsdtEntry } from '../entities/free-usdt-entry.entity';
+import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity';
 import { WithdrawCashController } from '../features/cash-withdrawals/withdraw/withdraw-cash.controller';
 import { WithdrawCashService } from '../features/cash-withdrawals/withdraw/withdraw-cash.service';
 import { ConvertToUsdtController } from '../features/cash-withdrawals/convert-to-usdt/convert-to-usdt.controller';
@@ -20,6 +22,8 @@ import { GetAllConversionsController } from '../features/cash-withdrawals/get-al
 import { GetAllConversionsService } from '../features/cash-withdrawals/get-all-conversions/get-all-conversions.service';
 import { ConfirmConversionController } from '../features/cash-withdrawals/confirm-conversion/confirm-conversion.controller';
 import { ConfirmConversionService } from '../features/cash-withdrawals/confirm-conversion/confirm-conversion.service';
+import { ConfirmConversionLedgerController } from '../features/cash-withdrawals/confirm-conversion-ledger/confirm-conversion-ledger.controller';
+import { ConfirmConversionLedgerService } from '../features/cash-withdrawals/confirm-conversion-ledger/confirm-conversion-ledger.service';
 import { GetAllWithdrawalsController } from '../features/cash-withdrawals/get-all-withdrawals/get-all-withdrawals.controller';
 import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-withdrawals/get-all-withdrawals.service';
 
@@ -36,6 +40,8 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
       Transaction,
       Profit,
       SystemSetting,
+      FreeUsdtEntry,
+      FreeUsdtDistribution,
     ]),
   ],
   controllers: [
@@ -44,6 +50,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
     DirectConvertController,
     GetAllConversionsController,
     ConfirmConversionController,
+    ConfirmConversionLedgerController,
     GetAllWithdrawalsController,
   ],
   providers: [
@@ -52,6 +59,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
     DirectConvertService,
     GetAllConversionsService,
     ConfirmConversionService,
+    ConfirmConversionLedgerService,
     GetAllWithdrawalsService,
   ],
 })

@@ -97,7 +97,7 @@ export interface ProfitHistory {
 
 export const workingDepositService = {
   getSections: async (): Promise<WorkingDepositSections> => {
-    const response = await apiClient.get('/working-deposit/sections');
+    const response = await apiClient.get('/working-deposit/sections-ledger');
     return response.data;
   },
 

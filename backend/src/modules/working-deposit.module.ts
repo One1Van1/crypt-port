@@ -11,10 +11,16 @@ import { UsdtToPesoExchange } from '../entities/usdt-to-peso-exchange.entity';
 import { Transaction } from '../entities/transaction.entity';
 import { SystemSetting } from '../entities/system-setting.entity';
 import { DailyProfit } from '../entities/daily-profit.entity';
+import { FreeUsdtEntry } from '../entities/free-usdt-entry.entity';
+import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity';
 
 // Get Sections
 import { GetWorkingDepositSectionsController } from '../features/working-deposit/get-sections/get-sections.controller';
 import { GetWorkingDepositSectionsService } from '../features/working-deposit/get-sections/get-sections.service';
+
+// Get Sections (Free USDT from ledger)
+import { GetWorkingDepositSectionsLedgerController } from '../features/working-deposit/get-sections-ledger/get-sections-ledger.controller';
+import { GetWorkingDepositSectionsLedgerService } from '../features/working-deposit/get-sections-ledger/get-sections-ledger.service';
 
 // Get History
 import { GetWorkingDepositHistoryController } from '../features/working-deposit/get-history/get-history.controller';
@@ -38,15 +44,19 @@ import { GetProfitHistoryService } from '../features/working-deposit/get-profit-
       Transaction,
       SystemSetting,
       DailyProfit,
+      FreeUsdtEntry,
+      FreeUsdtDistribution,
     ]),
   ],
   controllers: [
     GetWorkingDepositSectionsController,
+    GetWorkingDepositSectionsLedgerController,
     GetWorkingDepositHistoryController,
     GetProfitHistoryController,
   ],
   providers: [
     GetWorkingDepositSectionsService,
+    GetWorkingDepositSectionsLedgerService,
     GetWorkingDepositHistoryService,
     GetProfitHistoryService,
   ],
