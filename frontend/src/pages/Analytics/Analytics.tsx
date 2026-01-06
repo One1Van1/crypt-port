@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -103,6 +103,8 @@ export default function Analytics() {
   const [newRate, setNewRate] = useState<string>('');
   const [withdrawalDate, setWithdrawalDate] = useState<Date | null>(new Date());
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [isEditingInitialDeposit, setIsEditingInitialDeposit] = useState(false);
+  const [initialDepositDraft, setInitialDepositDraft] = useState<string>('');
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
@@ -160,6 +162,22 @@ export default function Analytics() {
     queryKey: ['workingDepositSections'],
     queryFn: () => workingDepositService.getSections(),
   });
+
+  const setInitialDepositMutation = useMutation({
+    mutationFn: (amount: number) => workingDepositService.setInitialDeposit(amount),
+    onSuccess: () => {
+      toast.success('Начальный депозит обновлён');
+      queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
+      setIsEditingInitialDeposit(false);
+    },
+    onError: () => {
+      toast.error('Ошибка обновления начального депозита');
+    },
+  });
+
+  useEffect(() => {
+    setIsEditingInitialDeposit(false);
+  }, [selectedSection]);
 
   // Update platform rate mutation
   const updateRateMutation = useMutation({
@@ -611,17 +629,32 @@ export default function Analytics() {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
+                      <tr
+                        onClick={() =>
+                          setSelectedSection((prev) => (prev === 'summary' ? null : 'summary'))
+                        }
+                        style={{ cursor: 'pointer' }}
+                      >
                         <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>💰 Рабочий депозит</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                           {displayedTotalUsdt.toFixed(2)}
                         </td>
                       </tr>
                       <tr style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
-                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                        <td
+                          style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500', cursor: 'pointer' }}
+                          onClick={() =>
+                            setSelectedSection((prev) => (prev === 'profit' ? null : 'profit'))
+                          }
+                        >
                           {isProfitable ? '📈 Профит' : '📉 Дефицит'}
                         </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: isProfitable ? '#10b981' : '#ef4444' }}>
+                        <td
+                          style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: isProfitable ? '#10b981' : '#ef4444', cursor: 'pointer' }}
+                          onClick={() =>
+                            setSelectedSection((prev) => (prev === 'profit' ? null : 'profit'))
+                          }
+                        >
                           {isProfitable ? '+' : ''}{displayedProfit.toFixed(2)}
                         </td>
                       </tr>
@@ -631,7 +664,7 @@ export default function Analytics() {
                         </td>
                       </tr>
                       <tr 
-                        onClick={() => setSelectedSection('platforms')}
+                        onClick={() => setSelectedSection((prev) => (prev === 'platforms' ? null : 'platforms'))}
                         style={{ 
                           backgroundColor: selectedSection === 'platforms' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
                           cursor: 'pointer',
@@ -657,7 +690,7 @@ export default function Analytics() {
                         </td>
                       </tr>
                       <tr 
-                        onClick={() => setSelectedSection('blocked')}
+                        onClick={() => setSelectedSection((prev) => (prev === 'blocked' ? null : 'blocked'))}
                         style={{ 
                           backgroundColor: selectedSection === 'blocked' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.05)',
                           cursor: 'pointer',
@@ -683,7 +716,7 @@ export default function Analytics() {
                         </td>
                       </tr>
                       <tr 
-                        onClick={() => setSelectedSection('unpaid')}
+                        onClick={() => setSelectedSection((prev) => (prev === 'unpaid' ? null : 'unpaid'))}
                         style={{ 
                           backgroundColor: selectedSection === 'unpaid' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.05)',
                           cursor: 'pointer',
@@ -709,7 +742,7 @@ export default function Analytics() {
                         </td>
                       </tr>
                       <tr 
-                        onClick={() => setSelectedSection('free')}
+                        onClick={() => setSelectedSection((prev) => (prev === 'free' ? null : 'free'))}
                         style={{ 
                           backgroundColor: selectedSection === 'free' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.05)',
                           cursor: 'pointer',
@@ -736,7 +769,7 @@ export default function Analytics() {
                       </tr>
 
                       <tr 
-                        onClick={() => setSelectedSection('deficit')}
+                        onClick={() => setSelectedSection((prev) => (prev === 'deficit' ? null : 'deficit'))}
                         style={{ 
                           backgroundColor: selectedSection === 'deficit' ? 'rgba(148, 163, 184, 0.18)' : 'rgba(148, 163, 184, 0.06)',
                           cursor: 'pointer',
@@ -781,14 +814,291 @@ export default function Analytics() {
               <div className="widget-header">
                 <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
                   <BarChart3 size={18} />
-                  Новый виджет
+                  Детали
                 </h3>
               </div>
-              <div className="widget-content" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 60px)' }}>
-                <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📊</div>
-                  <div style={{ fontSize: '0.9rem' }}>Содержимое виджета</div>
-                </div>
+              <div className="widget-content" style={{ padding: '14px', height: 'calc(100% - 60px)', overflow: 'auto' }}>
+                {workingDepositData ? (
+                  (() => {
+                    const displayedTotalUsdt =
+                      Number(workingDepositData.summary.totalUsdt || 0) +
+                      Number(workingDepositData.deficit.totalUsdt || 0);
+                    const displayedProfit = displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0);
+                    const isProfitable = displayedProfit >= 0;
+
+                    if (!selectedSection) {
+                      return (
+                        <div style={{ textAlign: 'center', color: 'var(--text-tertiary)', padding: '24px 8px' }}>
+                          <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>👈</div>
+                          <div style={{ fontSize: '0.9rem' }}>Нажмите на строку слева, чтобы открыть детали</div>
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'summary') {
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, fontSize: '1rem' }}>💰 Рабочий депозит</div>
+
+                          <div style={{ display: 'grid', gap: 0, fontSize: '0.95rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border-color)' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>Итого</span>
+                              <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{displayedTotalUsdt.toFixed(2)} USDT</span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--border-color)' }}>
+                              <span style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                Начальный депозит
+                                {user?.role === UserRole.ADMIN && !isEditingInitialDeposit && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setInitialDepositDraft(String(Number(workingDepositData.summary.initialDeposit || 0)));
+                                      setIsEditingInitialDeposit(true);
+                                    }}
+                                    title="Редактировать"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: 26,
+                                      height: 26,
+                                      borderRadius: 8,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-secondary)',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <Edit3 size={14} />
+                                  </button>
+                                )}
+                              </span>
+
+                              {user?.role === UserRole.ADMIN && isEditingInitialDeposit ? (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                  <input
+                                    value={initialDepositDraft}
+                                    onChange={(e) => setInitialDepositDraft(e.target.value)}
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    style={{
+                                      width: 120,
+                                      padding: '6px 8px',
+                                      borderRadius: 8,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.9rem',
+                                      textAlign: 'right',
+                                    }}
+                                  />
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>USDT</span>
+                                  <button
+                                    type="button"
+                                    disabled={setInitialDepositMutation.isPending}
+                                    onClick={() => {
+                                      const parsed = Number(String(initialDepositDraft).replace(',', '.'));
+                                      if (!Number.isFinite(parsed) || parsed < 0) {
+                                        toast.error('Введите корректную сумму');
+                                        return;
+                                      }
+                                      setInitialDepositMutation.mutate(parsed);
+                                    }}
+                                    title="Сохранить"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: 8,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-secondary)',
+                                      cursor: setInitialDepositMutation.isPending ? 'not-allowed' : 'pointer',
+                                      opacity: setInitialDepositMutation.isPending ? 0.6 : 1,
+                                    }}
+                                  >
+                                    <Check size={16} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={setInitialDepositMutation.isPending}
+                                    onClick={() => setIsEditingInitialDeposit(false)}
+                                    title="Отмена"
+                                    style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      width: 28,
+                                      height: 28,
+                                      borderRadius: 8,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-secondary)',
+                                      cursor: setInitialDepositMutation.isPending ? 'not-allowed' : 'pointer',
+                                      opacity: setInitialDepositMutation.isPending ? 0.6 : 1,
+                                    }}
+                                  >
+                                    ✕
+                                  </button>
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{Number(workingDepositData.summary.initialDeposit || 0).toFixed(2)} USDT</span>
+                              )}
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '10px 0' }}>
+                              <span style={{ color: 'var(--text-secondary)' }}>{isProfitable ? 'Профит' : 'Дефицит'}</span>
+                              <span style={{ color: isProfitable ? '#10b981' : '#ef4444', fontWeight: 800 }}>{isProfitable ? '+' : ''}{displayedProfit.toFixed(2)} USDT</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'profit') {
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>{isProfitable ? '📈 Профит' : '📉 Дефицит'}</div>
+                          <div style={{ fontSize: '1.25rem', fontWeight: 800, color: isProfitable ? '#10b981' : '#ef4444', marginBottom: 10 }}>
+                            {isProfitable ? '+' : ''}{displayedProfit.toFixed(2)} USDT
+                          </div>
+                          {Number(workingDepositData.summary.initialDeposit || 0) > 0 && (
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                              ROI: {((displayedProfit / Number(workingDepositData.summary.initialDeposit || 0)) * 100).toFixed(2)}%
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'platforms') {
+                      const platforms = workingDepositData.platformBalances.platforms || [];
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>💎 Площадки</div>
+                          {platforms.length ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Площадка</th>
+                                  <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {platforms.map((p: any) => (
+                                  <tr key={p.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{p.name}</td>
+                                    <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>{Number(p.balance || 0).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'blocked' || selectedSection === 'unpaid') {
+                      const title = selectedSection === 'blocked' ? '🔒 Заблокированные песо' : '⏳ Неоплаченные песо';
+                      const accounts = selectedSection === 'blocked' ? workingDepositData.blockedPesos.accounts : workingDepositData.unpaidPesos.accounts;
+                      const rows = accounts || [];
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>{title}</div>
+                          {rows.length ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Счёт</th>
+                                  <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {rows.map((a: any) => (
+                                  <tr key={`${a.type}-${a.id}`} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{a.identifier}</td>
+                                    <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>{Number(a.balanceUsdt || 0).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'free') {
+                      const conversions = workingDepositData.freeUsdt.conversions || [];
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>✨ Свободные USDT</div>
+                          {conversions.length ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Дата</th>
+                                  <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {conversions.map((c: any) => (
+                                  <tr key={c.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{new Date(c.createdAt).toLocaleString('ru-RU')}</td>
+                                    <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>{Number(c.usdtAmount || 0).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    if (selectedSection === 'deficit') {
+                      const withdrawals = workingDepositData.deficit.withdrawals || [];
+                      return (
+                        <div>
+                          <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>💱 В обмене</div>
+                          {withdrawals.length ? (
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Дата</th>
+                                  <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {withdrawals.map((w: any) => (
+                                  <tr key={w.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{new Date(w.createdAt).toLocaleString('ru-RU')}</td>
+                                    <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>{Number(w.amountUsdt || 0).toFixed(2)}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          ) : (
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет операций</div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
+                    );
+                  })()
+                ) : (
+                  <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
+                )}
               </div>
             </div>
           </div>
