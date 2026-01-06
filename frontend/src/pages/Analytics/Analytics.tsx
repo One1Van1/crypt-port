@@ -456,31 +456,76 @@ export default function Analytics() {
               {workingDepositData ? (
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
+                    {(() => {
+                      const rawData = [
+                        {
+                          key: 'platforms',
+                          name: '💎 Платформы',
+                          rawValue: workingDepositData.platformBalances.total || 0,
+                          color: '#6366f1',
+                        },
+                        {
+                          key: 'blocked',
+                          name: '🔒 Заблокированные',
+                          rawValue: workingDepositData.blockedPesos.totalUsdt || 0,
+                          color: '#ef4444',
+                        },
+                        {
+                          key: 'unpaid',
+                          name: '⏳ Неоплаченные',
+                          rawValue: workingDepositData.unpaidPesos.totalUsdt || 0,
+                          color: '#f59e0b',
+                        },
+                        {
+                          key: 'free',
+                          name: '✨ Свободные',
+                          rawValue: workingDepositData.freeUsdt.total || 0,
+                          color: '#10b981',
+                        },
+                        {
+                          key: 'deficit',
+                          name: '💱 В обмене',
+                          rawValue: workingDepositData.deficit.totalUsdt || 0,
+                          color: 'var(--text-tertiary)',
+                        },
+                      ].filter(item => item.rawValue > 0);
+
+                      const totalRaw = rawData.reduce((sum, item) => sum + item.rawValue, 0);
+                      const minShare = 0.02; // ~2% of chart minimum for visibility
+                      const maxShare = 0.06; // cap so it doesn't look too distorted
+                      const boostedFree = (rawFree: number) => {
+                        if (rawFree <= 0 || totalRaw <= 0) return rawFree;
+                        const minValue = totalRaw * minShare;
+                        const maxValue = totalRaw * maxShare;
+                        return Math.min(Math.max(rawFree, minValue), maxValue);
+                      };
+
+                      const chartData = rawData.map(item => ({
+                        ...item,
+                        value: item.key === 'free' ? boostedFree(item.rawValue) : item.rawValue,
+                      }));
+
+                      return (
+                        <>
                     <Pie
-                      data={[
-                        { name: '💎 Платформы', value: workingDepositData.platformBalances.total || 0, color: '#6366f1' },
-                        { name: '🔒 Заблокированные', value: workingDepositData.blockedPesos.totalUsdt || 0, color: '#ef4444' },
-                        { name: '⏳ Неоплаченные', value: workingDepositData.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
-                        { name: '✨ Свободные', value: workingDepositData.freeUsdt.total || 0, color: '#10b981' },
-                      ].filter(item => item.value > 0)}
+                      data={chartData}
                       cx="50%"
                       cy="50%"
                       labelLine={{
                         stroke: 'var(--text-tertiary)',
                         strokeWidth: 1
                       }}
-                      label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      label={({ name, payload }: any) => {
+                        const rawValue = Number(payload?.rawValue ?? 0);
+                        const percent = totalRaw > 0 ? (rawValue / totalRaw) * 100 : 0;
+                        return `${name}: ${percent.toFixed(1)}%`;
+                      }}
                       outerRadius={70}
                       innerRadius={40}
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {[
-                        { name: '💎 Платформы', value: workingDepositData.platformBalances.total || 0, color: '#6366f1' },
-                        { name: '🔒 Заблокированные', value: workingDepositData.blockedPesos.totalUsdt || 0, color: '#ef4444' },
-                        { name: '⏳ Неоплаченные', value: workingDepositData.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
-                        { name: '✨ Свободные', value: workingDepositData.freeUsdt.total || 0, color: '#10b981' },
-                      ].filter(item => item.value > 0).map((entry, index) => (
+                      {chartData.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
                           fill={entry.color}
@@ -498,8 +543,14 @@ export default function Analytics() {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                       }}
                       itemStyle={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}
-                      formatter={(value: any) => [`${Number(value).toFixed(2)} USDT`, '']}
+                      formatter={(_value: any, _name: any, props: any) => {
+                        const rawValue = Number(props?.payload?.rawValue ?? 0);
+                        return [`${rawValue.toFixed(2)} USDT`, ''];
+                      }}
                     />
+                        </>
+                      );
+                    })()}
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -520,6 +571,14 @@ export default function Analytics() {
             </div>
             <div className="widget-content" style={{ padding: 0 }}>
               {workingDepositData ? (
+                (() => {
+                  const displayedTotalUsdt =
+                    Number(workingDepositData.summary.totalUsdt || 0) +
+                    Number(workingDepositData.deficit.totalUsdt || 0);
+                  const displayedProfit = displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0);
+                  const isProfitable = displayedProfit >= 0;
+
+                  return (
                 <div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                     <thead>
@@ -532,15 +591,15 @@ export default function Analytics() {
                       <tr>
                         <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>💰 Рабочий депозит</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
-                          {(workingDepositData.summary.totalUsdt || 0).toFixed(2)}
+                          {displayedTotalUsdt.toFixed(2)}
                         </td>
                       </tr>
-                      <tr style={{ backgroundColor: (workingDepositData.summary.profit || 0) >= 0 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
+                      <tr style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
                         <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>
-                          {(workingDepositData.summary.profit || 0) >= 0 ? '📈 Профит' : '📉 Дефицит'}
+                          {isProfitable ? '📈 Профит' : '📉 Дефицит'}
                         </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: (workingDepositData.summary.profit || 0) >= 0 ? '#10b981' : '#ef4444' }}>
-                          {(workingDepositData.summary.profit || 0) >= 0 ? '+' : ''}{(workingDepositData.summary.profit || 0).toFixed(2)}
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: isProfitable ? '#10b981' : '#ef4444' }}>
+                          {isProfitable ? '+' : ''}{displayedProfit.toFixed(2)}
                         </td>
                       </tr>
                       <tr style={{ backgroundColor: 'var(--bg-tertiary)' }}>
@@ -652,9 +711,38 @@ export default function Analytics() {
                           {(workingDepositData.freeUsdt.total || 0).toFixed(2)}
                         </td>
                       </tr>
+
+                      <tr 
+                        onClick={() => setSelectedSection('deficit')}
+                        style={{ 
+                          backgroundColor: selectedSection === 'deficit' ? 'rgba(148, 163, 184, 0.18)' : 'rgba(148, 163, 184, 0.06)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'deficit') {
+                            e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.12)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'deficit') {
+                            e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.06)';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: 'var(--text-tertiary)', marginRight: '6px' }}>●</span>
+                          💱 В обмене
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {(workingDepositData.deficit.totalUsdt || 0).toFixed(2)}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
+                  );
+                })()
               ) : (
                 <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
                   Нет данных

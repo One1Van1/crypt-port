@@ -66,7 +66,9 @@ const WorkingDepositChart = () => {
     );
   }
 
-  const isProfitable = (sections.summary.profit || 0) >= 0;
+  const displayedTotalUsdt = Number(sections.summary.totalUsdt || 0) + Number(sections.deficit.totalUsdt || 0);
+  const displayedProfit = displayedTotalUsdt - Number(sections.summary.initialDeposit || 0);
+  const isProfitable = displayedProfit >= 0;
 
   // Debug: log unpaid pesos data
   console.log('📊 Working Deposit Data:', {
@@ -120,7 +122,7 @@ const WorkingDepositChart = () => {
         <div className="mb-6 text-center">
           <div className="text-sm" style={{ color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>💰 Всего денег в системе</div>
           <div className="text-5xl font-bold" style={{ color: 'var(--accent-primary)' }}>
-            {(sections.summary.totalUsdt || 0).toFixed(2)} USDT
+            {displayedTotalUsdt.toFixed(2)} USDT
           </div>
         </div>
         
@@ -142,7 +144,7 @@ const WorkingDepositChart = () => {
           <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}>
             <div className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>💰 Текущий депозит</div>
             <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              {(sections.summary.totalUsdt || 0).toFixed(2)} USDT
+              {displayedTotalUsdt.toFixed(2)} USDT
             </div>
           </div>
           <div className="p-4 rounded-lg" style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)', border: `2px solid ${isProfitable ? '#10b981' : '#ef4444'}` }}>
@@ -154,11 +156,11 @@ const WorkingDepositChart = () => {
               style={{ color: isProfitable ? '#10b981' : '#ef4444' }}
             >
               {isProfitable ? '+' : ''}
-              {(sections.summary.profit || 0).toFixed(2)} USDT
+              {displayedProfit.toFixed(2)} USDT
             </div>
             {sections.summary.initialDeposit > 0 && (
               <div className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                ROI: {((sections.summary.profit / sections.summary.initialDeposit) * 100).toFixed(2)}%
+                ROI: {((displayedProfit / sections.summary.initialDeposit) * 100).toFixed(2)}%
               </div>
             )}
           </div>
@@ -317,39 +319,85 @@ const WorkingDepositChart = () => {
           <h3 className="text-lg font-bold mb-6" style={{ color: 'var(--text-primary)' }}>🥧 Распределение депозита</h3>
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
-              <Pie
-                data={[
-                  { name: '💎 Платформы', value: sections.platformBalances.total || 0, color: '#6366f1' },
-                  { name: '🔒 Заблокированные', value: sections.blockedPesos.totalUsdt || 0, color: '#ef4444' },
-                  { name: '⏳ Неоплаченные', value: sections.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
-                  { name: '✨ Свободные', value: sections.freeUsdt.total || 0, color: '#10b981' },
-                ].filter(item => item.value > 0)}
-                cx="50%"
-                cy="50%"
-                labelLine={{
-                  stroke: 'var(--text-tertiary)',
-                  strokeWidth: 1
-                }}
-                label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(1)}%`}
-                outerRadius={110}
-                innerRadius={60}
-                paddingAngle={2}
-                dataKey="value"
-              >
-                {[
-                  { name: '💎 Платформы', value: sections.platformBalances.total || 0, color: '#6366f1' },
-                  { name: '🔒 Заблокированные', value: sections.blockedPesos.totalUsdt || 0, color: '#ef4444' },
-                  { name: '⏳ Неоплаченные', value: sections.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
-                  { name: '✨ Свободные', value: sections.freeUsdt.total || 0, color: '#10b981' },
-                ].filter(item => item.value > 0).map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.color}
-                    stroke="var(--bg-primary)"
-                    strokeWidth={3}
-                  />
-                ))}
-              </Pie>
+              {(() => {
+                const rawData = [
+                  {
+                    key: 'platforms',
+                    name: '💎 Платформы',
+                    rawValue: sections.platformBalances.total || 0,
+                    color: '#6366f1',
+                  },
+                  {
+                    key: 'blocked',
+                    name: '🔒 Заблокированные',
+                    rawValue: sections.blockedPesos.totalUsdt || 0,
+                    color: '#ef4444',
+                  },
+                  {
+                    key: 'unpaid',
+                    name: '⏳ Неоплаченные',
+                    rawValue: sections.unpaidPesos.totalUsdt || 0,
+                    color: '#f59e0b',
+                  },
+                  {
+                    key: 'free',
+                    name: '✨ Свободные',
+                    rawValue: sections.freeUsdt.total || 0,
+                    color: '#10b981',
+                  },
+                  {
+                    key: 'deficit',
+                    name: '💱 В обмене',
+                    rawValue: sections.deficit.totalUsdt || 0,
+                    color: 'var(--text-tertiary)',
+                  },
+                ].filter(item => item.rawValue > 0);
+
+                const totalRaw = rawData.reduce((sum, item) => sum + item.rawValue, 0);
+                const minShare = 0.02;
+                const maxShare = 0.06;
+                const boostedFree = (rawFree: number) => {
+                  if (rawFree <= 0 || totalRaw <= 0) return rawFree;
+                  const minValue = totalRaw * minShare;
+                  const maxValue = totalRaw * maxShare;
+                  return Math.min(Math.max(rawFree, minValue), maxValue);
+                };
+
+                const chartData = rawData.map(item => ({
+                  ...item,
+                  value: item.key === 'free' ? boostedFree(item.rawValue) : item.rawValue,
+                }));
+
+                return (
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={{
+                      stroke: 'var(--text-tertiary)',
+                      strokeWidth: 1,
+                    }}
+                    label={({ name, payload }: any) => {
+                      const rawValue = Number(payload?.rawValue ?? 0);
+                      const percent = totalRaw > 0 ? (rawValue / totalRaw) * 100 : 0;
+                      return `${name}: ${percent.toFixed(1)}%`;
+                    }}
+                    outerRadius={110}
+                    innerRadius={60}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        stroke="var(--bg-primary)"
+                        strokeWidth={3}
+                      />
+                    ))}
+                  </Pie>
+                );
+              })()}
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'var(--bg-secondary)',
@@ -359,7 +407,10 @@ const WorkingDepositChart = () => {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}
                 itemStyle={{ color: 'var(--text-primary)' }}
-                formatter={(value: any) => [`${Number(value).toFixed(2)} USDT`, '']}
+                formatter={(_value: any, _name: any, props: any) => {
+                  const rawValue = Number(props?.payload?.rawValue ?? 0);
+                  return [`${rawValue.toFixed(2)} USDT`, ''];
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -380,7 +431,7 @@ const WorkingDepositChart = () => {
                 <tr>
                   <td style={{ padding: '16px', color: 'var(--text-secondary)', fontWeight: '500' }}>💰 Рабочий депозит</td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem', color: 'var(--text-primary)' }}>
-                    {(sections.summary.totalUsdt || 0).toFixed(2)}
+                    {displayedTotalUsdt.toFixed(2)}
                   </td>
                 </tr>
                 <tr style={{ backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
@@ -388,7 +439,7 @@ const WorkingDepositChart = () => {
                     {isProfitable ? '📈 Профит' : '📉 Дефицит'}
                   </td>
                   <td style={{ padding: '16px', textAlign: 'right', fontWeight: 'bold', fontSize: '1.1rem', color: isProfitable ? '#10b981' : '#ef4444' }}>
-                    {isProfitable ? '+' : ''}{(sections.summary.profit || 0).toFixed(2)}
+                    {isProfitable ? '+' : ''}{displayedProfit.toFixed(2)}
                   </td>
                 </tr>
                 <tr style={{ backgroundColor: 'var(--bg-secondary)' }}>
@@ -430,6 +481,16 @@ const WorkingDepositChart = () => {
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
                     {(sections.freeUsdt.total || 0).toFixed(2)}
+                  </td>
+                </tr>
+
+                <tr style={{ backgroundColor: 'rgba(148, 163, 184, 0.06)' }}>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: 'var(--text-tertiary)', marginRight: '8px' }}>●</span>
+                    💱 В обмене
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.deficit.totalUsdt || 0).toFixed(2)}
                   </td>
                 </tr>
             </tbody>
