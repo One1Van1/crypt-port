@@ -6,9 +6,11 @@ import { CashWithdrawal } from '../../../entities/cash-withdrawal.entity';
 import { Drop } from '../../../entities/drop.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { FreeUsdtDistribution } from '../../../entities/free-usdt-distribution.entity';
+import { FreeUsdtAdjustment } from '../../../entities/free-usdt-adjustment.entity';
 import { FreeUsdtEntry } from '../../../entities/free-usdt-entry.entity';
 import { Platform } from '../../../entities/platform.entity';
 import { Profit } from '../../../entities/profit.entity';
+import { ProfitReserve } from '../../../entities/profit-reserve.entity';
 import { SystemSetting } from '../../../entities/system-setting.entity';
 import { Transaction } from '../../../entities/transaction.entity';
 import { UsdtToPesoExchange } from '../../../entities/usdt-to-peso-exchange.entity';
@@ -22,6 +24,7 @@ import {
   DeficitSection,
   FreeUsdtSection,
   GetWorkingDepositSectionsLedgerResponseDto,
+  ProfitReserveSection,
   PlatformBalanceDto,
   PlatformBalancesSection,
   SummarySection,
@@ -54,6 +57,10 @@ export class GetWorkingDepositSectionsLedgerService {
     private readonly freeUsdtEntryRepository: Repository<FreeUsdtEntry>,
     @InjectRepository(FreeUsdtDistribution)
     private readonly freeUsdtDistributionRepository: Repository<FreeUsdtDistribution>,
+    @InjectRepository(FreeUsdtAdjustment)
+    private readonly freeUsdtAdjustmentRepository: Repository<FreeUsdtAdjustment>,
+    @InjectRepository(ProfitReserve)
+    private readonly profitReserveRepository: Repository<ProfitReserve>,
   ) {}
 
   async execute(): Promise<GetWorkingDepositSectionsLedgerResponseDto> {
@@ -61,13 +68,15 @@ export class GetWorkingDepositSectionsLedgerService {
     const blockedPesos = await this.calculateBlockedPesos();
     const unpaidPesos = await this.calculateUnpaidPesos();
     const freeUsdt = await this.calculateFreeUsdt();
+    const profitReserve = await this.calculateProfitReserve();
     const deficit = await this.calculateDeficit();
 
     const totalUsdt =
       platformBalances.total +
       blockedPesos.totalUsdt +
       unpaidPesos.totalUsdt +
-      freeUsdt.total -
+      freeUsdt.total +
+      profitReserve.totalUsdt +
       deficit.totalUsdt;
 
     const initialDepositSetting = await this.systemSettingRepository.findOne({
@@ -82,9 +91,25 @@ export class GetWorkingDepositSectionsLedgerService {
       blockedPesos,
       unpaidPesos,
       freeUsdt,
+      profitReserve,
       deficit,
       new SummarySection(totalUsdt, initialDeposit, profit),
     );
+  }
+
+  private getTodayDateString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private async calculateProfitReserve(): Promise<ProfitReserveSection> {
+    const today = this.getTodayDateString();
+    const reserve = await this.profitReserveRepository.findOne({ where: { date: today } });
+    const totalUsdt = reserve ? Number(reserve.amountUsdt) : 0;
+    return new ProfitReserveSection(totalUsdt);
   }
 
   private async calculatePlatformBalances(): Promise<PlatformBalancesSection> {
@@ -230,8 +255,17 @@ export class GetWorkingDepositSectionsLedgerService {
       .getRawOne<{ sum: string }>();
     const totalDistributed = parseFloat(totalDistributedRaw?.sum ?? '0');
 
+    const totalAdjustmentsRaw = await this.freeUsdtAdjustmentRepository
+      .createQueryBuilder('a')
+      .select('COALESCE(SUM(a.amountUsdt), 0)', 'sum')
+      .getRawOne<{ sum: string }>();
+    const totalAdjustments = parseFloat(totalAdjustmentsRaw?.sum ?? '0');
+
     const totalOut = totalProfitWithdrawn + totalDistributed;
-    const total = totalEmitted - totalOut;
+    // Adjustments are signed: negative decreases free-usdt, positive increases.
+    // Keep the invariant: total = totalConverted - totalWithdrawn.
+    const totalWithdrawn = totalOut - totalAdjustments;
+    const total = totalEmitted - totalWithdrawn;
 
     const conversionDtos = entries.map(
       (e) =>
@@ -244,7 +278,7 @@ export class GetWorkingDepositSectionsLedgerService {
         ),
     );
 
-    return new FreeUsdtSection(total, totalEmitted, totalOut, conversionDtos);
+    return new FreeUsdtSection(total, totalEmitted, totalWithdrawn, conversionDtos);
   }
 
   private async calculateDeficit(): Promise<DeficitSection> {

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { FreeUsdtDistribution } from '../../../entities/free-usdt-distribution.entity';
+import { FreeUsdtAdjustment } from '../../../entities/free-usdt-adjustment.entity';
 import { FreeUsdtEntry } from '../../../entities/free-usdt-entry.entity';
 import { Platform } from '../../../entities/platform.entity';
 import { Profit } from '../../../entities/profit.entity';
@@ -108,6 +109,13 @@ export class DistributeFreeUsdtService {
       .getRawOne<{ sum: string }>();
     const totalDistributed = parseFloat(totalDistributedRaw?.sum ?? '0');
 
-    return totalEmitted - totalProfitWithdrawn - totalDistributed;
+    const totalAdjustmentsRaw = await manager
+      .getRepository(FreeUsdtAdjustment)
+      .createQueryBuilder('a')
+      .select('COALESCE(SUM(a.amountUsdt), 0)', 'sum')
+      .getRawOne<{ sum: string }>();
+    const totalAdjustments = parseFloat(totalAdjustmentsRaw?.sum ?? '0');
+
+    return totalEmitted - totalProfitWithdrawn - totalDistributed + totalAdjustments;
   }
 }

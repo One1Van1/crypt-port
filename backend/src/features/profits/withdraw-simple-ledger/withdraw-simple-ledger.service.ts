@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import { FreeUsdtDistribution } from '../../../entities/free-usdt-distribution.entity';
 import { FreeUsdtEntry } from '../../../entities/free-usdt-entry.entity';
+import { FreeUsdtAdjustment, FreeUsdtAdjustmentReason } from '../../../entities/free-usdt-adjustment.entity';
 import { Profit } from '../../../entities/profit.entity';
+import { ProfitReserve } from '../../../entities/profit-reserve.entity';
 import { SystemSetting } from '../../../entities/system-setting.entity';
 import { User } from '../../../entities/user.entity';
 import { WithdrawSimpleLedgerProfitRequestDto } from './withdraw-simple-ledger.request.dto';
@@ -32,25 +34,45 @@ export class WithdrawSimpleLedgerProfitService {
     await queryRunner.startTransaction();
 
     try {
-      const freeUsdtBalance = await this.getFreeUsdtBalance(queryRunner.manager);
-      const initialDeposit = await this.getInitialDeposit();
+      const date = this.getTodayDateString();
 
-      const availableProfit = Math.max(0, freeUsdtBalance - initialDeposit);
+      // Profit is withdrawn from the reserved profit bucket (profit_reserves),
+      // not from "Free USDT" directly.
+      const profitReserveRepository = queryRunner.manager.getRepository(ProfitReserve);
+      const freeUsdtAdjustmentRepository = queryRunner.manager.getRepository(FreeUsdtAdjustment);
 
-      if (availableProfit <= 0) {
+      const reserve = await profitReserveRepository.findOne({ where: { date } });
+      const reservedAmount = reserve ? Number(reserve.amountUsdt) : 0;
+
+      if (reservedAmount <= 0) {
         throw new BadRequestException('No profit available to withdraw');
       }
 
-      if (dto.profitUsdtAmount > availableProfit) {
+      if (dto.profitUsdtAmount > reservedAmount) {
         throw new BadRequestException(
-          `Cannot withdraw ${dto.profitUsdtAmount} USDT. Available profit: ${availableProfit.toFixed(2)} USDT`,
+          `Cannot withdraw ${dto.profitUsdtAmount} USDT. Available profit: ${reservedAmount.toFixed(2)} USDT`,
         );
       }
 
-      if (dto.profitUsdtAmount > freeUsdtBalance) {
-        throw new BadRequestException(
-          `Insufficient free USDT. Available: ${freeUsdtBalance.toFixed(2)} USDT, Required: ${dto.profitUsdtAmount} USDT`,
-        );
+      // Decrease today's reserve by withdrawn amount
+      const newReservedAmount = reservedAmount - dto.profitUsdtAmount;
+      if (reserve) {
+        if (newReservedAmount > 0) {
+          reserve.amountUsdt = String(newReservedAmount);
+          await profitReserveRepository.save(reserve);
+        } else {
+          await profitReserveRepository.delete({ id: reserve.id });
+        }
+
+        // Release withdrawn amount from reserve-accounting so Free USDT doesn't drift.
+        // (Free USDT is reduced by reserve adjustments; as reserve shrinks, we add a + adjustment.)
+        const adjustment = freeUsdtAdjustmentRepository.create({
+          reason: FreeUsdtAdjustmentReason.RESERVE_PROFIT,
+          amountUsdt: String(dto.profitUsdtAmount),
+          profit_reserve_id: reserve.id,
+          created_by_user_id: user.id,
+        });
+        await freeUsdtAdjustmentRepository.save(adjustment);
       }
 
       const profitPesos = dto.profitUsdtAmount * dto.adminRate;
@@ -114,5 +136,13 @@ export class WithdrawSimpleLedgerProfitService {
     const totalDistributed = parseFloat(totalDistributedRaw?.sum ?? '0');
 
     return totalEmitted - totalProfitWithdrawn - totalDistributed;
+  }
+
+  private getTodayDateString(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

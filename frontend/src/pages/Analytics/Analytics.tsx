@@ -104,6 +104,7 @@ export default function Analytics() {
   const [newRate, setNewRate] = useState<string>('');
   const [withdrawalDate, setWithdrawalDate] = useState<Date | null>(new Date());
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [isProfitRecorded, setIsProfitRecorded] = useState<boolean>(false);
   const [isEditingInitialDeposit, setIsEditingInitialDeposit] = useState(false);
   const [initialDepositDraft, setInitialDepositDraft] = useState<string>('');
 
@@ -200,8 +201,27 @@ export default function Analytics() {
     },
   });
 
+  const reserveProfitMutation = useMutation({
+    mutationFn: () => workingDepositService.reserveProfit(),
+    onSuccess: () => {
+      toast.success('Профит записан');
+      queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
+      setIsProfitRecorded(true);
+    },
+    onError: (e: any) => {
+      const msg = e?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка записи профита');
+    },
+  });
+
   useEffect(() => {
     setIsEditingInitialDeposit(false);
+  }, [selectedSection]);
+
+  useEffect(() => {
+    if (selectedSection === 'profit') {
+      setIsProfitRecorded(false);
+    }
   }, [selectedSection]);
 
   // Update platform rate mutation
@@ -506,6 +526,12 @@ export default function Analytics() {
                       color: '#6366f1',
                     },
                     {
+                      key: 'profitReserve',
+                      name: '📈 Профит',
+                      rawValue: workingDepositData.profitReserve?.totalUsdt || 0,
+                      color: '#22c55e',
+                    },
+                    {
                       key: 'blocked',
                       name: '🔒 Заблокированные',
                       rawValue: workingDepositData.blockedPesos.totalUsdt || 0,
@@ -638,10 +664,11 @@ export default function Analytics() {
             <div className="widget-content" style={{ padding: 0 }}>
               {workingDepositData ? (
                 (() => {
-                  const displayedTotalUsdt =
-                    Number(workingDepositData.summary.totalUsdt || 0) +
-                    Number(workingDepositData.deficit.totalUsdt || 0);
-                  const displayedProfit = displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0);
+                  const displayedTotalUsdt = Number(workingDepositData.summary.totalUsdt || 0);
+                  const displayedProfit = Number(
+                    workingDepositData.summary.profit ??
+                      displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0),
+                  );
                   const isProfitable = displayedProfit >= 0;
 
                   return (
@@ -845,10 +872,11 @@ export default function Analytics() {
               <div className="widget-content" style={{ padding: '14px', height: 'calc(100% - 60px)', overflow: 'auto' }}>
                 {workingDepositData ? (
                   (() => {
-                    const displayedTotalUsdt =
-                      Number(workingDepositData.summary.totalUsdt || 0) +
-                      Number(workingDepositData.deficit.totalUsdt || 0);
-                    const displayedProfit = displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0);
+                    const displayedTotalUsdt = Number(workingDepositData.summary.totalUsdt || 0);
+                    const displayedProfit = Number(
+                      workingDepositData.summary.profit ??
+                        displayedTotalUsdt - Number(workingDepositData.summary.initialDeposit || 0),
+                    );
                     const isProfitable = displayedProfit >= 0;
 
                     if (!selectedSection) {
@@ -984,6 +1012,37 @@ export default function Analytics() {
                     }
 
                     if (selectedSection === 'profit') {
+                      if (!isProfitRecorded) {
+                        return (
+                          <div>
+                            <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 12, fontSize: '1rem' }}>
+                              📌 Записать профит
+                            </div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: 12 }}>
+                              Нажмите кнопку, чтобы обновить профит/дефицит в базе перед отображением.
+                            </div>
+                            <button
+                              type="button"
+                              disabled={reserveProfitMutation.isPending}
+                              onClick={() => reserveProfitMutation.mutate()}
+                              style={{
+                                padding: '10px 12px',
+                                borderRadius: 12,
+                                border: '1px solid var(--border-color)',
+                                background: 'transparent',
+                                color: 'var(--text-primary)',
+                                fontWeight: 800,
+                                fontSize: '0.95rem',
+                                cursor: reserveProfitMutation.isPending ? 'not-allowed' : 'pointer',
+                                opacity: reserveProfitMutation.isPending ? 0.6 : 1,
+                              }}
+                            >
+                              {reserveProfitMutation.isPending ? 'Запись...' : 'Записать профит'}
+                            </button>
+                          </div>
+                        );
+                      }
+
                       const parsedProfitUsdtAmount = Number(String(profitWithdrawDraft).replace(',', '.'));
                       const parsedAdminRate = Number(String(profitAdminRateDraft).replace(',', '.'));
                       const computedPesos =
@@ -1201,6 +1260,14 @@ export default function Analytics() {
                       return (
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>✨ Свободные USDT</div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <div>Доступно сейчас</div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{Number(workingDepositData.freeUsdt.total || 0).toFixed(2)} USDT</div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                            <div>Зарезервированный профит</div>
+                            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{Number(workingDepositData.profitReserve?.totalUsdt || 0).toFixed(2)} USDT</div>
+                          </div>
                           {conversions.length ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                               <thead>

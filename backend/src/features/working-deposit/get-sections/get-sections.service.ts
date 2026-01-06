@@ -72,12 +72,12 @@ export class GetWorkingDepositSectionsService {
     const deficit = await this.calculateDeficit();
 
     // 6. Summary
-    // Формула: Platform + Blocked + Unpaid + Free - Deficit
+    // Формула: Platform + Blocked + Unpaid + Free + Deficit
     const totalUsdt =
       platformBalances.total +
       blockedPesos.totalUsdt +
       unpaidPesos.totalUsdt +
-      freeUsdt.total -
+      freeUsdt.total +
       deficit.totalUsdt;
 
     // Initial deposit из настроек

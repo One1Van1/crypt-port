@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import type { ReserveProfitRequest, ReserveProfitResponse } from '../types/reserve-profit';
 
 export interface PlatformBalance {
   id: number;
@@ -55,6 +56,9 @@ export interface WorkingDepositSections {
     totalConverted: number;
     totalWithdrawn: number;
     conversions: Conversion[];
+  };
+  profitReserve: {
+    totalUsdt: number;
   };
   deficit: {
     totalPesos: number;
@@ -119,6 +123,11 @@ export const workingDepositService = {
     const response = await apiClient.patch('/admin/settings/initial-deposit', {
       initialDeposit: amount,
     });
+    return response.data;
+  },
+
+  reserveProfit: async (dto: ReserveProfitRequest = {}): Promise<ReserveProfitResponse> => {
+    const response = await apiClient.post('/working-deposit/reserve-profit', dto);
     return response.data;
   },
 };

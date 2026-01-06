@@ -186,6 +186,15 @@ export class FreeUsdtSection {
   }
 }
 
+export class ProfitReserveSection {
+  @ApiProperty()
+  totalUsdt: number;
+
+  constructor(totalUsdt: number) {
+    this.totalUsdt = totalUsdt;
+  }
+}
+
 export class DeficitSection {
   @ApiProperty()
   total: number;
@@ -233,6 +242,9 @@ export class GetWorkingDepositSectionsLedgerResponseDto {
   @ApiProperty({ type: FreeUsdtSection })
   freeUsdt: FreeUsdtSection;
 
+  @ApiProperty({ type: ProfitReserveSection })
+  profitReserve: ProfitReserveSection;
+
   @ApiProperty({ type: DeficitSection })
   deficit: DeficitSection;
 
@@ -244,6 +256,7 @@ export class GetWorkingDepositSectionsLedgerResponseDto {
     blockedPesos: BlockedPesosSection,
     unpaidPesos: UnpaidPesosSection,
     freeUsdt: FreeUsdtSection,
+    profitReserve: ProfitReserveSection,
     deficit: DeficitSection,
     summary: SummarySection,
   ) {
@@ -251,6 +264,7 @@ export class GetWorkingDepositSectionsLedgerResponseDto {
     this.blockedPesos = blockedPesos;
     this.unpaidPesos = unpaidPesos;
     this.freeUsdt = freeUsdt;
+    this.profitReserve = profitReserve;
     this.deficit = deficit;
     this.summary = summary;
   }

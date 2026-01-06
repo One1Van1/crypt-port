@@ -66,8 +66,8 @@ const WorkingDepositChart = () => {
     );
   }
 
-  const displayedTotalUsdt = Number(sections.summary.totalUsdt || 0) + Number(sections.deficit.totalUsdt || 0);
-  const displayedProfit = displayedTotalUsdt - Number(sections.summary.initialDeposit || 0);
+  const displayedTotalUsdt = Number(sections.summary.totalUsdt || 0);
+  const displayedProfit = Number(sections.summary.profit ?? (displayedTotalUsdt - Number(sections.summary.initialDeposit || 0)));
   const isProfitable = displayedProfit >= 0;
 
   // Debug: log unpaid pesos data
@@ -326,6 +326,12 @@ const WorkingDepositChart = () => {
                 color: '#6366f1',
               },
               {
+                key: 'profitReserve',
+                name: '📈 Профит',
+                rawValue: sections.profitReserve?.totalUsdt || 0,
+                color: '#22c55e',
+              },
+              {
                 key: 'blocked',
                 name: '🔒 Заблокированные',
                 rawValue: sections.blockedPesos.totalUsdt || 0,
@@ -479,6 +485,15 @@ const WorkingDepositChart = () => {
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
                     {(sections.platformBalances.total || 0).toFixed(2)}
+                  </td>
+                </tr>
+                <tr style={{ backgroundColor: 'rgba(34, 197, 94, 0.05)' }}>
+                  <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
+                    <span style={{ color: '#22c55e', marginRight: '8px' }}>●</span>
+                    📈 Профит
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                    {(sections.profitReserve?.totalUsdt || 0).toFixed(2)}
                   </td>
                 </tr>
                 <tr style={{ backgroundColor: 'rgba(239, 68, 68, 0.05)' }}>

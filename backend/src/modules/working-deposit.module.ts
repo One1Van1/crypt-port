@@ -13,6 +13,9 @@ import { SystemSetting } from '../entities/system-setting.entity';
 import { DailyProfit } from '../entities/daily-profit.entity';
 import { FreeUsdtEntry } from '../entities/free-usdt-entry.entity';
 import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity';
+import { ProfitReserve } from '../entities/profit-reserve.entity';
+import { DeficitRecord } from '../entities/deficit-record.entity';
+import { FreeUsdtAdjustment } from '../entities/free-usdt-adjustment.entity';
 
 // Get Sections
 import { GetWorkingDepositSectionsController } from '../features/working-deposit/get-sections/get-sections.controller';
@@ -30,6 +33,10 @@ import { GetWorkingDepositHistoryService } from '../features/working-deposit/get
 import { GetProfitHistoryController } from '../features/working-deposit/get-profit-history/get-profit-history.controller';
 import { GetProfitHistoryService } from '../features/working-deposit/get-profit-history/get-profit-history.service';
 
+// Reserve Profit
+import { ReserveProfitController } from '../features/working-deposit/reserve-profit/reserve-profit.controller';
+import { ReserveProfitService } from '../features/working-deposit/reserve-profit/reserve-profit.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -46,6 +53,9 @@ import { GetProfitHistoryService } from '../features/working-deposit/get-profit-
       DailyProfit,
       FreeUsdtEntry,
       FreeUsdtDistribution,
+      ProfitReserve,
+      DeficitRecord,
+      FreeUsdtAdjustment,
     ]),
   ],
   controllers: [
@@ -53,12 +63,14 @@ import { GetProfitHistoryService } from '../features/working-deposit/get-profit-
     GetWorkingDepositSectionsLedgerController,
     GetWorkingDepositHistoryController,
     GetProfitHistoryController,
+    ReserveProfitController,
   ],
   providers: [
     GetWorkingDepositSectionsService,
     GetWorkingDepositSectionsLedgerService,
     GetWorkingDepositHistoryService,
     GetProfitHistoryService,
+    ReserveProfitService,
   ],
 })
 export class WorkingDepositModule {}
