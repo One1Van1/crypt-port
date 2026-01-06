@@ -30,10 +30,13 @@ import {
   ResponsiveContainer,
   Legend,
   Cell,
+  PieChart,
+  Pie,
 } from 'recharts';
 import { analyticsService } from '../../services/analytics.service';
 import { platformsService } from '../../services/platforms.service';
 import { transactionsService } from '../../services/transactions.service';
+import { workingDepositService } from '../../services/workingDepositService';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import DatePicker from '../../components/DatePicker/DatePicker';
@@ -137,6 +140,7 @@ export default function Analytics() {
   const [editingPlatformId, setEditingPlatformId] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<string>('');
   const [withdrawalDate, setWithdrawalDate] = useState<Date | null>(new Date());
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
@@ -187,6 +191,12 @@ export default function Analytics() {
   const { data: operatorsWithdrawalsData } = useQuery({
     queryKey: ['operators-withdrawals'],
     queryFn: () => analyticsService.getOperatorsWithdrawals(),
+  });
+
+  // Fetch working deposit sections
+  const { data: workingDepositData } = useQuery({
+    queryKey: ['workingDepositSections'],
+    queryFn: () => workingDepositService.getSections(),
   });
 
   // Update platform rate mutation
@@ -478,49 +488,268 @@ export default function Analytics() {
           </div>
         </div>
 
-        {/* Transaction Status Funnel - Under KPI Cards */}
-        <div className="analytics-widget widget-left-sidebar">
-          <div className="widget-header">
-            <h3 className="widget-title">
-              <BarChart3 size={20} />
-              {t('nav.transactions')} - {t('users.table.status')}
-            </h3>
-            <div className="widget-actions">
-              <span className="widget-hint">{t('common.view')} деталей</span>
+        {/* Deposit Distribution Section - Under KPI Cards */}
+        <div className="deposit-section">
+          <div className="deposit-left">
+            {/* Pie Chart Widget */}
+            <div className="deposit-widget">
+              <div className="widget-header">
+                <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
+                  <BarChart3 size={18} />
+                  Распределение депозита
+                </h3>
+              </div>
+            <div className="widget-content" style={{ padding: '16px' }}>
+              {workingDepositData ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: '💎 Платформы', value: workingDepositData.platformBalances.total || 0, color: '#6366f1' },
+                        { name: '🔒 Заблокированные', value: workingDepositData.blockedPesos.totalUsdt || 0, color: '#ef4444' },
+                        { name: '⏳ Неоплаченные', value: workingDepositData.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
+                        { name: '✨ Свободные', value: workingDepositData.freeUsdt.total || 0, color: '#10b981' },
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={{
+                        stroke: 'var(--text-tertiary)',
+                        strokeWidth: 1
+                      }}
+                      label={({ name, percent }: any) => `${name}: ${(percent * 100).toFixed(1)}%`}
+                      outerRadius={70}
+                      innerRadius={40}
+                      paddingAngle={2}
+                      dataKey="value"
+                    >
+                      {[
+                        { name: '💎 Платформы', value: workingDepositData.platformBalances.total || 0, color: '#6366f1' },
+                        { name: '🔒 Заблокированные', value: workingDepositData.blockedPesos.totalUsdt || 0, color: '#ef4444' },
+                        { name: '⏳ Неоплаченные', value: workingDepositData.unpaidPesos.totalUsdt || 0, color: '#f59e0b' },
+                        { name: '✨ Свободные', value: workingDepositData.freeUsdt.total || 0, color: '#10b981' },
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color}
+                          stroke="var(--bg-primary)"
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        padding: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                      }}
+                      itemStyle={{ color: 'var(--text-primary)', fontSize: '0.85rem' }}
+                      formatter={(value: any) => [`${Number(value).toFixed(2)} USDT`, '']}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                  Нет данных
+                </div>
+              )}
             </div>
           </div>
-          <div className="widget-content">
-            <div className="funnel-container-compact">
-              {mockFunnelData.map((stage) => (
-                <div
-                  key={stage.stage}
-                  className={`funnel-stage-compact ${selectedFunnelStage === stage.status ? 'selected' : ''}`}
-                  onClick={() => setSelectedFunnelStage(stage.status)}
-                >
-                  <div className="funnel-bar-compact" style={{ borderLeftColor: stage.color }}>
-                    <div className="funnel-info-compact">
-                      <div className="funnel-stage-name">{stage.stage}</div>
-                      <div className="funnel-stats-compact">
-                        <div className="funnel-stat-item">
-                          <span className="funnel-label">{t('nav.transactions')}:</span>
-                          <span className="funnel-value">{stage.count}</span>
-                        </div>
-                        <div className="funnel-stat-item">
-                          <span className="funnel-label">{t('teamlead.totalAmount')}:</span>
-                          <span className="funnel-value">{formatCurrency(stage.amount)}</span>
-                        </div>
-                        {stage.lost > 0 && (
-                          <div className="funnel-stat-item lost">
-                            <XCircle size={14} />
-                            <span className="funnel-value">{stage.lost} {t('statuses.failed').toLowerCase()}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="funnel-progress-indicator" style={{ backgroundColor: stage.color, width: `${(stage.count / 245) * 100}%` }} />
-                  </div>
+
+          {/* Detailed Table Widget */}
+          <div className="deposit-widget">
+            <div className="widget-header">
+              <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
+                <BarChart3 size={18} />
+                Детальное распределение
+              </h3>
+            </div>
+            <div className="widget-content" style={{ padding: 0 }}>
+              {workingDepositData ? (
+                <div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                        <th style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.8rem' }}>Показатель</th>
+                        <th style={{ padding: '10px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 'bold', fontSize: '0.8rem' }}>Сумма (USDT)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>💰 Рабочий депозит</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                          {(workingDepositData.summary.totalUsdt || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr style={{ backgroundColor: (workingDepositData.summary.profit || 0) >= 0 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)' }}>
+                        <td style={{ padding: '10px 12px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+                          {(workingDepositData.summary.profit || 0) >= 0 ? '📈 Профит' : '📉 Дефицит'}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 'bold', color: (workingDepositData.summary.profit || 0) >= 0 ? '#10b981' : '#ef4444' }}>
+                          {(workingDepositData.summary.profit || 0) >= 0 ? '+' : ''}{(workingDepositData.summary.profit || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                        <td colSpan={2} style={{ padding: '6px 12px', fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '0.75rem' }}>
+                          Секции:
+                        </td>
+                      </tr>
+                      <tr 
+                        onClick={() => setSelectedSection('platforms')}
+                        style={{ 
+                          backgroundColor: selectedSection === 'platforms' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'platforms') {
+                            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'platforms') {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: '#6366f1', marginRight: '6px' }}>●</span>
+                          💎 Платформы
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {(workingDepositData.platformBalances.total || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr 
+                        onClick={() => setSelectedSection('blocked')}
+                        style={{ 
+                          backgroundColor: selectedSection === 'blocked' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.05)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'blocked') {
+                            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'blocked') {
+                            e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: '#ef4444', marginRight: '6px' }}>●</span>
+                          🔒 Заблокированные песо
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {(workingDepositData.blockedPesos.totalUsdt || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr 
+                        onClick={() => setSelectedSection('unpaid')}
+                        style={{ 
+                          backgroundColor: selectedSection === 'unpaid' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.05)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'unpaid') {
+                            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'unpaid') {
+                            e.currentTarget.style.backgroundColor = 'rgba(245, 158, 11, 0.05)';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: '#f59e0b', marginRight: '6px' }}>●</span>
+                          ⏳ Неоплаченные песо
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {(workingDepositData.unpaidPesos.totalUsdt || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                      <tr 
+                        onClick={() => setSelectedSection('free')}
+                        style={{ 
+                          backgroundColor: selectedSection === 'free' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.05)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'free') {
+                            e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'free') {
+                            e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.05)';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: '#10b981', marginRight: '6px' }}>●</span>
+                          ✨ Свободные USDT
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {(workingDepositData.freeUsdt.total || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              ))}
+              ) : (
+                <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+                  Нет данных
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+
+          {/* Right Widget - Section Details */}
+          <div className="deposit-right">
+            <div className="deposit-widget">
+              <div className="widget-header">
+                <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
+                  <BarChart3 size={18} />
+                  {selectedSection === 'platforms' && '💎 Платформы - Детали'}
+                  {selectedSection === 'blocked' && '🔒 Заблокированные песо - Детали'}
+                  {selectedSection === 'unpaid' && '⏳ Неоплаченные песо - Детали'}
+                  {selectedSection === 'free' && '✨ Свободные USDT - Детали'}
+                  {!selectedSection && 'Выберите секцию'}
+                </h3>
+              </div>
+              <div className="widget-content" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+                {selectedSection ? (
+                  <div style={{ textAlign: 'center', width: '100%' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>
+                      {selectedSection === 'platforms' && '💎'}
+                      {selectedSection === 'blocked' && '🔒'}
+                      {selectedSection === 'unpaid' && '⏳'}
+                      {selectedSection === 'free' && '✨'}
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>
+                      {selectedSection === 'platforms' && 'Платформы'}
+                      {selectedSection === 'blocked' && 'Заблокированные песо'}
+                      {selectedSection === 'unpaid' && 'Неоплаченные песо'}
+                      {selectedSection === 'free' && 'Свободные USDT'}
+                    </div>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      Детальная информация будет здесь
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>👈</div>
+                    <div style={{ fontSize: '0.9rem' }}>Выберите секцию в таблице слева</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -631,111 +860,6 @@ export default function Analytics() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Row 2: Dynamics + Processing Speed */}
-        <div className="analytics-row">
-          {/* Withdrawal Dynamics Widget */}
-          <div className="analytics-widget widget-medium">
-          <div className="widget-header">
-            <h3 className="widget-title">
-              <TrendingUp size={20} />
-              {t('analytics.depositsVsWithdrawals')}
-            </h3>
-            <div className="widget-actions">
-              <div className="view-mode-toggle">
-                <button
-                  className={`toggle-btn ${viewMode === 'count' ? 'active' : ''}`}
-                  onClick={() => setViewMode('count')}
-                >
-                  {t('common.view')}
-                </button>
-                <button
-                  className={`toggle-btn ${viewMode === 'amount' ? 'active' : ''}`}
-                  onClick={() => setViewMode('amount')}
-                >
-                  {t('teamlead.totalAmount')}
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="widget-content">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockDynamicsData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                <XAxis dataKey="date" stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
-                <YAxis
-                  stroke="var(--text-tertiary)"
-                  style={{ fontSize: '12px' }}
-                  tickFormatter={(value) =>
-                    viewMode === 'amount' ? formatCurrency(value) : value.toString()
-                  }
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                  }}
-                  formatter={(value: any, name?: string) => [
-                    viewMode === 'amount' ? formatCurrencyFull(value) : value,
-                    name === 'completed' ? t('statuses.completed') : t('statuses.pending'),
-                  ]}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey={viewMode === 'amount' ? 'amount' : 'completed'}
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  name="Completed"
-                  dot={{ fill: '#10b981', r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="pending"
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  name="Pending"
-                  dot={{ fill: '#f59e0b', r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-          {/* Processing Speed Widget */}
-          <div className="analytics-widget widget-large">
-          <div className="widget-header">
-            <h3 className="widget-title">
-              <Clock size={20} />
-              {t('shifts.duration')} {t('nav.transactions').toLowerCase()}
-            </h3>
-            <div className="widget-subtitle">Среднее время по этапам</div>
-          </div>
-          <div className="widget-content">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockSpeedData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                <XAxis type="number" stroke="var(--text-tertiary)" style={{ fontSize: '12px' }} />
-                <YAxis dataKey="stage" type="category" stroke="var(--text-tertiary)" width={120} style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                  }}
-                  formatter={(value: any) => [formatTime(value), t('shifts.duration')]}
-                />
-                <Bar dataKey="avgTime" radius={[0, 8, 8, 0]}>
-                  {mockSpeedData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
         </div>
         </div>
       </div>
