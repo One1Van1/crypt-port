@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Platform } from '../entities/platform.entity';
+import { UsdtToPesoExchange } from '../entities/usdt-to-peso-exchange.entity';
 
 // Create
 import { CreatePlatformController } from '../features/platforms/create/create.controller';
@@ -9,6 +10,10 @@ import { CreatePlatformService } from '../features/platforms/create/create.servi
 // Get All
 import { GetAllPlatformsController } from '../features/platforms/get-all/get-all.controller';
 import { GetAllPlatformsService } from '../features/platforms/get-all/get-all.service';
+
+// Get Exchanges
+import { GetPlatformExchangesController } from '../features/platforms/get-exchanges/get-exchanges.controller';
+import { GetPlatformExchangesService } from '../features/platforms/get-exchanges/get-exchanges.service';
 
 // Get By ID
 import { GetPlatformByIdController } from '../features/platforms/get-by-id/get-by-id.controller';
@@ -31,10 +36,11 @@ import { DeletePlatformController } from '../features/platforms/delete/delete.co
 import { DeletePlatformService } from '../features/platforms/delete/delete.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Platform])],
+  imports: [TypeOrmModule.forFeature([Platform, UsdtToPesoExchange])],
   controllers: [
     CreatePlatformController,
     GetAllPlatformsController,
+    GetPlatformExchangesController,
     GetPlatformByIdController,
     UpdatePlatformController,
     UpdatePlatformStatusController,
@@ -44,6 +50,7 @@ import { DeletePlatformService } from '../features/platforms/delete/delete.servi
   providers: [
     CreatePlatformService,
     GetAllPlatformsService,
+    GetPlatformExchangesService,
     GetPlatformByIdService,
     UpdatePlatformService,
     UpdatePlatformStatusService,

@@ -353,16 +353,18 @@
     "addNeoBank": "Добавить банк вывода",
     "editNeoBank": "Редактировать банк вывода",
     "updateBalance": "Обновить баланс",
+    "exchangeTitle": "Конвертировать USDT → песо",
+    "exchangeButton": "Конвертировать",
     "deleteConfirm": "Вы уверены, что хотите удалить этот банк вывода?",
     "filters": {
       "allPlatforms": "Все площадки",
-      "allProviders": "Все провайдеры",
+      "allProviders": "Все названия банков",
       "allStatuses": "Все статусы"
     },
     "table": {
       "platform": "Площадка",
-      "provider": "Провайдер",
-      "accountId": "ID аккаунта",
+      "provider": "Название банка",
+      "accountId": "СВУ",
       "currentBalance": "Текущий баланс",
       "status": "Статус",
       "comment": "Комментарий",
@@ -371,8 +373,11 @@
     "form": {
       "platform": "Площадка",
       "selectPlatform": "Выберите площадку",
-      "provider": "Провайдер",
-      "accountId": "ID аккаунта",
+      "platformRate": "Курс",
+      "platformBalance": "Баланс площадки",
+      "usdtAmount": "Сумма USDT",
+      "provider": "Название банка",
+      "accountId": "СВУ",
       "accountIdPlaceholder": "например, cuenta.ivan2024",
       "initialBalance": "Начальный баланс (ARS)",
       "newBalance": "Новый баланс (ARS)",
@@ -381,6 +386,7 @@
     },
     "actions": {
       "updateBalanceTitle": "Обновить баланс",
+      "exchangeTitle": "Конвертировать USDT → песо",
       "edit": "Редактировать",
       "delete": "Удалить"
     },
@@ -389,14 +395,21 @@
       "updated": "Банк вывода успешно обновлён",
       "deleted": "Банк вывода успешно удалён",
       "balanceUpdated": "Баланс успешно обновлён",
+      "exchangeSuccess": "Конвертация выполнена",
       "createError": "Не удалось создать банк вывода",
       "updateError": "Не удалось обновить банк вывода",
       "deleteError": "Не удалось удалить банк вывода",
       "balanceError": "Не удалось обновить баланс",
+      "exchangeError": "Не удалось выполнить конвертацию",
       "notFound": "Банки вывода не найдены"
     },
     "info": {
       "currentBalance": "Текущий баланс"
+    },
+    "exchange": {
+      "previewPesos": "Будет начислено",
+      "platformBalanceAfter": "Баланс площадки после",
+      "insufficientPlatformBalance": "Недостаточно USDT на площадке"
     }
   }
 }

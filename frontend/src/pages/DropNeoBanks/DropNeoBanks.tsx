@@ -1,26 +1,22 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
 import dropNeoBanksService, { DropNeoBank, CreateDropNeoBankDto, UpdateDropNeoBankDto } from '../../services/drop-neo-banks.service';
 import { platformsService, Platform } from '../../services/platforms.service';
+import { dropsService } from '../../services/drops.service';
+import { exchangeUsdtToPesosService } from '../../services/exchange-usdt-to-pesos.service';
 import './DropNeoBanks.css';
-
-const PROVIDERS = [
-  { value: 'ripio', label: 'Ripio' },
-  { value: 'lemon_cash', label: 'Lemon Cash' },
-  { value: 'satoshi_tango', label: 'Satoshi Tango' },
-  { value: 'yont', label: 'Yont' },
-];
 
 export default function DropNeoBanks() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isBalanceModalOpen, setIsBalanceModalOpen] = useState(false);
+  const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [editingNeoBank, setEditingNeoBank] = useState<DropNeoBank | null>(null);
-  const [balanceNeoBank, setBalanceNeoBank] = useState<DropNeoBank | null>(null);
+  const [exchangeNeoBank, setExchangeNeoBank] = useState<DropNeoBank | null>(null);
+  const [filterDropId, setFilterDropId] = useState<number | undefined>();
   const [filterPlatformId, setFilterPlatformId] = useState<number | undefined>();
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -29,14 +25,17 @@ export default function DropNeoBanks() {
 
   // Форма
   const [formData, setFormData] = useState<CreateDropNeoBankDto>({
-    platformId: 0,
-    provider: 'ripio',
+    provider: '',
     accountId: '',
+    dropId: 0,
+    platformId: 0,
     currentBalance: 0,
     comment: '',
   });
 
-  const [balanceAmount, setBalanceAmount] = useState<string>('');
+  const [addUsdtInput, setAddUsdtInput] = useState<string>('');
+
+  const [exchangeUsdtAmount, setExchangeUsdtAmount] = useState<string>('');
 
   // Закрытие dropdown при клике вне его
   useEffect(() => {
@@ -58,10 +57,11 @@ export default function DropNeoBanks() {
 
   // Получить все банки вывода
   const { data: neoBanks, isLoading } = useQuery({
-    queryKey: ['drop-neo-banks', filterPlatformId, filterProvider, filterStatus],
+    queryKey: ['drop-neo-banks', filterDropId, filterPlatformId, filterProvider, filterStatus],
     queryFn: () => dropNeoBanksService.getAll({ 
+      dropId: filterDropId,
       platformId: filterPlatformId, 
-      provider: filterProvider || undefined,
+      provider: filterProvider.trim() || undefined,
       status: filterStatus || undefined 
     }),
   });
@@ -72,13 +72,18 @@ export default function DropNeoBanks() {
     queryFn: () => platformsService.getAll({}),
   });
 
+  // Получить дропов для селектора (создание/редактирование)
+  const { data: drops } = useQuery({
+    queryKey: ['drops'],
+    queryFn: () => dropsService.getAll(),
+  });
+
   // Создать банк вывода
   const createMutation = useMutation({
     mutationFn: (data: CreateDropNeoBankDto) => dropNeoBanksService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
       toast.success(t('dropNeoBanks.messages.created'));
-      closeModal();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || t('dropNeoBanks.messages.createError'));
@@ -92,24 +97,23 @@ export default function DropNeoBanks() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
       toast.success(t('dropNeoBanks.messages.updated'));
-      closeModal();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || t('dropNeoBanks.messages.updateError'));
     },
   });
 
-  // Обновить баланс
-  const updateBalanceMutation = useMutation({
-    mutationFn: ({ id, balance }: { id: number; balance: number }) => 
-      dropNeoBanksService.updateBalance(id, { balance }),
+  const exchangeMutation = useMutation({
+    mutationFn: (dto: { platformId: number; neoBankId: number; usdtAmount: number }) =>
+      exchangeUsdtToPesosService.exchange(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
-      toast.success('Balance updated successfully');
-      closeBalanceModal();
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+      toast.success(t('dropNeoBanks.messages.exchangeSuccess'));
+      closeExchangeModal();
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update balance');
+      toast.error(error.response?.data?.message || t('dropNeoBanks.messages.exchangeError'));
     },
   });
 
@@ -128,31 +132,35 @@ export default function DropNeoBanks() {
   const openCreateModal = () => {
     setEditingNeoBank(null);
     setFormData({
-      platformId: 0,
-      provider: 'ripio',
+      provider: '',
       accountId: '',
+      dropId: 0,
+      platformId: 0,
       currentBalance: 0,
       comment: '',
     });
+    setAddUsdtInput('');
     setIsModalOpen(true);
   };
 
   const openEditModal = (neoBank: DropNeoBank) => {
     setEditingNeoBank(neoBank);
     setFormData({
-      platformId: neoBank.platform?.id || 0,
       provider: neoBank.provider,
       accountId: neoBank.accountId,
+      dropId: neoBank.drop?.id || 0,
+      platformId: neoBank.platform?.id || 0,
       currentBalance: neoBank.currentBalance,
       comment: neoBank.comment,
     });
+    setAddUsdtInput('');
     setIsModalOpen(true);
   };
 
-  const openBalanceModal = (neoBank: DropNeoBank) => {
-    setBalanceNeoBank(neoBank);
-    setBalanceAmount(neoBank.currentBalance.toString());
-    setIsBalanceModalOpen(true);
+  const openExchangeModal = (neoBank: DropNeoBank) => {
+    setExchangeNeoBank(neoBank);
+    setExchangeUsdtAmount('');
+    setIsExchangeModalOpen(true);
   };
 
   const closeModal = () => {
@@ -160,36 +168,110 @@ export default function DropNeoBanks() {
     setEditingNeoBank(null);
   };
 
-  const closeBalanceModal = () => {
-    setIsBalanceModalOpen(false);
-    setBalanceNeoBank(null);
-    setBalanceAmount('');
+  const closeExchangeModal = () => {
+    setIsExchangeModalOpen(false);
+    setExchangeNeoBank(null);
+    setExchangeUsdtAmount('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (editingNeoBank) {
-      updateMutation.mutate({
-        id: editingNeoBank.id,
-        data: {
-          accountId: formData.accountId,
-          currentBalance: formData.currentBalance,
-          comment: formData.comment,
-        },
-      });
-    } else {
-      createMutation.mutate(formData);
+
+    const addUsdtAmount = addUsdtInput.trim() === '' ? 0 : Number(addUsdtInput);
+    if (Number.isNaN(addUsdtAmount) || addUsdtAmount < 0) {
+      toast.error('Введите корректную сумму');
+      return;
     }
+
+    const platform = platforms?.items.find((p: Platform) => p.id === formData.platformId);
+    const rate = Number(platform?.exchangeRate ?? 0);
+    if (addUsdtAmount > 0 && rate <= 0) {
+      toast.error('У площадки не установлен курс');
+      return;
+    }
+
+    // Basic validation
+    if (!formData.dropId) {
+      toast.error('Выберите дропа');
+      return;
+    }
+
+    if (!formData.platformId) {
+      toast.error('Выберите площадку');
+      return;
+    }
+
+    if (!formData.provider.trim()) {
+      toast.error('Введите название банка');
+      return;
+    }
+    
+    (async () => {
+      try {
+        if (editingNeoBank) {
+          await updateMutation.mutateAsync({
+            id: editingNeoBank.id,
+            data: {
+              dropId: formData.dropId,
+              platformId: formData.platformId,
+              provider: formData.provider.trim(),
+              accountId: formData.accountId,
+              comment: formData.comment,
+            },
+          });
+
+          if (addUsdtAmount > 0) {
+            await exchangeMutation.mutateAsync({
+              platformId: formData.platformId,
+              neoBankId: editingNeoBank.id,
+              usdtAmount: addUsdtAmount,
+            });
+          }
+        } else {
+          const created = await createMutation.mutateAsync({
+            ...formData,
+            provider: formData.provider.trim(),
+            // balances are updated only via exchange operation
+            currentBalance: 0,
+          });
+
+          if (addUsdtAmount > 0) {
+            await exchangeMutation.mutateAsync({
+              platformId: formData.platformId,
+              neoBankId: created.id,
+              usdtAmount: addUsdtAmount,
+            });
+          }
+        }
+
+        setAddUsdtInput('');
+        closeModal();
+      } catch {
+        // errors are already toasted by mutations
+      }
+    })();
   };
 
-  const handleUpdateBalance = (e: React.FormEvent) => {
+  const handleExchange = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!balanceNeoBank) return;
+    if (!exchangeNeoBank) return;
 
-    updateBalanceMutation.mutate({
-      id: balanceNeoBank.id,
-      balance: Number(balanceAmount),
+    const platformId = exchangeNeoBank.platform?.id ?? 0;
+    if (!platformId) {
+      toast.error('У банка вывода не выбрана площадка');
+      return;
+    }
+
+    const usdtAmount = Number(exchangeUsdtAmount);
+    if (!usdtAmount || usdtAmount <= 0) {
+      toast.error('Введите сумму USDT');
+      return;
+    }
+
+    exchangeMutation.mutate({
+      platformId,
+      neoBankId: exchangeNeoBank.id,
+      usdtAmount,
     });
   };
 
@@ -217,9 +299,36 @@ export default function DropNeoBanks() {
     }).format(amount);
   };
 
+  const formatUsdt = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const selectedPlatform = platforms?.items.find((p: Platform) => p.id === formData.platformId);
+
+  const exchangePlatform = platforms?.items.find(
+    (p: Platform) => p.id === (exchangeNeoBank?.platform?.id ?? 0),
+  );
+
+  const exchangeUsdt = Number(exchangeUsdtAmount);
+  const exchangeRate = Number(exchangePlatform?.exchangeRate ?? 0);
+  const exchangePesosPreview = exchangeUsdt > 0 && exchangeRate > 0 ? exchangeUsdt * exchangeRate : 0;
+  const platformUsdtBalance = Number(exchangePlatform?.balance ?? 0);
+  const platformUsdtBalanceAfter = exchangeUsdt > 0 ? platformUsdtBalance - exchangeUsdt : platformUsdtBalance;
+
   if (isLoading) {
     return <div className="loading">{t('common.loading')}</div>;
   }
+
+  const providerOptions = Array.from(
+    new Set(
+      (neoBanks?.items ?? [])
+        .map((nb: DropNeoBank) => (nb.provider ?? '').trim())
+        .filter((v: string) => v.length > 0),
+    ),
+  ).sort((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'base' }));
 
   return (
     <div className="drop-neo-banks-page">
@@ -238,6 +347,48 @@ export default function DropNeoBanks() {
 
       {/* Filters */}
       <div className="filters">
+        {/* Drop Filter */}
+        <div className="custom-filter">
+          <button
+            className="filter-button"
+            onClick={() => setOpenDropdown(openDropdown === 'drop' ? null : 'drop')}
+          >
+            <span>
+              {filterDropId
+                ? (drops as any)?.items?.find((d: any) => Number(d.id) === Number(filterDropId))?.name
+                : 'Все дропы'}
+            </span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+            </svg>
+          </button>
+          {openDropdown === 'drop' && (
+            <div className="filter-dropdown">
+              <div
+                className={`filter-option ${!filterDropId ? 'active' : ''}`}
+                onClick={() => {
+                  setFilterDropId(undefined);
+                  setOpenDropdown(null);
+                }}
+              >
+                Все дропы
+              </div>
+              {(drops as any)?.items?.map((drop: any) => (
+                <div
+                  key={drop.id}
+                  className={`filter-option ${Number(filterDropId) === Number(drop.id) ? 'active' : ''}`}
+                  onClick={() => {
+                    setFilterDropId(Number(drop.id));
+                    setOpenDropdown(null);
+                  }}
+                >
+                  {drop.name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Platform Filter */}
         <div className="custom-filter">
           <button
@@ -282,7 +433,7 @@ export default function DropNeoBanks() {
             className="filter-button"
             onClick={() => setOpenDropdown(openDropdown === 'provider' ? null : 'provider')}
           >
-            <span>{filterProvider ? PROVIDERS.find(p => p.value === filterProvider)?.label : t('dropNeoBanks.filters.allProviders')}</span>
+            <span>{filterProvider ? filterProvider : t('dropNeoBanks.filters.allProviders')}</span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
             </svg>
@@ -298,16 +449,16 @@ export default function DropNeoBanks() {
               >
                 {t('dropNeoBanks.filters.allProviders')}
               </div>
-              {PROVIDERS.map((p) => (
+              {providerOptions.map((name) => (
                 <div
-                  key={p.value}
-                  className={`filter-option ${filterProvider === p.value ? 'active' : ''}`}
+                  key={name}
+                  className={`filter-option ${filterProvider === name ? 'active' : ''}`}
                   onClick={() => {
-                    setFilterProvider(p.value);
+                    setFilterProvider(name);
                     setOpenDropdown(null);
                   }}
                 >
-                  {p.label}
+                  {name}
                 </div>
               ))}
             </div>
@@ -365,6 +516,7 @@ export default function DropNeoBanks() {
           <thead>
             <tr>
               <th>{t('dropNeoBanks.table.platform')}</th>
+              <th>Дроп</th>
               <th>{t('dropNeoBanks.table.provider')}</th>
               <th>{t('dropNeoBanks.table.accountId')}</th>
               <th>{t('dropNeoBanks.table.currentBalance')}</th>
@@ -382,8 +534,13 @@ export default function DropNeoBanks() {
                   </div>
                 </td>
                 <td>
+                  <div className="drop-cell">
+                    <strong>{neoBank.drop?.name || '-'}</strong>
+                  </div>
+                </td>
+                <td>
                   <span className={`badge ${getProviderBadgeClass(neoBank.provider)}`}>
-                    {PROVIDERS.find(p => p.value === neoBank.provider)?.label}
+                    {neoBank.provider}
                   </span>
                 </td>
                 <td>
@@ -404,8 +561,8 @@ export default function DropNeoBanks() {
                   <div className="action-buttons">
                     <button
                       className="btn-icon btn-icon-primary"
-                      onClick={() => openBalanceModal(neoBank)}
-                      title={t('dropNeoBanks.actions.updateBalanceTitle')}
+                      onClick={() => openExchangeModal(neoBank)}
+                      title={t('dropNeoBanks.actions.exchangeTitle')}
                     >
                       <DollarSign size={16} />
                     </button>
@@ -454,14 +611,17 @@ export default function DropNeoBanks() {
                     type="button"
                     className="modal-select-button"
                     onClick={() => setOpenModalDropdown(openModalDropdown === 'platform' ? null : 'platform')}
-                    disabled={!!editingNeoBank}
                   >
-                    <span>{formData.platformId ? platforms?.items.find(p => p.id === formData.platformId)?.name : t('dropNeoBanks.form.selectPlatform')}</span>
+                    <span>
+                      {formData.platformId
+                        ? platforms?.items.find((p: Platform) => p.id === formData.platformId)?.name
+                        : t('dropNeoBanks.form.selectPlatform')}
+                    </span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
                     </svg>
                   </button>
-                  {openModalDropdown === 'platform' && !editingNeoBank && (
+                  {openModalDropdown === 'platform' && (
                     <div className="modal-dropdown">
                       <div
                         className={`modal-option ${formData.platformId === 0 ? 'active' : ''}`}
@@ -487,34 +647,52 @@ export default function DropNeoBanks() {
                     </div>
                   )}
                 </div>
+
+                {selectedPlatform && (
+                  <div className="helper-text" style={{ marginTop: 8 }}>
+                    {t('dropNeoBanks.form.platformRate')}: {selectedPlatform.exchangeRate} · {t('dropNeoBanks.form.platformBalance')}: {formatUsdt(selectedPlatform.balance)} USDT
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.provider')} *</label>
+                <label>Имя дропа *</label>
                 <div className="modal-custom-select">
                   <button
                     type="button"
                     className="modal-select-button"
-                    onClick={() => setOpenModalDropdown(openModalDropdown === 'provider' ? null : 'provider')}
-                    disabled={!!editingNeoBank}
+                    onClick={() => setOpenModalDropdown(openModalDropdown === 'drop' ? null : 'drop')}
                   >
-                    <span>{PROVIDERS.find(p => p.value === formData.provider)?.label}</span>
+                    <span>
+                      {formData.dropId
+                        ? (drops as any)?.items?.find((d: any) => Number(d.id) === Number(formData.dropId))?.name
+                        : 'Выберите дропа'}
+                    </span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
                     </svg>
                   </button>
-                  {openModalDropdown === 'provider' && !editingNeoBank && (
+                  {openModalDropdown === 'drop' && (
                     <div className="modal-dropdown">
-                      {PROVIDERS.map((p) => (
+                      <div
+                        className={`modal-option ${formData.dropId === 0 ? 'active' : ''}`}
+                        onClick={() => {
+                          setFormData({ ...formData, dropId: 0 });
+                          setOpenModalDropdown(null);
+                        }}
+                      >
+                        Выберите дропа
+                      </div>
+                      {(drops as any)?.items?.map((drop: any) => (
                         <div
-                          key={p.value}
-                          className={`modal-option ${formData.provider === p.value ? 'active' : ''}`}
+                          key={drop.id}
+                          className={`modal-option ${Number(formData.dropId) === Number(drop.id) ? 'active' : ''}`}
                           onClick={() => {
-                            setFormData({ ...formData, provider: p.value as any });
+                            setFormData({ ...formData, dropId: Number(drop.id) });
                             setOpenModalDropdown(null);
                           }}
                         >
-                          {p.label}
+                          {drop.name}
                         </div>
                       ))}
                     </div>
@@ -523,34 +701,54 @@ export default function DropNeoBanks() {
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.accountId')} *</label>
+                <label>Название банка *</label>
                 <input
                   type="text"
-                  value={formData.accountId}
-                  onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-                  placeholder={t('dropNeoBanks.form.accountIdPlaceholder')}
+                  value={formData.provider}
+                  onChange={(e) => setFormData({ ...formData, provider: e.target.value })}
+                  placeholder="Ripio"
                   required
                 />
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.initialBalance')}</label>
+                <label>СВУ *</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.currentBalance}
-                  onChange={(e) => setFormData({ ...formData, currentBalance: Number(e.target.value) })}
-                  placeholder="0.00"
-                  disabled={!!editingNeoBank}
+                  type="text"
+                  value={formData.accountId}
+                  onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                  placeholder="Введите СВУ"
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.comment')}</label>
+                <label>Сколько USDT вы хотите конвертировать и добавить</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={addUsdtInput}
+                  onChange={(e) => setAddUsdtInput(e.target.value)}
+                  placeholder="Введите сумму USDT"
+                />
+
+                <div className="helper-text" style={{ marginTop: 8 }}>
+                  Уже на счету: {formatCurrency(editingNeoBank ? Number(editingNeoBank.currentBalance ?? 0) : 0)}
+                </div>
+
+                {selectedPlatform && addUsdtInput.trim() !== '' && Number(addUsdtInput) > 0 && (
+                  <div className="helper-text" style={{ marginTop: 6 }}>
+                    Будет начислено: {formatCurrency(Number(addUsdtInput) * Number(selectedPlatform.exchangeRate || 0))}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>Алиас</label>
                 <textarea
                   value={formData.comment}
                   onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                  placeholder={t('dropNeoBanks.form.commentPlaceholder')}
+                  placeholder="Введите алиас"
                   rows={3}
                 />
               </div>
@@ -573,45 +771,62 @@ export default function DropNeoBanks() {
       )}
 
       {/* Update Balance Modal */}
-      {isBalanceModalOpen && balanceNeoBank && (
-        <div className="modal-overlay" onClick={closeBalanceModal}>
+      {isExchangeModalOpen && exchangeNeoBank && (
+        <div className="modal-overlay" onClick={closeExchangeModal}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('dropNeoBanks.updateBalance')}</h2>
-              <button className="modal-close" onClick={closeBalanceModal}>×</button>
+              <h2>{t('dropNeoBanks.exchangeTitle')}</h2>
+              <button className="modal-close" onClick={closeExchangeModal}>×</button>
             </div>
 
             <div className="balance-info">
-              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {balanceNeoBank.platform?.name || '-'}</p>
-              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {PROVIDERS.find(p => p.value === balanceNeoBank.provider)?.label}</p>
-              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {balanceNeoBank.accountId}</p>
-              <p><strong>{t('dropNeoBanks.info.currentBalance')}:</strong> {formatCurrency(balanceNeoBank.currentBalance)}</p>
+              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {exchangeNeoBank.platform?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {exchangeNeoBank.provider}</p>
+              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {exchangeNeoBank.accountId}</p>
+              <p><strong>{t('dropNeoBanks.info.currentBalance')}:</strong> {formatCurrency(exchangeNeoBank.currentBalance)}</p>
             </div>
 
-            <form onSubmit={handleUpdateBalance}>
+            {exchangePlatform && (
+              <div className="balance-info" style={{ marginTop: 12 }}>
+                <p><strong>{t('dropNeoBanks.form.platformRate')}:</strong> {exchangePlatform.exchangeRate}</p>
+                <p><strong>{t('dropNeoBanks.form.platformBalance')}:</strong> {formatUsdt(exchangePlatform.balance)} USDT</p>
+              </div>
+            )}
+
+            <form onSubmit={handleExchange}>
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.newBalance')} *</label>
+                <label>{t('dropNeoBanks.form.usdtAmount')} *</label>
                 <input
                   type="number"
                   step="0.01"
-                  value={balanceAmount}
-                  onChange={(e) => setBalanceAmount(e.target.value)}
-                  placeholder="0.00"
+                  value={exchangeUsdtAmount}
+                  onChange={(e) => setExchangeUsdtAmount(e.target.value)}
+                  placeholder="0.00 USDT"
                   required
                   autoFocus
                 />
               </div>
 
+              <div className="balance-info" style={{ marginTop: 12 }}>
+                <p><strong>{t('dropNeoBanks.exchange.previewPesos')}:</strong> {formatCurrency(exchangePesosPreview)}</p>
+                {exchangePlatform && exchangeUsdt > 0 && (
+                  <p><strong>{t('dropNeoBanks.exchange.platformBalanceAfter')}:</strong> {formatUsdt(platformUsdtBalanceAfter)} USDT</p>
+                )}
+                {exchangePlatform && exchangeUsdt > 0 && platformUsdtBalanceAfter < 0 && (
+                  <p style={{ color: 'var(--text-tertiary)' }}>{t('dropNeoBanks.exchange.insufficientPlatformBalance')}</p>
+                )}
+              </div>
+
               <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeBalanceModal}>
+                <button type="button" className="btn btn-secondary" onClick={closeExchangeModal}>
                   {t('common.cancel')}
                 </button>
                 <button 
                   type="submit" 
                   className="btn btn-primary"
-                  disabled={updateBalanceMutation.isPending}
+                  disabled={exchangeMutation.isPending}
                 >
-                  {t('dropNeoBanks.updateBalance')}
+                  {t('dropNeoBanks.exchangeButton')}
                 </button>
               </div>
             </form>

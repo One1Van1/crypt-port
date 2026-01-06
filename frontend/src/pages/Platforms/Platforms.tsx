@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit3, Trash2, Save, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { platformsService } from '../../services/platforms.service';
+import { platformExchangesService } from '../../services/platform-exchanges.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import './Platforms.css';
@@ -32,6 +33,15 @@ export default function Platforms() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['platforms'],
     queryFn: () => platformsService.getAll(),
+  });
+
+  const {
+    data: exchangesData,
+    isLoading: isExchangesLoading,
+    refetch: refetchExchanges,
+  } = useQuery({
+    queryKey: ['platform-exchanges'],
+    queryFn: () => platformExchangesService.getAll({ limit: 50 }),
   });
 
   // Create mutation
@@ -256,6 +266,67 @@ export default function Platforms() {
             )}
           </div>
         ))}
+      </div>
+
+      <div className="platforms-history">
+        <div className="platforms-history-header">
+          <div>
+            <h2>История выводов с площадок</h2>
+              <p className="platforms-history-subtitle">Последние операции конвертации USDT → песо</p>
+          </div>
+          <button className="btn-icon" onClick={() => refetchExchanges()} title="Обновить историю">
+            <RefreshCw size={18} />
+          </button>
+        </div>
+
+        {isExchangesLoading ? (
+          <div className="platforms-history-loading">
+            <RefreshCw size={24} className="spin" />
+            <p>{t('common.loading')}</p>
+          </div>
+        ) : !exchangesData?.items?.length ? (
+          <div className="platforms-history-empty">Нет операций</div>
+        ) : (
+          <div className="platforms-history-table-wrapper">
+            <table className="platforms-history-table">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Площадка</th>
+                  <th>USDT</th>
+                  <th>Курс</th>
+                  <th>Peso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {exchangesData.items.map((row) => (
+                  <tr key={row.id}>
+                    <td>{new Date(row.createdAt).toLocaleString('ru-RU')}</td>
+                    <td>{row.platformName || `#${row.platformId}`}</td>
+                    <td>
+                      {Number(row.usdtAmount).toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td>
+                      {Number(row.exchangeRate).toLocaleString('ru-RU', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                    <td>
+                      {Number(row.pesosAmount).toLocaleString('es-AR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Create Modal */}

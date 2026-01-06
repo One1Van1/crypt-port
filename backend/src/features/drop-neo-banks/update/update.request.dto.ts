@@ -1,8 +1,41 @@
 import { IsOptional, IsEnum, IsString, MinLength, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 
 export class UpdateDropNeoBankRequestDto {
+  @ApiProperty({
+    description: 'Provider (free-text bank name)',
+    example: 'Ripio',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  provider?: string;
+
+  @ApiProperty({
+    description: 'Drop ID',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  dropId?: number;
+
+  @ApiProperty({
+    description: 'Platform ID',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  platformId?: number;
+
   @ApiProperty({
     description: 'Account ID in neo bank',
     example: 'cuenta.ivan2024',

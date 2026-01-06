@@ -352,6 +352,8 @@
     "addNeoBank": "Add Withdrawal Bank",
     "editNeoBank": "Edit Withdrawal Bank",
     "updateBalance": "Update Balance",
+    "exchangeTitle": "Convert USDT → pesos",
+    "exchangeButton": "Convert",
     "deleteConfirm": "Are you sure you want to delete this withdrawal bank?",
     "filters": {
       "allPlatforms": "All Platforms",
@@ -370,6 +372,9 @@
     "form": {
       "platform": "Platform",
       "selectPlatform": "Select Platform",
+      "platformRate": "Rate",
+      "platformBalance": "Platform balance",
+      "usdtAmount": "USDT amount",
       "provider": "Provider",
       "accountId": "Account ID",
       "accountIdPlaceholder": "e.g., cuenta.ivan2024",
@@ -380,6 +385,7 @@
     },
     "actions": {
       "updateBalanceTitle": "Update Balance",
+      "exchangeTitle": "Convert USDT → pesos",
       "edit": "Edit",
       "delete": "Delete"
     },
@@ -388,14 +394,21 @@
       "updated": "Withdrawal bank updated successfully",
       "deleted": "Withdrawal bank deleted successfully",
       "balanceUpdated": "Balance updated successfully",
+      "exchangeSuccess": "Conversion completed",
       "createError": "Failed to create withdrawal bank",
       "updateError": "Failed to update withdrawal bank",
       "deleteError": "Failed to delete withdrawal bank",
       "balanceError": "Failed to update balance",
+      "exchangeError": "Failed to convert",
       "notFound": "Withdrawal banks not found"
     },
     "info": {
       "currentBalance": "Current Balance"
+    },
+    "exchange": {
+      "previewPesos": "Will be credited",
+      "platformBalanceAfter": "Platform balance after",
+      "insufficientPlatformBalance": "Insufficient USDT on platform"
     }
   }
 }

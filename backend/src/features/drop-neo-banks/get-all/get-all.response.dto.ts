@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
-import { NeoBankProvider, NeoBankStatus } from '../../../common/enums/neo-bank.enum';
+import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 
 export class DropNeoBankItemDto {
   @ApiProperty({ description: 'Neo-bank ID' })
   id: number;
 
-  @ApiProperty({ enum: NeoBankProvider })
-  provider: NeoBankProvider;
+  @ApiProperty({ description: 'Provider (free-text bank name)', example: 'Ripio' })
+  provider: string;
 
   @ApiProperty()
   accountId: string;

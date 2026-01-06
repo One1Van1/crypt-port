@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
-import { NeoBankProvider, NeoBankStatus } from '../../../common/enums/neo-bank.enum';
+import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 
 export class CreateDropNeoBankResponseDto {
   @ApiProperty({ description: 'Neo-bank ID' })
   id: number;
 
-  @ApiProperty({ enum: NeoBankProvider })
-  provider: NeoBankProvider;
+  @ApiProperty({ description: 'Provider (free-text bank name)', example: 'Ripio' })
+  provider: string;
 
   @ApiProperty()
   accountId: string;
@@ -27,6 +27,12 @@ export class CreateDropNeoBankResponseDto {
     name: string;
   };
 
+  @ApiProperty({ required: false })
+  platform?: {
+    id: number;
+    name: string;
+  };
+
   @ApiProperty()
   createdAt: Date;
 
@@ -41,6 +47,13 @@ export class CreateDropNeoBankResponseDto {
       id: dropNeoBank.drop.id,
       name: dropNeoBank.drop.name,
     };
+
+    if (dropNeoBank.platform) {
+      this.platform = {
+        id: dropNeoBank.platform.id,
+        name: dropNeoBank.platform.name,
+      };
+    }
     this.createdAt = dropNeoBank.createdAt;
   }
 }

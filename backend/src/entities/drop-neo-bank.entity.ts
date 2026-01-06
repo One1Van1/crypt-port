@@ -1,16 +1,13 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { BaseEntity } from '../common/entities/base.entity';
-import { NeoBankProvider, NeoBankStatus } from '../common/enums/neo-bank.enum';
+import { NeoBankStatus } from '../common/enums/neo-bank.enum';
 import { Drop } from './drop.entity';
 import { Platform } from './platform.entity';
 
 @Entity('drop_neo_banks')
 export class DropNeoBank extends BaseEntity {
-  @Column({
-    type: 'enum',
-    enum: NeoBankProvider,
-  })
-  provider: NeoBankProvider;
+  @Column({ type: 'varchar' })
+  provider: string;
 
   @Column({ name: 'account_id' })
   accountId: string;

@@ -2,7 +2,7 @@ import { apiClient } from './api';
 
 export interface DropNeoBank {
   id: number;
-  provider: 'ripio' | 'lemon_cash' | 'satoshi_tango' | 'yont';
+  provider: string;
   accountId: string;
   status: 'active' | 'frozen';
   currentBalance: number;
@@ -21,14 +21,18 @@ export interface DropNeoBank {
 }
 
 export interface CreateDropNeoBankDto {
-  platformId: number;
-  provider: 'ripio' | 'lemon_cash' | 'satoshi_tango' | 'yont';
+  provider: string;
   accountId: string;
+  dropId: number;
+  platformId: number;
   currentBalance?: number;
   comment?: string;
 }
 
 export interface UpdateDropNeoBankDto {
+  provider?: string;
+  dropId?: number;
+  platformId?: number;
   accountId?: string;
   status?: 'active' | 'frozen';
   currentBalance?: number;

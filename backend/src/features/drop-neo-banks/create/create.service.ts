@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { Drop } from '../../../entities/drop.entity';
+import { Platform } from '../../../entities/platform.entity';
 import { CreateDropNeoBankRequestDto } from './create.request.dto';
 import { CreateDropNeoBankResponseDto } from './create.response.dto';
+import { PlatformStatus } from '../../../common/enums/platform.enum';
 
 @Injectable()
 export class CreateDropNeoBankService {
@@ -13,6 +15,8 @@ export class CreateDropNeoBankService {
     private readonly dropNeoBankRepository: Repository<DropNeoBank>,
     @InjectRepository(Drop)
     private readonly dropRepository: Repository<Drop>,
+    @InjectRepository(Platform)
+    private readonly platformRepository: Repository<Platform>,
   ) {}
 
   async execute(dto: CreateDropNeoBankRequestDto): Promise<CreateDropNeoBankResponseDto> {
@@ -23,6 +27,19 @@ export class CreateDropNeoBankService {
 
     if (!drop) {
       throw new NotFoundException('Drop not found');
+    }
+
+    // Проверяем существование и статус платформы
+    const platform = await this.platformRepository.findOne({
+      where: { id: dto.platformId },
+    });
+
+    if (!platform) {
+      throw new NotFoundException('Platform not found');
+    }
+
+    if (platform.status !== PlatformStatus.ACTIVE) {
+      throw new BadRequestException('Platform is not active');
     }
 
     // Проверяем уникальность комбинации dropId + provider + accountId
@@ -43,6 +60,7 @@ export class CreateDropNeoBankService {
       provider: dto.provider,
       accountId: dto.accountId,
       comment: dto.comment,      currentBalance: dto.currentBalance || 0,      drop: drop,
+      platform: platform,
     });
 
     const saved = await this.dropNeoBankRepository.save(dropNeoBank);
@@ -50,7 +68,7 @@ export class CreateDropNeoBankService {
     // Загружаем с relations
     const result = await this.dropNeoBankRepository.findOne({
       where: { id: saved.id },
-      relations: ['drop'],
+      relations: ['drop', 'platform'],
     });
 
     return new CreateDropNeoBankResponseDto(result);

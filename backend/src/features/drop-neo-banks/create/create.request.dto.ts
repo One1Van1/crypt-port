@@ -1,16 +1,14 @@
-import { IsEnum, IsString, IsNumber, IsOptional, MinLength, Min } from 'class-validator';
+import { IsString, IsNumber, IsOptional, MinLength, Min, IsPositive } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { NeoBankProvider } from '../../../common/enums/neo-bank.enum';
 
 export class CreateDropNeoBankRequestDto {
   @ApiProperty({
-    enum: NeoBankProvider,
-    enumName: 'NeoBankProvider',
-    example: NeoBankProvider.RIPIO,
-    description: 'Neo bank provider',
+    description: 'Neo bank provider (free-text bank name)',
+    example: 'Ripio',
   })
-  @IsEnum(NeoBankProvider)
-  provider: NeoBankProvider;
+  @IsString()
+  @MinLength(1)
+  provider: string;
 
   @ApiProperty({
     description: 'Account ID in neo bank',
@@ -27,6 +25,14 @@ export class CreateDropNeoBankRequestDto {
   })
   @IsNumber()
   dropId: number;
+
+  @ApiProperty({
+    description: 'Platform ID',
+    example: 1,
+  })
+  @IsNumber()
+  @IsPositive()
+  platformId: number;
 
   @ApiProperty({
     description: 'Optional comment',

@@ -3,15 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  TrendingUp,
   Users,
-  Clock,
   Calendar,
   Download,
   RefreshCw,
   BarChart3,
   AlertCircle,
-  XCircle,
   DollarSign,
   Edit3,
   Check,
@@ -19,16 +16,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   Cell,
   PieChart,
   Pie,
@@ -45,24 +34,6 @@ import './Analytics.css';
 type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'custom';
 type PlatformFilter = 'all' | string;
 type OperatorFilter = 'all' | string;
-type ViewMode = 'count' | 'amount';
-
-// Mock data for demonstration - replace with real API calls
-const mockFunnelData = [
-  { stage: 'Ожидание (Pending)', count: 245, amount: 12250000, conversion: 87, lost: 32, color: '#f59e0b', status: 'pending' },
-  { stage: 'Завершено (Completed)', count: 213, amount: 10650000, conversion: 100, lost: 0, color: '#10b981', status: 'completed' },
-  { stage: 'Неудачные (Failed)', count: 32, amount: 1600000, conversion: 0, lost: 32, color: '#ef4444', status: 'failed' },
-];
-
-const mockDynamicsData = Array.from({ length: 30 }, (_, i) => ({
-  date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-  }),
-  completed: Math.floor(Math.random() * 50) + 30,
-  pending: Math.floor(Math.random() * 20) + 10,
-  amount: Math.floor(Math.random() * 500000) + 300000,
-}));
 
 const mockOperatorsData = [
   {
@@ -118,13 +89,6 @@ const mockOperatorsData = [
   },
 ];
 
-const mockSpeedData = [
-  { stage: 'Получение реквизита', avgTime: 2, color: '#6366f1' },
-  { stage: 'Проверка баланса', avgTime: 5, color: '#8b5cf6' },
-  { stage: 'Обработка вывода', avgTime: 15, color: '#f59e0b' },
-  { stage: 'Подтверждение', avgTime: 8, color: '#10b981' },
-];
-
 export default function Analytics() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
@@ -134,8 +98,6 @@ export default function Analytics() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('week');
   const [platformFilter] = useState<PlatformFilter>('all');
   const [operatorFilter, setOperatorFilter] = useState<OperatorFilter>('all');
-  const [viewMode, setViewMode] = useState<ViewMode>('amount');
-  const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
   const [selectedOperator, setSelectedOperator] = useState<number | null>(null);
   const [editingPlatformId, setEditingPlatformId] = useState<number | null>(null);
   const [newRate, setNewRate] = useState<string>('');
@@ -240,15 +202,6 @@ export default function Analytics() {
 
   const formatCurrency = (value: number) => {
     return `${(value / 1000).toFixed(0)}K ARS`;
-  };
-
-  const formatCurrencyFull = (value: number) => {
-    return `${value.toLocaleString('es-AR')} ARS`;
-  };
-
-  const formatTime = (minutes: number) => {
-    if (minutes < 60) return `${minutes} мин`;
-    return `${(minutes / 60).toFixed(1)} ч`;
   };
 
   const dateFilterOptions = [
@@ -711,44 +664,20 @@ export default function Analytics() {
           </div>
           </div>
 
-          {/* Right Widget - Section Details */}
+          {/* Right Widget - New Widget */}
           <div className="deposit-right">
-            <div className="deposit-widget">
+            <div className="deposit-widget" style={{ height: '100%' }}>
               <div className="widget-header">
                 <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
                   <BarChart3 size={18} />
-                  {selectedSection === 'platforms' && '💎 Платформы - Детали'}
-                  {selectedSection === 'blocked' && '🔒 Заблокированные песо - Детали'}
-                  {selectedSection === 'unpaid' && '⏳ Неоплаченные песо - Детали'}
-                  {selectedSection === 'free' && '✨ Свободные USDT - Детали'}
-                  {!selectedSection && 'Выберите секцию'}
+                  Новый виджет
                 </h3>
               </div>
-              <div className="widget-content" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-                {selectedSection ? (
-                  <div style={{ textAlign: 'center', width: '100%' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>
-                      {selectedSection === 'platforms' && '💎'}
-                      {selectedSection === 'blocked' && '🔒'}
-                      {selectedSection === 'unpaid' && '⏳'}
-                      {selectedSection === 'free' && '✨'}
-                    </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '8px' }}>
-                      {selectedSection === 'platforms' && 'Платформы'}
-                      {selectedSection === 'blocked' && 'Заблокированные песо'}
-                      {selectedSection === 'unpaid' && 'Неоплаченные песо'}
-                      {selectedSection === 'free' && 'Свободные USDT'}
-                    </div>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                      Детальная информация будет здесь
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>👈</div>
-                    <div style={{ fontSize: '0.9rem' }}>Выберите секцию в таблице слева</div>
-                  </div>
-                )}
+              <div className="widget-content" style={{ padding: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', height: 'calc(100% - 60px)' }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-tertiary)' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '12px' }}>📊</div>
+                  <div style={{ fontSize: '0.9rem' }}>Содержимое виджета</div>
+                </div>
               </div>
             </div>
           </div>

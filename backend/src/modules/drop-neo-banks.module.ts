@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
 import { Drop } from '../entities/drop.entity';
+import { Platform } from '../entities/platform.entity';
 
 // Create
 import { CreateDropNeoBankController } from '../features/drop-neo-banks/create/create.controller';
@@ -24,7 +25,7 @@ import { UpdateBalanceController } from '../features/drop-neo-banks/update-balan
 import { UpdateBalanceService } from '../features/drop-neo-banks/update-balance/update-balance.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop])],
+  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform])],
   controllers: [
     CreateDropNeoBankController,
     GetAllDropNeoBanksController,

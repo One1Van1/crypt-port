@@ -1,7 +1,7 @@
-import { IsOptional, IsEnum, IsNumber } from 'class-validator';
+import { IsOptional, IsEnum, IsNumber, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { NeoBankProvider, NeoBankStatus } from '../../../common/enums/neo-bank.enum';
+import { NeoBankStatus } from '../../../common/enums/neo-bank.enum';
 
 export class GetAllDropNeoBanksQueryDto {
   @ApiProperty({
@@ -25,13 +25,13 @@ export class GetAllDropNeoBanksQueryDto {
   platformId?: number;
 
   @ApiProperty({
-    enum: NeoBankProvider,
-    description: 'Provider filter',
+    description: 'Provider filter (free-text bank name)',
     required: false,
   })
   @IsOptional()
-  @IsEnum(NeoBankProvider)
-  provider?: NeoBankProvider;
+  @IsString()
+  @MinLength(1)
+  provider?: string;
 
   @ApiProperty({
     enum: NeoBankStatus,
