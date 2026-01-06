@@ -317,103 +317,128 @@ const WorkingDepositChart = () => {
         {/* Pie Chart - Distribution */}
         <div className="card p-6" style={{ backgroundColor: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
           <h3 className="text-lg font-bold mb-6" style={{ color: 'var(--text-primary)' }}>🥧 Распределение депозита</h3>
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              {(() => {
-                const rawData = [
-                  {
-                    key: 'platforms',
-                    name: '💎 Платформы',
-                    rawValue: sections.platformBalances.total || 0,
-                    color: '#6366f1',
-                  },
-                  {
-                    key: 'blocked',
-                    name: '🔒 Заблокированные',
-                    rawValue: sections.blockedPesos.totalUsdt || 0,
-                    color: '#ef4444',
-                  },
-                  {
-                    key: 'unpaid',
-                    name: '⏳ Неоплаченные',
-                    rawValue: sections.unpaidPesos.totalUsdt || 0,
-                    color: '#f59e0b',
-                  },
-                  {
-                    key: 'free',
-                    name: '✨ Свободные',
-                    rawValue: sections.freeUsdt.total || 0,
-                    color: '#10b981',
-                  },
-                  {
-                    key: 'deficit',
-                    name: '💱 В обмене',
-                    rawValue: sections.deficit.totalUsdt || 0,
-                    color: 'var(--text-tertiary)',
-                  },
-                ].filter(item => item.rawValue > 0);
+          {(() => {
+            const rawData = [
+              {
+                key: 'platforms',
+                name: '💎 Платформы',
+                rawValue: sections.platformBalances.total || 0,
+                color: '#6366f1',
+              },
+              {
+                key: 'blocked',
+                name: '🔒 Заблокированные',
+                rawValue: sections.blockedPesos.totalUsdt || 0,
+                color: '#ef4444',
+              },
+              {
+                key: 'unpaid',
+                name: '⏳ Неоплаченные',
+                rawValue: sections.unpaidPesos.totalUsdt || 0,
+                color: '#f59e0b',
+              },
+              {
+                key: 'free',
+                name: '✨ Свободные',
+                rawValue: sections.freeUsdt.total || 0,
+                color: '#10b981',
+              },
+              {
+                key: 'deficit',
+                name: '💱 В обмене',
+                rawValue: sections.deficit.totalUsdt || 0,
+                color: 'var(--text-tertiary)',
+              },
+            ].filter(item => item.rawValue > 0);
 
-                const totalRaw = rawData.reduce((sum, item) => sum + item.rawValue, 0);
-                const minShare = 0.02;
-                const maxShare = 0.06;
-                const boostedFree = (rawFree: number) => {
-                  if (rawFree <= 0 || totalRaw <= 0) return rawFree;
-                  const minValue = totalRaw * minShare;
-                  const maxValue = totalRaw * maxShare;
-                  return Math.min(Math.max(rawFree, minValue), maxValue);
-                };
+            const totalRaw = rawData.reduce((sum, item) => sum + item.rawValue, 0);
+            const minShare = 0.02;
+            const maxShare = 0.06;
+            const boostedFree = (rawFree: number) => {
+              if (rawFree <= 0 || totalRaw <= 0) return rawFree;
+              const minValue = totalRaw * minShare;
+              const maxValue = totalRaw * maxShare;
+              return Math.min(Math.max(rawFree, minValue), maxValue);
+            };
 
-                const chartData = rawData.map(item => ({
-                  ...item,
-                  value: item.key === 'free' ? boostedFree(item.rawValue) : item.rawValue,
-                }));
+            const chartData = rawData.map(item => ({
+              ...item,
+              value: item.key === 'free' ? boostedFree(item.rawValue) : item.rawValue,
+            }));
 
-                return (
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={{
-                      stroke: 'var(--text-tertiary)',
-                      strokeWidth: 1,
-                    }}
-                    label={({ name, payload }: any) => {
-                      const rawValue = Number(payload?.rawValue ?? 0);
-                      const percent = totalRaw > 0 ? (rawValue / totalRaw) * 100 : 0;
-                      return `${name}: ${percent.toFixed(1)}%`;
-                    }}
-                    outerRadius={110}
-                    innerRadius={60}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {chartData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        stroke="var(--bg-primary)"
-                        strokeWidth={3}
-                      />
-                    ))}
-                  </Pie>
-                );
-              })()}
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'var(--bg-secondary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                }}
-                itemStyle={{ color: 'var(--text-primary)' }}
-                formatter={(_value: any, _name: any, props: any) => {
-                  const rawValue = Number(props?.payload?.rawValue ?? 0);
-                  return [`${rawValue.toFixed(2)} USDT`, ''];
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={96}
+                      innerRadius={54}
+                      paddingAngle={2}
+                      dataKey="value"
+                      labelLine={false}
+                      label={false}
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                          stroke="var(--bg-primary)"
+                          strokeWidth={3}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                      }}
+                      itemStyle={{ color: 'var(--text-primary)' }}
+                      formatter={(_value: any, _name: any, props: any) => {
+                        const rawValue = Number(props?.payload?.rawValue ?? 0);
+                        return [`${rawValue.toFixed(2)} USDT`, ''];
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px 14px',
+                    fontSize: '0.85rem',
+                    lineHeight: 1.2,
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  {rawData.map((item) => {
+                    const percent = totalRaw > 0 ? (item.rawValue / totalRaw) * 100 : 0;
+                    return (
+                      <div
+                        key={item.key}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          whiteSpace: 'nowrap',
+                        }}
+                        title={`${item.name}: ${percent.toFixed(1)}%`}
+                      >
+                        <span style={{ color: item.color }}>●</span>
+                        <span>{item.name}: {percent.toFixed(1)}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Deposit Summary Table */}
