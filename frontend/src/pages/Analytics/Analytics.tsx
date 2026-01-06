@@ -458,7 +458,7 @@ export default function Analytics() {
                   const rawData = [
                     {
                       key: 'platforms',
-                      name: '💎 Платформы',
+                      name: '💎 Площадки',
                       rawValue: workingDepositData.platformBalances.total || 0,
                       color: '#6366f1',
                     },
@@ -650,7 +650,7 @@ export default function Analytics() {
                       >
                         <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
                           <span style={{ color: '#6366f1', marginRight: '6px' }}>●</span>
-                          💎 Платформы
+                          💎 Площадки
                         </td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
                           {(workingDepositData.platformBalances.total || 0).toFixed(2)}

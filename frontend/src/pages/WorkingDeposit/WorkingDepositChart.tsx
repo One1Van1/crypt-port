@@ -321,7 +321,7 @@ const WorkingDepositChart = () => {
             const rawData = [
               {
                 key: 'platforms',
-                name: '💎 Платформы',
+                name: '💎 Площадки',
                 rawValue: sections.platformBalances.total || 0,
                 color: '#6366f1',
               },
@@ -475,7 +475,7 @@ const WorkingDepositChart = () => {
                 <tr>
                   <td style={{ padding: '12px 16px', paddingLeft: '32px', color: 'var(--text-secondary)' }}>
                     <span style={{ color: '#6366f1', marginRight: '8px' }}>●</span>
-                    💎 Платформы
+                    💎 Площадки
                   </td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>
                     {(sections.platformBalances.total || 0).toFixed(2)}
