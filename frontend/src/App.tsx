@@ -12,7 +12,6 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Analytics from './pages/Analytics/Analytics';
 import BankAccounts from './pages/BankAccounts/BankAccounts';
 import Operators from './pages/Operators/Operators';
-import Users from './pages/Users/Users';
 import Shifts from './pages/Shifts/Shifts';
 import Transactions from './pages/Transactions/Transactions';
 import Banks from './pages/Banks/Banks';
@@ -20,7 +19,6 @@ import Drops from './pages/Drops/Drops';
 import DropNeoBanks from './pages/DropNeoBanks/DropNeoBanks';
 import Platforms from './pages/Platforms/Platforms';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
-import WorkingDepositChart from './pages/WorkingDeposit/WorkingDepositChart';
 import Profile from './pages/Profile/Profile';
 
 export const queryClient = new QueryClient();
@@ -29,6 +27,7 @@ function App() {
   const theme = useAppStore((state) => state.theme);
   const language = useAppStore((state) => state.language);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const currentUser = useAuthStore((state) => state.user);
   const { i18n } = useTranslation();
 
   useEffect(() => {
@@ -79,7 +78,11 @@ function App() {
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/profile/:id" element={<Profile />} />
-                  <Route path="/users" element={<Users />} />
+                  <Route
+                    path="/users"
+                    element={<Navigate to={currentUser?.id ? `/profile/${currentUser.id}` : '/dashboard'} replace />}
+                  />
+                  <Route path="/working-deposit" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/operators" element={<Operators />} />
                   <Route path="/banks" element={<Banks />} />
                   <Route path="/drops" element={<Drops />} />
@@ -90,7 +93,6 @@ function App() {
                   <Route path="/bank-accounts" element={<BankAccounts />} />
                   <Route path="/shifts" element={<Shifts />} />
                   <Route path="/transactions" element={<Transactions />} />
-                  <Route path="/working-deposit" element={<WorkingDepositChart />} />
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Layout>

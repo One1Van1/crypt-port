@@ -7,14 +7,12 @@ import {
   ArrowUpCircle, 
   Clock,
   Users,
-  UserCog,
   Building2,
   UserSquare2,
   ChevronLeft,
   ChevronRight,
   Award,
   Wallet,
-  TrendingUp
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import './Sidebar.css';
@@ -33,12 +31,10 @@ export default function Sidebar() {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard'), roles: ['admin', 'teamlead', 'operator'] },
     { to: '/teamlead-dashboard', icon: Award, label: getTeamleadDashboardLabel(), roles: ['teamlead', 'admin'] },
-    { to: '/working-deposit', icon: TrendingUp, label: 'График', roles: ['admin'] },
     { to: '/platforms', icon: Building2, label: 'Площадки', roles: ['admin'] },
     { to: '/banks', icon: Building2, label: t('nav.banks'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drops', icon: UserSquare2, label: t('nav.drops'), roles: ['operator', 'teamlead', 'admin'] },
     { to: '/drop-neo-banks', icon: Wallet, label: t('nav.dropNeoBanks'), roles: ['admin', 'teamlead'] },
-    { to: '/users', icon: UserCog, label: t('nav.users'), roles: ['admin'] },
     { to: '/operators', icon: Users, label: t('nav.operators'), roles: ['admin'] },
     { to: '/analytics', icon: BarChart3, label: t('nav.analytics'), roles: ['admin', 'teamlead'] },
     { to: '/transactions', icon: ArrowUpCircle, label: t('nav.transactions'), roles: ['admin', 'teamlead', 'operator'] },
