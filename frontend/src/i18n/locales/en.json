@@ -2,11 +2,15 @@
   "common": {
     "locale": "en",
     "welcome": "Welcome",
+    "activeUsersTitle": "Active users",
+    "inactiveUsersTitle": "Inactive users",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
     "save": "Save",
     "saving": "Saving...",
+    "noActiveUsers": "No active users",
+    "noInactiveUsers": "No inactive users",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
@@ -230,6 +234,40 @@
     "started": "Started",
     "ended": "Ended",
     "startNewShift": "Start New Shift"
+  },
+  "profile": {
+    "title": "Profile",
+    "registerUser": "Register user",
+    "usersTitle": "Users",
+    "createWithQr": "Create + QR",
+    "creating": "Creating...",
+    "qrPlaceholder": "QR will appear here",
+    "qrAlt": "QR Code",
+    "noUsers": "No users",
+    "noContacts": "No contacts",
+    "confirmStatusChange": "Change status?",
+    "newPasswordOptional": "New password (optional)",
+    "fields": {
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone",
+      "telegram": "Telegram",
+      "role": "Role",
+      "password": "Password"
+    },
+    "errors": {
+      "loadProfileFailed": "Failed to load profile",
+      "loadUsersFailed": "Failed to load users",
+      "createUserFailed": "Failed to create user",
+      "updateUserFailed": "Failed to update user",
+      "deleteUserFailed": "Failed to delete user"
+    },
+    "deleteModal": {
+      "title": "Confirm deletion",
+      "message": "Are you sure you want to delete user",
+      "cannotUndo": "This action cannot be undone",
+      "deleting": "Deleting..."
+    }
   },
   "operators": {
     "title": "Employees",

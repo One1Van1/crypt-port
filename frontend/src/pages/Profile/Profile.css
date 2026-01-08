@@ -4,6 +4,13 @@
 
 .profile-grid {
   display: flex;
+
+.profile-subtitle {
+  margin: 16px 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.9;
+}
   gap: 24px;
   align-items: stretch;
 }

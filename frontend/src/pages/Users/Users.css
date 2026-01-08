@@ -214,8 +214,7 @@
   font-size: 12px;
   font-weight: 600;
   border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  cursor: default;
 }
 
 .status-badge-button.status-active {
@@ -228,15 +227,6 @@
   color: #ef4444;
 }
 
-.status-badge-button:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
-}
-
-.status-badge-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 
 .user-card-body {
   display: flex;

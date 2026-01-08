@@ -2,11 +2,15 @@
   "common": {
     "locale": "ru",
     "welcome": "Добро пожаловать",
+    "activeUsersTitle": "Активные пользователи",
+    "inactiveUsersTitle": "Неактивные пользователи",
     "loading": "Загрузка...",
     "error": "Ошибка",
     "success": "Успешно",
     "save": "Сохранить",
     "saving": "Сохранение...",
+    "noActiveUsers": "Нет активных пользователей",
+    "noInactiveUsers": "Нет неактивных пользователей",
     "cancel": "Отмена",
     "delete": "Удалить",
     "edit": "Редактировать",
@@ -249,6 +253,40 @@
     "started": "Начало",
     "ended": "Окончание",
     "startNewShift": "Начать новую смену"
+  },
+  "profile": {
+    "title": "Профиль",
+    "registerUser": "Регистрация пользователя",
+    "usersTitle": "Пользователи",
+    "createWithQr": "Создать + QR",
+    "creating": "Создание…",
+    "qrPlaceholder": "QR появится здесь",
+    "qrAlt": "QR-код",
+    "noUsers": "Нет пользователей",
+    "noContacts": "Нет контактов",
+    "confirmStatusChange": "Изменить статус?",
+    "newPasswordOptional": "Новый пароль (необязательно)",
+    "fields": {
+      "username": "Имя пользователя",
+      "email": "Email",
+      "phone": "Телефон",
+      "telegram": "Telegram",
+      "role": "Роль",
+      "password": "Пароль"
+    },
+    "errors": {
+      "loadProfileFailed": "Не удалось загрузить профиль",
+      "loadUsersFailed": "Не удалось загрузить пользователей",
+      "createUserFailed": "Не удалось создать пользователя",
+      "updateUserFailed": "Не удалось обновить пользователя",
+      "deleteUserFailed": "Не удалось удалить пользователя"
+    },
+    "deleteModal": {
+      "title": "Подтвердите удаление",
+      "message": "Точно ли вы хотите удалить пользователя",
+      "cannotUndo": "Это действие нельзя отменить",
+      "deleting": "Удаление…"
+    }
   },
   "teamlead": {
     "dashboard": "Панель тимлида",

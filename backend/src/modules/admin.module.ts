@@ -14,6 +14,8 @@ import { AdminDeleteUserController } from '../features/admin/delete-user/delete-
 import { AdminEndShiftController } from '../features/admin/end-shift/end-shift.controller';
 import { ExchangeUsdtToPesosController } from '../features/admin/exchange-usdt-to-pesos/exchange-usdt-to-pesos.controller';
 import { SetInitialDepositController } from '../features/admin/settings/set-initial-deposit.controller';
+import { GetActiveUsersController } from '../features/admin/get-active-users/get-active-users.controller';
+import { GetInactiveUsersController } from '../features/admin/get-inactive-users/get-inactive-users.controller';
 
 // Admin Services
 import { UpdateUserRoleService } from '../features/admin/update-user-role/update-user-role.service';
@@ -22,6 +24,8 @@ import { AdminDeleteUserService } from '../features/admin/delete-user/delete-use
 import { AdminEndShiftService } from '../features/admin/end-shift/end-shift.service';
 import { ExchangeUsdtToPesosService } from '../features/admin/exchange-usdt-to-pesos/exchange-usdt-to-pesos.service';
 import { SetInitialDepositService } from '../features/admin/settings/set-initial-deposit.service';
+import { GetActiveUsersService } from '../features/admin/get-active-users/get-active-users.service';
+import { GetInactiveUsersService } from '../features/admin/get-inactive-users/get-inactive-users.service';
 
 @Module({
   imports: [
@@ -39,6 +43,8 @@ import { SetInitialDepositService } from '../features/admin/settings/set-initial
     AdminUpdateUserController,
     AdminDeleteUserController,
     AdminEndShiftController,
+    GetActiveUsersController,
+    GetInactiveUsersController,
     ExchangeUsdtToPesosController,
     SetInitialDepositController,
   ],
@@ -47,6 +53,8 @@ import { SetInitialDepositService } from '../features/admin/settings/set-initial
     AdminUpdateUserService,
     AdminDeleteUserService,
     AdminEndShiftService,
+    GetActiveUsersService,
+    GetInactiveUsersService,
     ExchangeUsdtToPesosService,
     SetInitialDepositService,
   ],

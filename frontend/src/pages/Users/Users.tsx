@@ -60,13 +60,6 @@ export default function Users() {
   });
 
   // Update status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: ({ userId, status }: { userId: string; status: string }) => 
-      usersService.updateStatus(userId, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-  });
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     if (confirm(t('users.confirmRoleChange'))) {
@@ -74,12 +67,6 @@ export default function Users() {
     }
   };
 
-  const handleStatusToggle = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === UserStatus.ACTIVE ? UserStatus.INACTIVE : UserStatus.ACTIVE;
-    if (confirm(t('users.confirmStatusChange'))) {
-      await updateStatusMutation.mutateAsync({ userId, status: newStatus });
-    }
-  };
 
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
@@ -223,11 +210,7 @@ export default function Users() {
                     </div>
                   </div>
                 </div>
-                <button
-                  className={`status-badge-button ${getStatusBadgeClass(userItem.status)}`}
-                  onClick={() => handleStatusToggle(userItem.id, userItem.status)}
-                  disabled={updateStatusMutation.isPending}
-                >
+                <div className={`status-badge-button ${getStatusBadgeClass(userItem.status)}`}>
                   {userItem.status === UserStatus.ACTIVE ? (
                     <>
                       <CheckCircle size={14} />
@@ -239,7 +222,7 @@ export default function Users() {
                       {t('users.status.inactive')}
                     </>
                   )}
-                </button>
+                </div>
               </div>
 
               <div className="user-card-body">

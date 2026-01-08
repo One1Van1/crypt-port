@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import { UserRole, UserStatus } from '../types/user.types';
 
 export interface User {
-  id: string;
+  id: string | number;
   username: string;
   email: string;
   role: UserRole | string;  // Backend returns string, but it should be UserRole value
@@ -11,6 +11,7 @@ export interface User {
   telegram?: string;
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface UserProfile {
@@ -79,6 +80,16 @@ class UsersService {
 
   async adminDelete(id: string): Promise<void> {
     await apiClient.delete(`/admin/users/${id}`);
+  }
+
+  async adminGetActive(): Promise<GetUsersResponse> {
+    const response = await apiClient.get<GetUsersResponse>('/admin/users/active');
+    return response.data;
+  }
+
+  async adminGetInactive(): Promise<GetUsersResponse> {
+    const response = await apiClient.get<GetUsersResponse>('/admin/users/inactive');
+    return response.data;
   }
 
   async updateStatus(id: string, status: string): Promise<User> {

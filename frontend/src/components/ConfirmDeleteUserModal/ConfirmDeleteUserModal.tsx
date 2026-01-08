@@ -1,6 +1,7 @@
 import './ConfirmDeleteUserModal.css';
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmDeleteUserModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export default function ConfirmDeleteUserModal({
   onConfirm,
   onClose,
 }: ConfirmDeleteUserModalProps) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!isOpen) return;
     document.body.style.overflow = 'hidden';
@@ -50,7 +52,7 @@ export default function ConfirmDeleteUserModal({
     >
       <div className="confirm-delete-modal" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-delete-header">
-          <h3 className="confirm-delete-title">Подтвердите удаление</h3>
+          <h3 className="confirm-delete-title">{t('profile.deleteModal.title')}</h3>
           <button
             className="confirm-delete-close"
             type="button"
@@ -65,18 +67,18 @@ export default function ConfirmDeleteUserModal({
 
         <div className="confirm-delete-body">
           <p>
-            Точно ли вы хотите удалить пользователя <strong>"{userLabel}"</strong>?
+            {t('profile.deleteModal.message')} <strong>"{userLabel}"</strong>?
           </p>
-          <p className="confirm-delete-warning">Это действие нельзя отменить</p>
+          <p className="confirm-delete-warning">{t('profile.deleteModal.cannotUndo')}</p>
           {error && <div className="confirm-delete-error">{error}</div>}
         </div>
 
         <div className="confirm-delete-actions">
           <button className="users-btn danger" onClick={onConfirm} disabled={Boolean(isLoading)}>
-            {isLoading ? 'Удаление…' : 'Удалить'}
+            {isLoading ? t('profile.deleteModal.deleting') : t('common.delete')}
           </button>
           <button className="users-btn secondary" onClick={onClose} disabled={Boolean(isLoading)}>
-            Отмена
+            {t('common.cancel')}
           </button>
         </div>
       </div>
