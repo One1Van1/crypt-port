@@ -15,6 +15,7 @@ export class GetShiftByIdService {
     const shift = await this.shiftRepository.findOne({
       where: { id },
       relations: ['user', 'platform', 'transactions', 'transactions.bankAccount', 'transactions.bankAccount.bank'],
+      withDeleted: true,
     });
 
     if (!shift) {

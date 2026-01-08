@@ -15,8 +15,10 @@ export class GetAllShiftsService {
   async execute(query: GetAllShiftsQueryDto): Promise<GetAllShiftsResponseDto> {
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
+      .withDeleted()
       .leftJoinAndSelect('shift.user', 'user')
-      .leftJoinAndSelect('shift.platform', 'platform');
+      .leftJoinAndSelect('shift.platform', 'platform')
+      .where('shift.deletedAt IS NULL');
 
     // Фильтр по статусу
     if (query.status) {

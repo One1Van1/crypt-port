@@ -15,6 +15,7 @@ export class GetAllTransactionsService {
   async execute(query: GetAllTransactionsQueryDto): Promise<GetAllTransactionsResponseDto> {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
+      .withDeleted()
       .leftJoinAndSelect('transaction.shift', 'shift')
       .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
@@ -22,6 +23,9 @@ export class GetAllTransactionsService {
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .leftJoinAndSelect('transaction.user', 'user')
       .leftJoinAndSelect('transaction.sourceDropNeoBank', 'sourceDropNeoBank');
+
+    // Don't return soft-deleted transactions (but keep soft-deleted relations like users)
+    queryBuilder.andWhere('transaction.deletedAt IS NULL');
 
     // Фильтр по статусу
     if (query.status) {

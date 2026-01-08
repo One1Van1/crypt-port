@@ -13,6 +13,15 @@ export interface User {
   updatedAt: string;
 }
 
+export interface UserProfile {
+  id: number;
+  username: string;
+  email: string;
+  phone?: string;
+  telegram?: string;
+  role: string;
+}
+
 export interface GetUsersResponse {
   items: User[];
   total: number;
@@ -31,6 +40,11 @@ class UsersService {
 
   async getById(id: string): Promise<User> {
     const response = await apiClient.get<User>(`/users/${id}`);
+    return response.data;
+  }
+
+  async getProfile(id: string): Promise<UserProfile> {
+    const response = await apiClient.get<UserProfile>(`/users/profile/${id}`);
     return response.data;
   }
 
@@ -56,6 +70,15 @@ class UsersService {
   async updateRole(id: string, role: string): Promise<User> {
     const response = await apiClient.patch<User>(`/admin/users/${id}/role`, { role });
     return response.data;
+  }
+
+  async adminUpdate(id: string, data: Record<string, unknown>): Promise<User> {
+    const response = await apiClient.patch<User>(`/admin/users/${id}`, data);
+    return response.data;
+  }
+
+  async adminDelete(id: string): Promise<void> {
+    await apiClient.delete(`/admin/users/${id}`);
   }
 
   async updateStatus(id: string, status: string): Promise<User> {

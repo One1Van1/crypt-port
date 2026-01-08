@@ -14,6 +14,7 @@ export class GetProfitHistoryService {
   async execute(): Promise<GetProfitHistoryResponseDto> {
     const [profits, total] = await this.profitRepository.findAndCount({
       relations: ['createdByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
       take: 100, // Last 100 profit withdrawals
     });

@@ -151,7 +151,7 @@ export default function Login() {
 
               <div className="form-footer">
                 <span>{t('auth.noAccount')}</span>
-                <Link to="/register" className="link">{t('auth.register')}</Link>
+                <Link to="/register" className="link">{t('auth.registerAdmin')}</Link>
               </div>
             </form>
           ) : (

@@ -17,9 +17,11 @@ export class GetMyShiftsService {
     
     const queryBuilder = this.shiftRepository
       .createQueryBuilder('shift')
+      .withDeleted()
       .leftJoinAndSelect('shift.user', 'user')
       .leftJoinAndSelect('shift.platform', 'platform')
       .where('shift.userId = :userId', { userId: user.id })
+      .andWhere('shift.deletedAt IS NULL')
       .orderBy('shift.startTime', 'DESC');
 
 

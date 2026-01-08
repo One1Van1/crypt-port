@@ -21,6 +21,7 @@ export class GetFreeUsdtDistributionsService {
 
     const [items, total] = await this.distributionRepository.findAndCount({
       relations: ['platform', 'distributedByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,

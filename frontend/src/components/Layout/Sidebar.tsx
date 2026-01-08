@@ -54,9 +54,15 @@ export default function Sidebar() {
       <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="user-info">
-            <div className="user-avatar">
-              {user?.username[0].toUpperCase()}
-            </div>
+            <NavLink
+              to={user?.id ? `/profile/${user.id}` : '/dashboard'}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+              title="Profile"
+            >
+              <div className="user-avatar">
+                {user?.username[0].toUpperCase()}
+              </div>
+            </NavLink>
             {!isCollapsed && (
               <div className="user-details">
                 <div className="user-name">{user?.username}</div>

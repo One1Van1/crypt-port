@@ -7,9 +7,18 @@ interface CustomSelectProps {
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
+  disabled?: boolean;
+  triggerClassName?: string;
 }
 
-export default function CustomSelect({ value, onChange, options, placeholder = 'Выберите...' }: CustomSelectProps) {
+export function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder = 'Выберите...',
+  disabled,
+  triggerClassName,
+}: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,8 +56,12 @@ export default function CustomSelect({ value, onChange, options, placeholder = '
     <div className="custom-select" ref={containerRef}>
       <button
         type="button"
-        className={`custom-select-trigger ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        className={`custom-select-trigger ${isOpen ? 'open' : ''} ${triggerClassName || ''}`}
+        onClick={() => {
+          if (disabled) return;
+          setIsOpen(!isOpen);
+        }}
+        disabled={disabled}
       >
         <span className={selectedOption ? '' : 'placeholder'}>
           {selectedOption?.label || placeholder}
@@ -93,3 +106,5 @@ export default function CustomSelect({ value, onChange, options, placeholder = '
     </div>
   );
 }
+
+export default CustomSelect;

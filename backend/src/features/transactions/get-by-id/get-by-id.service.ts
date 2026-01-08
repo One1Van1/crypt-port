@@ -15,9 +15,14 @@ export class GetTransactionByIdService {
     const transaction = await this.transactionRepository.findOne({
       where: { id },
       relations: ['shift', 'bankAccount', 'bankAccount.bank', 'bankAccount.drop', 'platform', 'user'],
+      withDeleted: true,
     });
 
     if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    if (transaction.deletedAt) {
       throw new NotFoundException('Transaction not found');
     }
 

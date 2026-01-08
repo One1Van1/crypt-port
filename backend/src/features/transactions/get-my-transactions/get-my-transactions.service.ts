@@ -17,6 +17,7 @@ export class GetMyTransactionsService {
 
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
+      .withDeleted()
       .leftJoinAndSelect('transaction.shift', 'shift')
       .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
@@ -24,6 +25,9 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .leftJoinAndSelect('transaction.user', 'user')
       .where('transaction.userId = :userId', { userId: user.id });
+
+    // Don't return soft-deleted transactions (but keep soft-deleted relations like users)
+    queryBuilder.andWhere('transaction.deletedAt IS NULL');
 
     // Фильтр по статусу
     if (query.status) {

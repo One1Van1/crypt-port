@@ -14,6 +14,7 @@ export class GetAllConversionsService {
   async execute(): Promise<GetAllConversionsResponseDto> {
     const conversions = await this.conversionRepository.find({
       relations: ['convertedByUser', 'cashWithdrawal', 'cashWithdrawal.withdrawnByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
     });
 

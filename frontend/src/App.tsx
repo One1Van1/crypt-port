@@ -21,6 +21,7 @@ import DropNeoBanks from './pages/DropNeoBanks/DropNeoBanks';
 import Platforms from './pages/Platforms/Platforms';
 import TeamLeadDashboard from './pages/TeamLeadDashboard/TeamLeadDashboard';
 import WorkingDepositChart from './pages/WorkingDeposit/WorkingDepositChart';
+import Profile from './pages/Profile/Profile';
 
 export const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ function App() {
               <Layout>
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile/:id" element={<Profile />} />
                   <Route path="/users" element={<Users />} />
                   <Route path="/operators" element={<Operators />} />
                   <Route path="/banks" element={<Banks />} />

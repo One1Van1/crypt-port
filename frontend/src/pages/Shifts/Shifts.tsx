@@ -33,6 +33,7 @@ export default function Shifts() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isConfirmEndModalOpen, setIsConfirmEndModalOpen] = useState(false);
+  const [shiftToEnd, setShiftToEnd] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -55,6 +56,7 @@ export default function Shifts() {
 
   // Определяем, является ли пользователь тимлидом или админом
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+  const isAdmin = user?.role === UserRole.ADMIN;
 
   // Update current time every second
   useEffect(() => {
@@ -141,11 +143,18 @@ export default function Shifts() {
 
   // End shift mutation
   const endShiftMutation = useMutation({
-    mutationFn: (shiftId: number) => shiftsService.endShift(shiftId),
+    mutationFn: (shiftId: number) => {
+      if (viewMode === 'all' && isAdmin) {
+        return shiftsService.adminEndShift(shiftId);
+      }
+      return shiftsService.endShift(shiftId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-shift'] });
       queryClient.invalidateQueries({ queryKey: ['my-shifts'] });
+      queryClient.invalidateQueries({ queryKey: ['all-shifts'] });
       setIsConfirmEndModalOpen(false);
+      setShiftToEnd(null);
     },
   });
 
@@ -164,12 +173,13 @@ export default function Shifts() {
 
   const handleEndShift = () => {
     if (!currentShift) return;
+    setShiftToEnd(currentShift);
     setIsConfirmEndModalOpen(true);
   };
 
   const handleConfirmEndShift = () => {
-    if (!currentShift) return;
-    endShiftMutation.mutate(currentShift.id);
+    if (!shiftToEnd) return;
+    endShiftMutation.mutate(shiftToEnd.id);
   };
 
   const calculateDuration = (startTime: string, endTime?: string) => {
@@ -402,15 +412,20 @@ export default function Shifts() {
                   </div>
                 </div>
 
-                {isActive && shift.id === currentShift?.id && (
+                {isActive && (
                   <div className="shift-card-footer">
-                    <button 
-                      className="btn-end-shift-small"
-                      onClick={handleEndShift}
-                      disabled={endShiftMutation.isPending}
-                    >
-                      {t('shifts.endShift')}
-                    </button>
+                    {(shift.id === currentShift?.id || (viewMode === 'all' && isAdmin)) && (
+                      <button
+                        className="btn-end-shift-small"
+                        onClick={() => {
+                          setShiftToEnd(shift.id === currentShift?.id ? currentShift : shift);
+                          setIsConfirmEndModalOpen(true);
+                        }}
+                        disabled={endShiftMutation.isPending}
+                      >
+                        {t('shifts.endShift')}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -526,13 +541,19 @@ export default function Shifts() {
 
       {/* Confirm End Shift Modal */}
       {isConfirmEndModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsConfirmEndModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => {
+          setIsConfirmEndModalOpen(false);
+          setShiftToEnd(null);
+        }}>
           <div className="confirm-modal" onClick={(e) => e.stopPropagation()}>
             <div className="confirm-modal-header">
               <h3>{t('shifts.confirmEndTitle')}</h3>
             </div>
             <div className="confirm-modal-body">
-              <p>{t('shifts.confirmEndMessage')} <strong>{currentShift?.platform?.name}</strong>?</p>
+              <p>
+                {t('shifts.confirmEndMessage')}{' '}
+                <strong>{shiftToEnd?.platform?.name || shiftToEnd?.platformName}</strong>?
+              </p>
               <p style={{ marginTop: '12px', fontSize: '14px', color: 'var(--text-tertiary)' }}>
                 {t('shifts.cannotUndo')}
               </p>
@@ -540,7 +561,10 @@ export default function Shifts() {
             <div className="confirm-modal-footer">
               <button 
                 className="btn-secondary"
-                onClick={() => setIsConfirmEndModalOpen(false)}
+                onClick={() => {
+                  setIsConfirmEndModalOpen(false);
+                  setShiftToEnd(null);
+                }}
                 disabled={endShiftMutation.isPending}
               >
                 {t('common.cancel')}

@@ -49,6 +49,11 @@ class ShiftsService {
     return response.data;
   }
 
+  async adminEndShift(shiftId: number): Promise<Shift> {
+    const response = await apiClient.post<Shift>(`/admin/shifts/${shiftId}/end`);
+    return response.data;
+  }
+
   async getAll(params?: {
     page?: number;
     limit?: number;

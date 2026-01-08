@@ -30,6 +30,7 @@ export class GetFreeUsdtLedgerService {
     const [items, total] = await this.conversionRepository.findAndCount({
       where: { status: ConversionStatus.CONFIRMED },
       relations: ['convertedByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
       take: limit,
       skip: (page - 1) * limit,

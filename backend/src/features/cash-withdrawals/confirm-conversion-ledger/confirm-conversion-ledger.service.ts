@@ -47,6 +47,7 @@ export class ConfirmConversionLedgerService {
     const conversion = await this.conversionRepository.findOne({
       where: { id },
       relations: ['convertedByUser'],
+      withDeleted: true,
     });
 
     if (!conversion) {

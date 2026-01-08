@@ -18,12 +18,14 @@ export class GetOperatorsWithdrawalsService {
     // Получаем все обналички
     const withdrawals = await this.cashWithdrawalRepository.find({
       relations: ['withdrawnByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
     });
 
     // Получаем все конвертации
     const conversions = await this.conversionRepository.find({
       relations: ['convertedByUser'],
+      withDeleted: true,
       order: { createdAt: 'DESC' },
     });
 
