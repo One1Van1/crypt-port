@@ -444,7 +444,7 @@ export default function Transactions() {
               options={[
                 { value: '', label: 'Все банки' },
                 ...banks.map((bank) => ({
-                  value: bank.id,
+                  value: String(bank.id),
                   label: bank.name
                 }))
               ]}
