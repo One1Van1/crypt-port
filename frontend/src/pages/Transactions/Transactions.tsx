@@ -33,6 +33,7 @@ export default function Transactions() {
   const [highlightTransactionId, setHighlightTransactionId] = useState<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [transactionIdFilter, setTransactionIdFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
   const [selectedBankId, setSelectedBankId] = useState<string>('');
@@ -69,7 +70,7 @@ export default function Transactions() {
         setViewMode('all');
       }
       setHighlightTransactionId(id);
-      setSearchQuery(id);
+      setTransactionIdFilter(id);
       setShowFilters(true);
       setPage(1);
       setSelectedShiftId('');
@@ -86,9 +87,7 @@ export default function Transactions() {
       if (isTeamLeadOrAdmin && isFromBanks && Number.isFinite(idNum)) {
         (async () => {
           try {
-            const resp = await transactionsService.getAllV2({ page: 1, limit: 1, search: String(idNum) });
-            const tx = resp.items?.[0];
-            if (!tx) return;
+            const tx = await transactionsService.getByIdV2(idNum);
 
             const createdAt = new Date(tx.createdAt);
             const from = new Date(createdAt);
@@ -206,8 +205,52 @@ export default function Transactions() {
 
   // Fetch ALL transactions (для админа/тимлида)
   const { data: allTransactionsData } = useQuery({
-    queryKey: ['all-transactions', page, selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, searchQuery, dateFrom, dateTo, minAmount, maxAmount],
+    queryKey: [
+      'all-transactions',
+      page,
+      selectedUserId,
+      selectedPlatformId,
+      selectedBankId,
+      selectedDropNeoBankId,
+      searchQuery,
+      transactionIdFilter,
+      dateFrom,
+      dateTo,
+      minAmount,
+      maxAmount,
+    ],
     queryFn: () => {
+      const txIdTrimmed = transactionIdFilter.trim();
+      const txIdNum = /^[0-9]+$/.test(txIdTrimmed) ? Number(txIdTrimmed) : NaN;
+
+      const matchesOtherFilters = (tx: any): boolean => {
+        if (selectedUserId && String(tx.user?.id) !== selectedUserId) return false;
+        if (selectedPlatformId && String(tx.platform?.id) !== selectedPlatformId) return false;
+        if (selectedBankId && String(tx.bank?.id) !== selectedBankId) return false;
+        if (selectedDropNeoBankId && String(tx.dropNeoBank?.id) !== selectedDropNeoBankId) return false;
+
+        const amount = Number(tx.amount);
+        if (minAmount && Number.isFinite(Number(minAmount)) && amount < Number(minAmount)) return false;
+        if (maxAmount && Number.isFinite(Number(maxAmount)) && amount > Number(maxAmount)) return false;
+
+        const createdAt = new Date(tx.createdAt).getTime();
+        if (dateFrom && createdAt < dateFrom.getTime()) return false;
+        if (dateTo && createdAt >= dateTo.getTime()) return false;
+
+        return true;
+      };
+
+      if (txIdTrimmed && Number.isFinite(txIdNum)) {
+        return (async () => {
+          try {
+            const tx = await transactionsService.getByIdV2(txIdNum);
+            return matchesOtherFilters(tx) ? { items: [tx], total: 1 } : { items: [], total: 0 };
+          } catch {
+            return { items: [], total: 0 };
+          }
+        })();
+      }
+
       let startDate: string | undefined;
       let endDate: string | undefined;
 
@@ -250,7 +293,18 @@ export default function Transactions() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, dateFrom, dateTo, minAmount, maxAmount, searchQuery]);
+  }, [
+    selectedUserId,
+    selectedPlatformId,
+    selectedBankId,
+    selectedDropNeoBankId,
+    dateFrom,
+    dateTo,
+    minAmount,
+    maxAmount,
+    searchQuery,
+    transactionIdFilter,
+  ]);
 
   const transactions = data?.items || [];
   const total = data?.total || 0;
@@ -297,6 +351,7 @@ export default function Transactions() {
     setMinAmount('');
     setMaxAmount('');
     setSearchQuery('');
+    setTransactionIdFilter('');
   };
 
   const hasActiveFilters = 
@@ -309,7 +364,8 @@ export default function Transactions() {
     dateTo || 
     minAmount || 
     maxAmount || 
-    searchQuery;
+    searchQuery ||
+    transactionIdFilter;
 
   return (
     <div className="transactions-page">
@@ -365,7 +421,8 @@ export default function Transactions() {
             dateTo, 
             minAmount, 
             maxAmount, 
-            searchQuery
+            searchQuery,
+            transactionIdFilter
           ].filter(Boolean).length}</span>}
         </button>
 
@@ -386,6 +443,17 @@ export default function Transactions() {
 
       {showFilters && (
         <div className="filters-panel">
+          <div className="filter-group">
+            <label>ID транзакции</label>
+            <input
+              type="number"
+              placeholder="ID"
+              value={transactionIdFilter}
+              onChange={(e) => setTransactionIdFilter(e.target.value)}
+              className="filter-input"
+            />
+          </div>
+
           <div className="filter-group">
             <label>Площадка</label>
             <CustomSelect

@@ -29,12 +29,17 @@ import { UpdateBalanceService } from '../features/drop-neo-banks/update-balance/
 import { GetNeoBankLimitsRemainingController } from '../features/drop-neo-banks/get-limits-remaining/get-limits-remaining.controller';
 import { GetNeoBankLimitsRemainingService } from '../features/drop-neo-banks/get-limits-remaining/get-limits-remaining.service';
 
+// Get Withdrawals History
+import { GetNeoBankWithdrawalsHistoryController } from '../features/drop-neo-banks/get-withdrawals-history/get-withdrawals-history.controller';
+import { GetNeoBankWithdrawalsHistoryService } from '../features/drop-neo-banks/get-withdrawals-history/get-withdrawals-history.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform, NeoBankWithdrawal])],
   controllers: [
     CreateDropNeoBankController,
     GetAllDropNeoBanksController,
     GetNeoBankLimitsRemainingController,
+    GetNeoBankWithdrawalsHistoryController,
     UpdateDropNeoBankController,
     UpdateBalanceController,
     DeleteDropNeoBankController,
@@ -43,6 +48,7 @@ import { GetNeoBankLimitsRemainingService } from '../features/drop-neo-banks/get
     CreateDropNeoBankService,
     GetAllDropNeoBanksService,
     GetNeoBankLimitsRemainingService,
+    GetNeoBankWithdrawalsHistoryService,
     UpdateDropNeoBankService,
     UpdateBalanceService,
     DeleteDropNeoBankService,

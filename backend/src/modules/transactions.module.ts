@@ -43,6 +43,10 @@ import { GetAllTransactionsV2Service } from '../features/transactions/get-all-v2
 import { GetTransactionByIdController } from '../features/transactions/get-by-id/get-by-id.controller';
 import { GetTransactionByIdService } from '../features/transactions/get-by-id/get-by-id.service';
 
+// Get Transaction By ID v2
+import { GetTransactionByIdV2Controller } from '../features/transactions/get-by-id-v2/get-by-id-v2.controller';
+import { GetTransactionByIdV2Service } from '../features/transactions/get-by-id-v2/get-by-id-v2.service';
+
 // Update Transaction Status
 import { UpdateTransactionStatusController } from '../features/transactions/update-status/update-status.controller';
 import { UpdateTransactionStatusService } from '../features/transactions/update-status/update-status.service';
@@ -63,6 +67,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     GetAllTransactionsController,
     GetAllTransactionsV2Controller,
     GetTransactionByIdController,
+    GetTransactionByIdV2Controller,
     UpdateTransactionStatusController,
     GetTransactionsStatsController,
   ],
@@ -76,6 +81,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     GetAllTransactionsService,
     GetAllTransactionsV2Service,
     GetTransactionByIdService,
+    GetTransactionByIdV2Service,
     UpdateTransactionStatusService,
     GetTransactionsStatsService,
   ],

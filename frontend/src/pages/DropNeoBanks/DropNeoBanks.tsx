@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
 import dropNeoBanksService, {
@@ -8,6 +9,7 @@ import dropNeoBanksService, {
   CreateDropNeoBankDto,
   UpdateDropNeoBankDto,
   DropNeoBankLimitsRemaining,
+  NeoBankWithdrawalsHistoryItem,
 } from '../../services/drop-neo-banks.service';
 import { platformsService, Platform } from '../../services/platforms.service';
 import { dropsService } from '../../services/drops.service';
@@ -16,6 +18,7 @@ import './DropNeoBanks.css';
 
 export default function DropNeoBanks() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'neoBanks' | 'limits'>('neoBanks');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,6 +31,7 @@ export default function DropNeoBanks() {
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openModalDropdown, setOpenModalDropdown] = useState<string | null>(null);
+  const [expandedNeoBankId, setExpandedNeoBankId] = useState<number | null>(null);
 
   // Форма
   const [formData, setFormData] = useState<CreateDropNeoBankDto>({
@@ -89,6 +93,19 @@ export default function DropNeoBanks() {
   const limitsRemainingById = new Map<number, DropNeoBankLimitsRemaining>(
     (limitsRemaining?.items ?? []).map((item) => [item.id, item]),
   );
+
+  const { data: withdrawalsHistory } = useQuery({
+    queryKey: ['drop-neo-bank-withdrawals-history', expandedNeoBankId],
+    queryFn: () =>
+      dropNeoBanksService.getWithdrawalsHistory({
+        neoBankId: expandedNeoBankId as number,
+        limit: 50,
+        offset: 0,
+      }),
+    enabled: activeTab === 'limits' && expandedNeoBankId !== null,
+  });
+
+  const withdrawalsHistoryItems: NeoBankWithdrawalsHistoryItem[] = withdrawalsHistory?.items ?? [];
 
   // Получить площадки для селектора
   const { data: platforms } = useQuery({
@@ -593,7 +610,14 @@ export default function DropNeoBanks() {
           </thead>
           <tbody>
             {neoBanks?.items.map((neoBank: DropNeoBank) => (
-              <tr key={neoBank.id}>
+              <Fragment key={neoBank.id}>
+                <tr
+                  onClick={() => {
+                    if (activeTab !== 'limits') return;
+                    setExpandedNeoBankId((prev) => (prev === neoBank.id ? null : neoBank.id));
+                  }}
+                  style={activeTab === 'limits' ? { cursor: 'pointer' } : undefined}
+                >
                 <td>
                   <div className="drop-cell">
                     <strong>{neoBank.platform?.name || '-'}</strong>
@@ -654,6 +678,8 @@ export default function DropNeoBanks() {
                       className="btn-icon btn-icon-primary"
                       onClick={() => openExchangeModal(neoBank)}
                       title={t('dropNeoBanks.actions.exchangeTitle')}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClickCapture={(e) => e.stopPropagation()}
                     >
                       <DollarSign size={16} />
                     </button>
@@ -661,6 +687,8 @@ export default function DropNeoBanks() {
                       className="btn-icon btn-icon-secondary"
                       onClick={() => openEditModal(neoBank)}
                       title={t('dropNeoBanks.actions.edit')}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClickCapture={(e) => e.stopPropagation()}
                     >
                       <Edit2 size={16} />
                     </button>
@@ -668,12 +696,66 @@ export default function DropNeoBanks() {
                       className="btn-icon btn-icon-danger"
                       onClick={() => handleDelete(neoBank.id)}
                       title={t('dropNeoBanks.actions.delete')}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClickCapture={(e) => e.stopPropagation()}
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
                 </td>
-              </tr>
+                </tr>
+
+                {activeTab === 'limits' && expandedNeoBankId === neoBank.id && (
+                  <tr key={`${neoBank.id}-history`}>
+                    <td colSpan={8} style={{ paddingTop: 0 }}>
+                      <div style={{ padding: '0.75rem 1rem 1rem 1rem' }}>
+                        <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>История выводов</div>
+                        {withdrawalsHistoryItems.length === 0 ? (
+                          <div style={{ color: 'var(--text-secondary)' }}>Нет выводов</div>
+                        ) : (
+                          <table className="data-table">
+                            <thead>
+                              <tr>
+                                <th>Кто</th>
+                                <th>Когда</th>
+                                <th>Сколько</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {withdrawalsHistoryItems
+                                .filter((x) => x)
+                                .map((item) => (
+                                  <tr
+                                    key={item.id}
+                                    onDoubleClick={() => {
+                                      navigate('/transactions', {
+                                        state: {
+                                          highlightTransactionId: item.transactionId,
+                                          viewMode: 'all',
+                                          source: 'banks',
+                                        },
+                                      });
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                  >
+                                    <td>
+                                      {item.withdrawnByUser?.username}
+                                      {item.withdrawnByUser?.email ? ` (${item.withdrawnByUser.email})` : ''}
+                                    </td>
+                                    <td>{new Date(item.createdAt).toLocaleString()}</td>
+                                    <td>
+                                      <strong>{formatCurrency(Number(item.amount))}</strong>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>

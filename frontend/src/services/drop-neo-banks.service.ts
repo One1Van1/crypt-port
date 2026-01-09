@@ -79,6 +79,26 @@ export interface GetNeoBankLimitsRemainingParams {
   status?: string;
 }
 
+export interface NeoBankWithdrawalsHistoryUser {
+  id: number;
+  username: string;
+  email?: string | null;
+}
+
+export interface NeoBankWithdrawalsHistoryItem {
+  id: number;
+  amount: number;
+  transactionId: number;
+  createdAt: string;
+  withdrawnByUser: NeoBankWithdrawalsHistoryUser;
+}
+
+export interface GetNeoBankWithdrawalsHistoryParams {
+  neoBankId: number;
+  limit?: number;
+  offset?: number;
+}
+
 const dropNeoBanksService = {
   async getAll(params?: GetAllDropNeoBanksParams) {
     const response = await apiClient.get<{ items: DropNeoBank[] }>('/drop-neo-banks', { params });
@@ -88,6 +108,14 @@ const dropNeoBanksService = {
   async getLimitsRemaining(params?: GetNeoBankLimitsRemainingParams) {
     const response = await apiClient.get<{ items: DropNeoBankLimitsRemaining[] }>(
       '/drop-neo-banks/limits-remaining',
+      { params },
+    );
+    return response.data;
+  },
+
+  async getWithdrawalsHistory(params: GetNeoBankWithdrawalsHistoryParams) {
+    const response = await apiClient.get<{ items: NeoBankWithdrawalsHistoryItem[]; total: number }>(
+      '/drop-neo-banks/withdrawals-history',
       { params },
     );
     return response.data;
