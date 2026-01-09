@@ -89,6 +89,212 @@
   margin-bottom: 2rem;
 }
 
+.teamlead-create-requisite-btn {
+  margin-top: 12px;
+}
+
+/* Ensure the header action button doesn't stretch (some pages set .btn-primary { flex: 1 }) */
+.section-header .teamlead-create-requisite-btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: unset;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+.teamlead-create-requisite-modal form {
+  padding: 1rem;
+}
+
+.teamlead-create-requisite-modal .form-group {
+  margin-bottom: 1rem;
+}
+
+.teamlead-create-requisite-modal .form-group label {
+  margin-bottom: 0.35rem;
+  text-align: left;
+}
+
+.requisites-section .requisite-actions-cell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.requisites-section .requisite-delete-btn {
+  background: transparent;
+  border: 1px solid var(--accent-error);
+  color: var(--accent-error);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.requisites-section .requisite-delete-btn:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.requisites-section .requisite-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.teamlead-delete-requisite-modal .modal-header {
+  padding: 16px;
+}
+
+/* Make delete confirmation modal compact (override generic modal sizes) */
+.requisites-section .teamlead-delete-requisite-modal.modal-content {
+  max-width: 360px;
+  max-height: unset !important;
+  min-height: unset !important;
+  height: auto !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.teamlead-delete-requisite-modal .modal-header h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.teamlead-delete-requisite-modal .modal-footer {
+  padding: 12px 16px 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.teamlead-delete-requisite-modal .modal-body.teamlead-delete-requisite-body {
+  padding: 12px 16px;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+
+.teamlead-delete-requisite-modal .teamlead-delete-requisite-text {
+  margin: 0;
+  text-align: left;
+  color: var(--text-secondary);
+}
+
+.teamlead-delete-requisite-modal .btn.btn-primary {
+  background: var(--accent-error);
+  color: white;
+}
+
+.teamlead-delete-requisite-modal .btn.btn-primary:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+/* Modal-style select (scoped locally; avoids relying on other pages' CSS) */
+.requisites-section .modal-custom-select {
+  position: relative;
+  width: 100%;
+}
+
+.requisites-section .modal-select-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.requisites-section .modal-select-button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+}
+
+.requisites-section .modal-select-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.requisites-section .modal-select-button svg {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.requisites-section .modal-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.requisites-section .modal-option {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.requisites-section .modal-option:hover {
+  background: var(--bg-hover);
+}
+
+.requisites-section .modal-option.active {
+  background: var(--bg-primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.requisites-section .modal-option.active::before {
+  content: '✓ ';
+  margin-right: 0.5rem;
+}
+
+/* Status dropdown inside table */
+.status-custom-select {
+  position: relative;
+  display: inline-flex;
+}
+
+.status-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.status-select-trigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-dropdown {
+  left: auto;
+  right: 0;
+  width: max-content;
+  min-width: 140px;
+}
+
+.status-dropdown .modal-option {
+  font-size: 0.9rem;
+  padding: 0.65rem 0.9rem;
+}
+
 .section-header h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
@@ -138,7 +344,9 @@
 /* Таблица реквизитов */
 .requisites-table {
   overflow-x: auto;
+  overflow-y: auto;
   width: 100%;
+  max-height: 60vh;
   border-radius: 8px;
   transition: opacity 0.3s ease-in-out;
 }
@@ -271,6 +479,42 @@
   font-size: 0.9rem;
 }
 
+.available-edit-button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: inherit;
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+  cursor: text;
+  font: inherit;
+}
+
+.available-edit-button:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.available-edit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.available-edit-input {
+  width: 120px;
+  margin-left: 0.35rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.available-edit-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
 .saving-indicator {
   font-size: 0.8rem;
   color: var(--text-secondary);
@@ -278,9 +522,9 @@
 }
 
 .status-badge {
-  padding: 0.25rem 0.75rem;
+  padding: 0.3rem 0.85rem;
   border-radius: 12px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 500;
 }
 
@@ -290,6 +534,11 @@
 }
 
 .status-not-working {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.status-limit-reached {
   background: rgba(251, 191, 36, 0.1);
   color: #fbbf24;
 }

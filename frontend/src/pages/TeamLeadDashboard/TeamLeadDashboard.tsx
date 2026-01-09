@@ -5,6 +5,9 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import { bankAccountsService } from '../../services/bank-accounts.service';
+import { banksService, Bank } from '../../services/banks.service';
+import { dropsService, Drop } from '../../services/drops.service';
+import { apiClient } from '../../services/api';
 import { cashWithdrawalsService, CashWithdrawal } from '../../services/cash-withdrawals.service';
 import './TeamLeadDashboard.css';
 
@@ -75,15 +78,160 @@ export default function TeamLeadDashboard() {
 // Секция управления приоритетами реквизитов
 function RequisitesSection() {
   const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
+  const [limitUpdatingId, setLimitUpdatingId] = useState<number | null>(null);
+  const [editingLimitId, setEditingLimitId] = useState<number | null>(null);
+  const [limitDraft, setLimitDraft] = useState<Record<number, string>>({});
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [drops, setDrops] = useState<Drop[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
+  const [openCreateDropdown, setOpenCreateDropdown] = useState<'bank' | 'drop' | null>(null);
+  const [openStatusDropdownId, setOpenStatusDropdownId] = useState<number | null>(null);
+  const [deleteConfirmAccount, setDeleteConfirmAccount] = useState<any | null>(null);
+  const [createForm, setCreateForm] = useState({
+    bankId: '',
+    dropId: '',
+    cbu: '',
+    alias: '',
+    initialLimitAmount: '',
+    priority: '1',
+  });
   const rowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map());
   const positionsRef = useRef<Map<number, DOMRect>>(new Map());
+
+  const canCreateRequisite = user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD;
 
   useEffect(() => {
     loadAccounts();
   }, []);
+
+  useEffect(() => {
+    if (canCreateRequisite) {
+      loadCreateOptions();
+    }
+  }, [canCreateRequisite]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.modal-custom-select')) {
+        setOpenCreateDropdown(null);
+      }
+    };
+
+    if (openCreateDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openCreateDropdown]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.status-custom-select')) {
+        setOpenStatusDropdownId(null);
+      }
+    };
+
+    if (openStatusDropdownId !== null) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [openStatusDropdownId]);
+
+  const loadCreateOptions = async () => {
+    setOptionsLoading(true);
+    try {
+      const [banksData, dropsData] = await Promise.all([
+        banksService.getAll(),
+        dropsService.getAll(),
+      ]);
+      setBanks(banksData.items || []);
+      setDrops(dropsData.items || []);
+    } catch (error) {
+      console.error('Failed to load requisite create options:', error);
+      setBanks([]);
+      setDrops([]);
+    } finally {
+      setOptionsLoading(false);
+    }
+  };
+
+  const openCreateModal = () => {
+    setCreateForm({
+      bankId: '',
+      dropId: '',
+      cbu: '',
+      alias: '',
+      initialLimitAmount: '',
+      priority: '1',
+    });
+    setOpenCreateDropdown(null);
+    setIsCreateModalOpen(true);
+  };
+
+  const validateCreateForm = () => {
+    if (!createForm.bankId || !createForm.dropId || !createForm.cbu || !createForm.alias || !createForm.initialLimitAmount) {
+      return false;
+    }
+    if (!/^\d{22}$/.test(createForm.cbu)) {
+      return false;
+    }
+    if (createForm.alias.trim().length < 6) {
+      return false;
+    }
+    const limit = Number(createForm.initialLimitAmount);
+    if (!Number.isFinite(limit) || limit <= 0) {
+      return false;
+    }
+    const priority = Number(createForm.priority);
+    if (!Number.isFinite(priority) || priority < 1 || priority > 99) {
+      return false;
+    }
+    return true;
+  };
+
+  const submitCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateCreateForm()) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const createdResponse = await apiClient.post('/bank-accounts', {
+        bankId: Number(createForm.bankId),
+        dropId: Number(createForm.dropId),
+        cbu: createForm.cbu,
+        alias: createForm.alias,
+        initialLimitAmount: Number(createForm.initialLimitAmount),
+        priority: Number(createForm.priority) || 1,
+      });
+
+      const created = createdResponse?.data as any;
+
+      toast.success(t('teamlead.requisiteCreated'));
+      setIsCreateModalOpen(false);
+
+      if (created?.id) {
+        await reorderAndPersistPriorities(created.id, Number(createForm.priority) || 1, { fetchFresh: true });
+      } else {
+        await loadAccounts();
+      }
+    } catch (error) {
+      console.error('Failed to create requisite:', error);
+      toast.error(t('teamlead.requisiteCreateError'));
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const loadAccounts = async () => {
     setLoading(true);
@@ -98,13 +246,141 @@ function RequisitesSection() {
     }
   };
 
-  const handlePriorityChange = async (accountId: number, newPriority: number) => {
-    if (isNaN(newPriority)) return;
-    
-    setUpdating(accountId);
+  const startEditAvailable = (account: any) => {
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+    if (limitUpdatingId === id || updating === id || statusUpdatingId === id) return;
+    setLimitDraft((prev) => ({
+      ...prev,
+      [id]: String(Number(account?.currentLimitAmount ?? 0)),
+    }));
+    setEditingLimitId(id);
+  };
+
+  const cancelEditAvailable = () => {
+    setEditingLimitId(null);
+  };
+
+  const saveAvailable = async (account: any) => {
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+
+    const raw = (limitDraft[id] ?? '').trim().replace(',', '.');
+    const desiredAvailable = Number(raw);
+    if (!Number.isFinite(desiredAvailable) || desiredAvailable < 0) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+
+    const withdrawn = Number(account?.withdrawnAmount ?? 0);
+    const newLimit = desiredAvailable + (Number.isFinite(withdrawn) ? withdrawn : 0);
+
+    setLimitUpdatingId(id);
+    try {
+      await apiClient.patch(`/bank-accounts/${id}`, { limit: newLimit });
+
+      // If available becomes 0, we treat it as reaching the limit: status=blocked and move to the end.
+      if (desiredAvailable <= 0) {
+        await bankAccountsService.updateStatus(String(id), 'blocked');
+        await reorderAndPersistPriorities(id, Number.MAX_SAFE_INTEGER, { fetchFresh: true });
+        setEditingLimitId(null);
+        return;
+      }
+
+      // If it was blocked due to limit but we increased available again, switch back to working.
+      if (String(account?.status) === 'blocked') {
+        await bankAccountsService.updateStatus(String(id), 'working');
+      }
+
+      await loadAccounts();
+      setEditingLimitId(null);
+    } catch (error: any) {
+      console.error('Failed to update available limit:', error);
+      toast.error(error?.response?.data?.message || t('common.error'));
+    } finally {
+      setLimitUpdatingId(null);
+    }
+  };
+
+  const normalizePriority = (value: any) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 999999;
+  };
+
+  const sortAccountsStable = (list: any[]) => {
+    return [...list].sort((a, b) => {
+      const pa = normalizePriority(a?.priority);
+      const pb = normalizePriority(b?.priority);
+      if (pa !== pb) return pa - pb;
+      const da = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const db = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return db - da;
+    });
+  };
+
+  const buildReorderedPriorities = (list: any[], targetId: number, targetPriority: number) => {
+    const desiredPriority = Math.max(1, Math.floor(Number(targetPriority) || 1));
+    const target = list.find((a) => a?.id === targetId);
+    const others = sortAccountsStable(list.filter((a) => a?.id !== targetId));
+
+    const ordered: any[] = [];
+    const insertIndex = Math.max(0, desiredPriority - 1);
+
+    for (let i = 0; i < others.length; i++) {
+      if (ordered.length === insertIndex && target) {
+        ordered.push(target);
+      }
+      ordered.push(others[i]);
+    }
+
+    if (target && !ordered.some((a) => a?.id === targetId)) {
+      ordered.push(target);
+    }
+
+    return ordered.map((a, idx) => ({
+      id: a.id,
+      priority: idx + 1,
+      currentPriority: normalizePriority(a?.priority),
+    }));
+  };
+
+  const animateReorder = () => {
+    setTimeout(() => {
+      requestAnimationFrame(() => {
+        rowRefs.current.forEach((row, id) => {
+          if (!row) return;
+          const oldPos = positionsRef.current.get(id);
+          if (!oldPos) return;
+          const newPos = row.getBoundingClientRect();
+          const deltaY = oldPos.top - newPos.top;
+          if (Math.abs(deltaY) <= 1) return;
+
+          row.style.transform = `translateY(${deltaY}px)`;
+          row.style.transition = 'none';
+
+          requestAnimationFrame(() => {
+            row.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            row.style.transform = 'translateY(0)';
+
+            setTimeout(() => {
+              row.style.transition = '';
+              row.style.transform = '';
+            }, 800);
+          });
+        });
+      });
+    }, 10);
+  };
+
+  const reorderAndPersistPriorities = async (
+    targetId: number,
+    targetPriority: number,
+    opts?: { fetchFresh?: boolean },
+  ) => {
+    setUpdating(targetId);
 
     try {
-      // Сохраняем старые позиции BEFORE update
+      // Capture old positions for animation
       positionsRef.current.clear();
       rowRefs.current.forEach((row, id) => {
         if (row) {
@@ -112,47 +388,31 @@ function RequisitesSection() {
         }
       });
 
-      await bankAccountsService.updatePriority(accountId.toString(), newPriority);
+      const sourceList = opts?.fetchFresh
+        ? (await bankAccountsService.getAll()).items || []
+        : accounts;
+
+      const updates = buildReorderedPriorities(sourceList, targetId, targetPriority)
+        .filter((u) => u.currentPriority !== u.priority);
+
+      for (const u of updates) {
+        await bankAccountsService.updatePriority(String(u.id), u.priority);
+      }
+
       await loadAccounts();
-      
-      // Ждём полного рендера DOM перед анимацией
-      setTimeout(() => {
-        requestAnimationFrame(() => {
-          rowRefs.current.forEach((row, id) => {
-            if (row) {
-              const oldPos = positionsRef.current.get(id);
-              const newPos = row.getBoundingClientRect();
-              
-              if (oldPos) {
-                const deltaY = oldPos.top - newPos.top;
-                
-                if (Math.abs(deltaY) > 1) {
-                  // Мгновенно перемещаем в старую позицию
-                  row.style.transform = `translateY(${deltaY}px)`;
-                  row.style.transition = 'none';
-                  
-                  // Запускаем анимацию к новой позиции
-                  requestAnimationFrame(() => {
-                    row.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    row.style.transform = 'translateY(0)';
-                    
-                    setTimeout(() => {
-                      row.style.transition = '';
-                      row.style.transform = '';
-                    }, 800);
-                  });
-                }
-              }
-            }
-          });
-        });
-      }, 10);
+      animateReorder();
     } catch (error) {
-      console.error('Failed to update priority:', error);
+      console.error('Failed to reorder priorities:', error);
       await loadAccounts();
     } finally {
       setUpdating(null);
     }
+  };
+
+  const handlePriorityChange = async (accountId: number, newPriority: number) => {
+    if (isNaN(newPriority)) return;
+
+    await reorderAndPersistPriorities(accountId, newPriority);
   };
 
   const handlePriorityInput = (accountId: number, newValue: string) => {
@@ -175,13 +435,75 @@ function RequisitesSection() {
     );
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { label: string; className: string }> = {
-      working: { label: t('bankAccounts.statusWorking'), className: 'status-working' },
-      not_working: { label: t('bankAccounts.statusNotWorking'), className: 'status-not-working' },
-      blocked: { label: t('bankAccounts.statusBlocked'), className: 'status-blocked' },
-    };
-    return statusMap[status] || { label: status, className: '' };
+  const getStatusBadge = (account: any) => {
+    const status = String(account?.status ?? '');
+    const available = Number(account?.currentLimitAmount ?? 0);
+
+    if (status === 'blocked' || (status === 'working' && available <= 0)) {
+      return { label: t('bankAccounts.statusLimitReached'), className: 'status-limit-reached' };
+    }
+
+    if (status === 'working') {
+      return { label: t('bankAccounts.statusWorking'), className: 'status-working' };
+    }
+
+    if (status === 'not_working') {
+      return { label: t('bankAccounts.statusNotWorking'), className: 'status-not-working' };
+    }
+
+    return { label: status || '-', className: '' };
+  };
+
+  const canEditStatus = user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD;
+
+  const updateAccountStatus = async (accountId: number, status: 'working' | 'not_working') => {
+    setStatusUpdatingId(accountId);
+    try {
+      await bankAccountsService.updateStatus(String(accountId), status);
+      await loadAccounts();
+    } catch (error: any) {
+      console.error('Failed to update status:', error);
+      toast.error(error?.response?.data?.message || t('common.error'));
+    } finally {
+      setStatusUpdatingId(null);
+      setOpenStatusDropdownId(null);
+    }
+  };
+
+  const requestDeleteRequisite = (account: any) => {
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+
+    const withdrawn = Number(account?.withdrawnAmount ?? 0);
+    if (Number.isFinite(withdrawn) && withdrawn > 0) {
+      return;
+    }
+
+    setDeleteConfirmAccount(account);
+  };
+
+  const confirmDeleteRequisite = async () => {
+    const account = deleteConfirmAccount;
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+
+    const withdrawn = Number(account?.withdrawnAmount ?? 0);
+    if (Number.isFinite(withdrawn) && withdrawn > 0) {
+      return;
+    }
+
+    setUpdating(id);
+    try {
+      await bankAccountsService.delete(String(id));
+      toast.success(t('teamlead.requisiteDeleted'));
+      await loadAccounts();
+    } catch (error: any) {
+      console.error('Failed to delete requisite:', error);
+      toast.error(error?.response?.data?.message || t('teamlead.requisiteDeleteError'));
+    } finally {
+      setUpdating(null);
+      setDeleteConfirmAccount(null);
+    }
   };
 
   if (loading) {
@@ -189,7 +511,15 @@ function RequisitesSection() {
       <div className="section requisites-section">
         <div className="section-header">
           <h2>{t('teamlead.requisitesTitle')}</h2>
-          <p className="section-description">{t('teamlead.requisitesDescription')}</p>
+          {canCreateRequisite && (
+            <button
+              className="btn btn-primary teamlead-create-requisite-btn"
+              type="button"
+              onClick={openCreateModal}
+            >
+              {t('teamlead.createRequisite')}
+            </button>
+          )}
         </div>
         <div className="section-content">
           <p className="placeholder">{t('common.loading')}</p>
@@ -202,7 +532,15 @@ function RequisitesSection() {
     <div className="section requisites-section">
       <div className="section-header">
         <h2>{t('teamlead.requisitesTitle')}</h2>
-        <p className="section-description">{t('teamlead.requisitesDescription')}</p>
+        {canCreateRequisite && (
+          <button
+            className="btn btn-primary teamlead-create-requisite-btn"
+            type="button"
+            onClick={openCreateModal}
+          >
+            {t('teamlead.createRequisite')}
+          </button>
+        )}
       </div>
       <div className="section-content">
         <div className="requisites-table">
@@ -215,14 +553,17 @@ function RequisitesSection() {
                 <th>Alias</th>
                 <th>Статус</th>
                 <th>Выведенно / Доступно</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {accounts.map((account) => {
-                const status = getStatusBadge(account.status);
+                const status = getStatusBadge(account);
                 const currentLimitAmount = account.currentLimitAmount || 0;
                 const withdrawn = account.withdrawnAmount || 0;
                 const available = currentLimitAmount;
+                const canDeleteThis =
+                  canCreateRequisite && Number(withdrawn) <= 0 && updating !== account.id;
                 return (
                   <tr 
                     key={account.id}
@@ -260,14 +601,95 @@ function RequisitesSection() {
                     <td className="cbu-cell">{account.cbu || '-'}</td>
                     <td>{account.alias || '-'}</td>
                     <td>
-                      <span className={`status-badge ${status.className}`}>
-                        {status.label}
-                      </span>
+                      {canEditStatus ? (
+                        <div className="status-custom-select">
+                          <button
+                            type="button"
+                            className="status-select-trigger"
+                            disabled={statusUpdatingId === account.id || updating === account.id}
+                            onClick={() =>
+                              setOpenStatusDropdownId(
+                                openStatusDropdownId === account.id ? null : account.id,
+                              )
+                            }
+                          >
+                            <span className={`status-badge ${status.className}`}>
+                              {status.label}
+                            </span>
+                          </button>
+
+                          {openStatusDropdownId === account.id && (
+                            <div className="modal-dropdown status-dropdown">
+                              <div
+                                className={`modal-option ${account.status === 'working' ? 'active' : ''}`}
+                                onClick={() => updateAccountStatus(account.id, 'working')}
+                              >
+                                {t('bankAccounts.statusWorking')}
+                              </div>
+                              <div
+                                className={`modal-option ${account.status === 'not_working' ? 'active' : ''}`}
+                                onClick={() => updateAccountStatus(account.id, 'not_working')}
+                              >
+                                {t('bankAccounts.statusNotWorking')}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className={`status-badge ${status.className}`}>
+                          {status.label}
+                        </span>
+                      )}
                     </td>
                     <td className="amount-cell">
-                      ${withdrawn.toFixed(2)} / ${available.toFixed(2)}
-                      {updating === account.id && (
+                      ${withdrawn.toFixed(2)} /
+                      {editingLimitId === account.id ? (
+                        <input
+                          className="available-edit-input"
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          value={limitDraft[account.id] ?? ''}
+                          disabled={limitUpdatingId === account.id}
+                          autoFocus
+                          onChange={(e) =>
+                            setLimitDraft((prev) => ({ ...prev, [account.id]: e.target.value }))
+                          }
+                          onBlur={() => saveAvailable(account)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.currentTarget.blur();
+                            }
+                            if (e.key === 'Escape') {
+                              cancelEditAvailable();
+                            }
+                          }}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="available-edit-button"
+                          disabled={limitUpdatingId === account.id}
+                          onClick={() => startEditAvailable(account)}
+                        >
+                          ${available.toFixed(2)}
+                        </button>
+                      )}
+                      {(updating === account.id || limitUpdatingId === account.id) && (
                         <span className="saving-indicator"> (сохранение...)</span>
+                      )}
+                    </td>
+                    <td className="requisite-actions-cell">
+                      {canCreateRequisite && Number(withdrawn) <= 0 && (
+                        <button
+                          type="button"
+                          className="requisite-delete-btn"
+                          disabled={!canDeleteThis}
+                          onClick={() => requestDeleteRequisite(account)}
+                        >
+                          {t('teamlead.deleteRequisite')}
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -277,6 +699,218 @@ function RequisitesSection() {
           </table>
         </div>
       </div>
+
+      {deleteConfirmAccount && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmAccount(null)}>
+          <div
+            className="modal-content modal-small teamlead-delete-requisite-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>{t('teamlead.deleteRequisiteTitle')}</h2>
+              <button className="modal-close" onClick={() => setDeleteConfirmAccount(null)}>
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body teamlead-delete-requisite-body">
+              <p className="teamlead-delete-requisite-text">{t('teamlead.deleteRequisiteConfirm')}</p>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setDeleteConfirmAccount(null)}
+                disabled={updating === Number(deleteConfirmAccount?.id)}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={confirmDeleteRequisite}
+                disabled={updating === Number(deleteConfirmAccount?.id)}
+              >
+                {t('common.delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canCreateRequisite && isCreateModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
+          <div className="modal-content modal-medium teamlead-create-requisite-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('teamlead.createRequisiteTitle')}</h2>
+              <button className="modal-close" onClick={() => setIsCreateModalOpen(false)}>×</button>
+            </div>
+
+            <form onSubmit={submitCreate}>
+              <div className="form-group">
+                <label>{t('teamlead.fields.bank')} *</label>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    disabled={optionsLoading || creating}
+                    onClick={() =>
+                      setOpenCreateDropdown(openCreateDropdown === 'bank' ? null : 'bank')
+                    }
+                  >
+                    <span>
+                      {createForm.bankId
+                        ? banks.find((b) => String(b.id) === String(createForm.bankId))?.name
+                        : optionsLoading
+                          ? t('common.loading')
+                          : t('teamlead.selectBank')}
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                  </button>
+
+                  {openCreateDropdown === 'bank' && (
+                    <div className="modal-dropdown">
+                      <div
+                        className={`modal-option ${!createForm.bankId ? 'active' : ''}`}
+                        onClick={() => {
+                          setCreateForm((p) => ({ ...p, bankId: '' }));
+                          setOpenCreateDropdown(null);
+                        }}
+                      >
+                        {t('teamlead.selectBank')}
+                      </div>
+                      {banks.map((b) => (
+                        <div
+                          key={String(b.id)}
+                          className={`modal-option ${String(createForm.bankId) === String(b.id) ? 'active' : ''}`}
+                          onClick={() => {
+                            setCreateForm((p) => ({ ...p, bankId: String(b.id) }));
+                            setOpenCreateDropdown(null);
+                          }}
+                        >
+                          {b.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.fields.drop')} *</label>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    disabled={optionsLoading || creating}
+                    onClick={() =>
+                      setOpenCreateDropdown(openCreateDropdown === 'drop' ? null : 'drop')
+                    }
+                  >
+                    <span>
+                      {createForm.dropId
+                        ? drops.find((d) => String(d.id) === String(createForm.dropId))?.name
+                        : optionsLoading
+                          ? t('common.loading')
+                          : t('teamlead.selectDrop')}
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                  </button>
+
+                  {openCreateDropdown === 'drop' && (
+                    <div className="modal-dropdown">
+                      <div
+                        className={`modal-option ${!createForm.dropId ? 'active' : ''}`}
+                        onClick={() => {
+                          setCreateForm((p) => ({ ...p, dropId: '' }));
+                          setOpenCreateDropdown(null);
+                        }}
+                      >
+                        {t('teamlead.selectDrop')}
+                      </div>
+                      {drops.map((d) => (
+                        <div
+                          key={String(d.id)}
+                          className={`modal-option ${String(createForm.dropId) === String(d.id) ? 'active' : ''}`}
+                          onClick={() => {
+                            setCreateForm((p) => ({ ...p, dropId: String(d.id) }));
+                            setOpenCreateDropdown(null);
+                          }}
+                        >
+                          {d.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.fields.cbu')} *</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={createForm.cbu}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, cbu: e.target.value.trim() }))}
+                  placeholder="1234567890123456789012"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.fields.alias')} *</label>
+                <input
+                  type="text"
+                  value={createForm.alias}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, alias: e.target.value }))}
+                  placeholder="john.doe.wallet"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.fields.initialLimitAmount')} *</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={createForm.initialLimitAmount}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, initialLimitAmount: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.fields.priority')} *</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="99"
+                  step="1"
+                  value={createForm.priority}
+                  onChange={(e) => setCreateForm((prev) => ({ ...prev, priority: e.target.value }))}
+                  required
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsCreateModalOpen(false)}>
+                  {t('common.cancel')}
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={creating}>
+                  {creating ? t('common.saving') : t('common.save')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,6 +16,10 @@ import { GetAllBankAccountsService } from '../features/bank-accounts/get-all/get
 import { GetBankAccountByIdController } from '../features/bank-accounts/get-by-id/get-by-id.controller';
 import { GetBankAccountByIdService } from '../features/bank-accounts/get-by-id/get-by-id.service';
 
+// Delete
+import { DeleteBankAccountController } from '../features/bank-accounts/delete/delete.controller';
+import { DeleteBankAccountService } from '../features/bank-accounts/delete/delete.service';
+
 // Update
 import { UpdateBankAccountController } from '../features/bank-accounts/update/update.controller';
 import { UpdateBankAccountService } from '../features/bank-accounts/update/update.service';
@@ -47,6 +51,7 @@ import { GetAvailableBankAccountService } from '../features/bank-accounts/get-av
     UpdateBankAccountStatusController,
     UpdateBankAccountPriorityController,
     BlockBankAccountController,
+    DeleteBankAccountController,
   ],
   providers: [
     CreateBankAccountService,
@@ -57,6 +62,7 @@ import { GetAvailableBankAccountService } from '../features/bank-accounts/get-av
     UpdateBankAccountPriorityService,
     BlockBankAccountService,
     GetAvailableBankAccountService,
+    DeleteBankAccountService,
   ],
 })
 export class BankAccountsModule {}

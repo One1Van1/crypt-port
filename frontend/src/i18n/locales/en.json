@@ -148,7 +148,10 @@
     "active": "Active",
     "inactive": "Inactive",
     "addAccount": "Add Account",
-    "confirmStatusChange": "Change status to"
+    "confirmStatusChange": "Change status to",
+    "statusWorking": "Working",
+    "statusNotWorking": "Not working",
+    "statusLimitReached": "Limit reached"
   },
   "users": {
     "title": "Users Management",
@@ -297,6 +300,24 @@
     "conversions": "Convert to USDT",
     "requisitesTitle": "Requisites Priority Management",
     "requisitesDescription": "Adjust bank account distribution priorities",
+    "createRequisite": "Create requisite",
+    "deleteRequisite": "Delete",
+    "deleteRequisiteTitle": "Delete requisite",
+    "deleteRequisiteConfirm": "Delete requisite?",
+    "selectDrop": "Select a drop",
+    "createRequisiteTitle": "Create requisite",
+    "requisiteCreated": "Requisite created",
+    "requisiteCreateError": "Failed to create requisite",
+    "requisiteDeleted": "Requisite deleted",
+    "requisiteDeleteError": "Failed to delete requisite",
+    "fields": {
+      "bank": "Bank",
+      "drop": "Drop",
+      "cbu": "CBU",
+      "alias": "Alias",
+      "initialLimitAmount": "Initial limit",
+      "priority": "Priority"
+    },
     "operatorsTitle": "Operators Control",
     "operatorsDescription": "Monitor active shifts and operator statuses",
     "withdrawalsTitle": "Cash Withdrawals from Physical Banks",

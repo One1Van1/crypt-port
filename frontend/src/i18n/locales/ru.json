@@ -148,7 +148,10 @@
     "active": "Активные",
     "inactive": "Неактивные",
     "addAccount": "Добавить счёт",
-    "confirmStatusChange": "Изменить статус на"
+    "confirmStatusChange": "Изменить статус на",
+    "statusWorking": "Работает",
+    "statusNotWorking": "Не работает",
+    "statusLimitReached": "Достигнут лимит"
   },
   "operators": {
     "title": "Сотрудники",
@@ -297,6 +300,24 @@
     "conversions": "Перевод в USDT",
     "requisitesTitle": "Управление приоритетами реквизитов",
     "requisitesDescription": "Изменение приоритетов выдачи банковских реквизитов",
+    "createRequisite": "Создать реквизит",
+    "deleteRequisite": "Удалить",
+    "deleteRequisiteTitle": "Удалить реквизит",
+    "deleteRequisiteConfirm": "Удалить реквизит?",
+    "selectDrop": "Выберите дропа",
+    "createRequisiteTitle": "Создать реквизит",
+    "requisiteCreated": "Реквизит создан",
+    "requisiteCreateError": "Не удалось создать реквизит",
+    "requisiteDeleted": "Реквизит удалён",
+    "requisiteDeleteError": "Не удалось удалить реквизит",
+    "fields": {
+      "bank": "Банк",
+      "drop": "Дроп",
+      "cbu": "CBU",
+      "alias": "Alias",
+      "initialLimitAmount": "Начальный лимит",
+      "priority": "Приоритет"
+    },
     "operatorsTitle": "Контроль работы операторов",
     "operatorsDescription": "Отслеживание активных смен и статусов операторов",
     "withdrawalsTitle": "Забор наличных из физических банков",

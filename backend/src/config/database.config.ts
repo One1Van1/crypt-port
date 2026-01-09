@@ -11,6 +11,7 @@ export const getDatabaseConfig = (
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_DATABASE'),
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+  subscribers: [__dirname + '/../**/*.subscriber{.ts,.js}'],
   synchronize: false, // Отключено - используем миграции
   logging: configService.get<string>('NODE_ENV') === 'development',
   ssl:
