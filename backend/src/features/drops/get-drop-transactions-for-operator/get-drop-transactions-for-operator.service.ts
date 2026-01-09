@@ -25,12 +25,16 @@ export class GetDropTransactionsForOperatorService {
 
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('t')
+      .withDeleted()
       .leftJoinAndSelect('t.bankAccount', 'ba')
       .leftJoinAndSelect('ba.bank', 'bank')
       .leftJoinAndSelect('ba.drop', 'drop')
       .leftJoinAndSelect('t.user', 'user')
       .leftJoinAndSelect('t.shift', 'shift')
       .where('drop.id = :dropId', { dropId });
+
+    // Don't return soft-deleted transactions (but keep soft-deleted relations like banks)
+    queryBuilder.andWhere('t.deletedAt IS NULL');
 
     // Фильтрация по пользователю (для операторов всегда только свои)
     if (userRole === UserRole.OPERATOR) {

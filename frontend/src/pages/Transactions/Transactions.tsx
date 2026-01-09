@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams, useLocation } from 'react-router-dom';
@@ -30,6 +30,8 @@ export default function Transactions() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
+  const [highlightTransactionId, setHighlightTransactionId] = useState<number | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
@@ -44,7 +46,25 @@ export default function Transactions() {
   const [showFilters, setShowFilters] = useState(false);
   const limit = 10;
 
+  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+
+  // Auto-highlight a transaction from navigation state
+  useEffect(() => {
+    const state = location.state as { highlightTransactionId?: unknown; viewMode?: unknown } | null;
+    const maybeId = state?.highlightTransactionId;
+    const id = typeof maybeId === 'number' ? maybeId : Number(maybeId);
+
+    if (Number.isFinite(id) && id > 0) {
+      if (isTeamLeadOrAdmin) {
+        setViewMode('all');
+      }
+      setHighlightTransactionId(id);
+      // Clear state so it doesn't re-apply on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, isTeamLeadOrAdmin]);
 
   // Auto-apply date filter from location state
   useEffect(() => {
@@ -169,6 +189,21 @@ export default function Transactions() {
   const transactions = data?.items || [];
   const total = data?.total || 0;
   const totalPages = Math.ceil(total / limit);
+
+  useEffect(() => {
+    if (!highlightTransactionId) return;
+    const el = cardRefs.current.get(highlightTransactionId);
+    if (!el) return;
+    setHighlightedId(highlightTransactionId);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightTransactionId(null);
+  }, [highlightTransactionId, transactions]);
+
+  useEffect(() => {
+    if (!highlightedId) return;
+    const timeoutId = window.setTimeout(() => setHighlightedId(null), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedId]);
 
   const formatTime = (date: string) => {
     return new Date(date).toLocaleString(i18n.language, {
@@ -453,7 +488,17 @@ export default function Transactions() {
 
           <div className="transactions-list">
             {transactions.map((transaction) => (
-              <div key={transaction.id} className="transaction-card">
+              <div
+                key={transaction.id}
+                ref={(el) => {
+                  if (el) {
+                    cardRefs.current.set(transaction.id, el);
+                  } else {
+                    cardRefs.current.delete(transaction.id);
+                  }
+                }}
+                className={`transaction-card ${highlightedId === transaction.id ? 'transaction-highlight' : ''}`}
+              >
                 <div className="transaction-card-header">
                   <div className="bank-icon">
                     <Building size={20} />

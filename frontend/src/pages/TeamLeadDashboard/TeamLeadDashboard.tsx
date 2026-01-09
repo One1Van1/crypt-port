@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, DollarSign, ArrowRightLeft, Award } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import { bankAccountsService } from '../../services/bank-accounts.service';
@@ -14,7 +15,20 @@ import './TeamLeadDashboard.css';
 export default function TeamLeadDashboard() {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<'requisites' | 'withdrawals' | 'conversions'>('requisites');
+  const [highlightBankAccountId, setHighlightBankAccountId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const state = location.state as { highlightBankAccountId?: unknown } | null;
+    const maybeId = state?.highlightBankAccountId;
+    const id = typeof maybeId === 'number' ? maybeId : Number(maybeId);
+
+    if (Number.isFinite(id) && id > 0) {
+      setActiveTab('requisites');
+      setHighlightBankAccountId(id);
+    }
+  }, [location.state]);
 
   // Проверка доступа - переместили ПОСЛЕ всех хуков
   useEffect(() => {
@@ -67,7 +81,12 @@ export default function TeamLeadDashboard() {
       </div>
 
       <div className="teamlead-content">
-        {activeTab === 'requisites' && <RequisitesSection />}
+        {activeTab === 'requisites' && (
+          <RequisitesSection
+            highlightBankAccountId={highlightBankAccountId}
+            onHighlightHandled={() => setHighlightBankAccountId(null)}
+          />
+        )}
         {activeTab === 'withdrawals' && <WithdrawalsSection />}
         {activeTab === 'conversions' && <ConversionsSection />}
       </div>
@@ -76,12 +95,19 @@ export default function TeamLeadDashboard() {
 }
 
 // Секция управления приоритетами реквизитов
-function RequisitesSection() {
+function RequisitesSection({
+  highlightBankAccountId,
+  onHighlightHandled,
+}: {
+  highlightBankAccountId: number | null;
+  onHighlightHandled: () => void;
+}) {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null);
   const [limitUpdatingId, setLimitUpdatingId] = useState<number | null>(null);
   const [editingLimitId, setEditingLimitId] = useState<number | null>(null);
@@ -116,6 +142,24 @@ function RequisitesSection() {
       loadCreateOptions();
     }
   }, [canCreateRequisite]);
+
+  useEffect(() => {
+    if (!highlightBankAccountId) return;
+    if (loading) return;
+
+    const row = rowRefs.current.get(highlightBankAccountId);
+    if (!row) return;
+
+    setHighlightedId(highlightBankAccountId);
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    onHighlightHandled();
+  }, [highlightBankAccountId, loading, accounts, onHighlightHandled]);
+
+  useEffect(() => {
+    if (!highlightedId) return;
+    const timeoutId = window.setTimeout(() => setHighlightedId(null), 3000);
+    return () => window.clearTimeout(timeoutId);
+  }, [highlightedId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -574,7 +618,12 @@ function RequisitesSection() {
                         rowRefs.current.delete(account.id);
                       }
                     }}
-                    className={updating === account.id ? 'updating-row' : ''}
+                    className={[
+                      updating === account.id ? 'updating-row' : '',
+                      highlightedId === account.id ? 'requisite-highlight' : '',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                   >
                     <td>
                       <input

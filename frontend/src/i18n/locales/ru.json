@@ -471,4 +471,26 @@
       "insufficientPlatformBalance": "Недостаточно USDT на площадке"
     }
   }
+
+  ,"banksPage": {
+    "priorityTitle": "Банки (по приоритету)",
+    "createBank": "Создать банк",
+    "createBankTitle": "Создать банк",
+    "nameLabel": "Название",
+    "namePlaceholder": "Например, Banco Galicia",
+    "codeLabel": "Код (необязательно)",
+    "codePlaceholder": "Например, GALI",
+    "create": "Создать",
+    "creating": "Создание…",
+    "deleting": "Удаление…",
+    "enterNameError": "Введите название банка",
+    "createdToast": "Банк создан",
+    "deletedToast": "Банк удалён",
+    "createFailed": "Не удалось создать банк",
+    "deleteFailed": "Не удалось удалить банк",
+    "deleteBankTitle": "Удалить банк",
+    "deleteConfirmQuestion": "Вы уверены, что хотите удалить банк {{name}}?",
+    "deleteSoftInfo": "Удаление мягкое: банк исчезнет из списка, но останется в историях.",
+    "deleteLinkedInfo": "Если к банку привязаны реквизиты, удаление будет запрещено."
+  }
 }

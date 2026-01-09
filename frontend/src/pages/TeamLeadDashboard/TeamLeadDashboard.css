@@ -387,6 +387,7 @@
   text-align: center;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
+  transition: background 0.6s ease-in-out;
 }
 
 /* Sticky первая колонка */
@@ -429,6 +430,14 @@
 .requisites-table tbody tr.updating-row {
   opacity: 1;
   background: var(--bg-hover);
+}
+
+.requisites-table tbody tr.requisite-highlight td {
+  background: color-mix(in srgb, var(--primary) 16%, var(--bg-primary));
+}
+
+.requisites-table tbody tr.requisite-highlight td:first-child {
+  background: color-mix(in srgb, var(--primary) 16%, var(--bg-secondary));
 }
 
 /* Убираем старую анимацию reorder */

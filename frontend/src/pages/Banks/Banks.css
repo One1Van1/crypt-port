@@ -26,6 +26,178 @@
   padding-bottom: 10px;
 }
 
+.banks-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.banks-section-header > h2 {
+  margin: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.banks-create-btn {
+  padding: 10px 14px;
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.banks-create-btn:hover {
+  opacity: 0.9;
+}
+
+
+
+
+.banks-admin-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  border: 1px solid var(--accent-error);
+  background: color-mix(in srgb, var(--accent-error) 12%, transparent);
+  color: var(--accent-error);
+  cursor: pointer;
+}
+
+.banks-admin-delete-btn:hover {
+  background: color-mix(in srgb, var(--accent-error) 18%, transparent);
+}
+
+.banks-admin-delete-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10000;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.modal-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-text {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.modal-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.modal-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+}
+
+.modal-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.modal-footer {
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.modal-btn {
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.modal-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.modal-primary-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 10px 14px;
+}
+
+.modal-danger-btn {
+  border: 1px solid var(--accent-error);
+  background: color-mix(in srgb, var(--accent-error) 12%, transparent);
+  color: var(--accent-error);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.modal-danger-btn:hover {
+  background: color-mix(in srgb, var(--accent-error) 18%, transparent);
+}
+
+.modal-danger-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Content wrapper for horizontal layout */
 .content-wrapper {
   display: flex;
@@ -170,6 +342,14 @@
 .account-alias {
   font-size: 13px;
   font-weight: 600;
+
+.account-item.account-item-clickable {
+  cursor: pointer;
+}
+
+.transaction-item.transaction-item-clickable {
+  cursor: pointer;
+}
   color: var(--text-primary);
 }
 

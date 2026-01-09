@@ -24,6 +24,10 @@ import { UpdateBankService } from '../features/banks/update/update.service';
 import { UpdateBankStatusController } from '../features/banks/update-status/update-status.controller';
 import { UpdateBankStatusService } from '../features/banks/update-status/update-status.service';
 
+// Delete
+import { DeleteBankController } from '../features/banks/delete/delete.controller';
+import { DeleteBankService } from '../features/banks/delete/delete.service';
+
 // Get Operator Banks
 import { GetOperatorBanksController } from '../features/banks/get-operator-banks/get-operator-banks.controller';
 import { GetOperatorBanksService } from '../features/banks/get-operator-banks/get-operator-banks.service';
@@ -40,6 +44,7 @@ import { GetBankTransactionsForOperatorService } from '../features/banks/get-ban
     GetBankByIdController,
     UpdateBankController,
     UpdateBankStatusController,
+    DeleteBankController,
     GetOperatorBanksController,
     GetBankTransactionsForOperatorController,
   ],
@@ -49,6 +54,7 @@ import { GetBankTransactionsForOperatorService } from '../features/banks/get-ban
     GetBankByIdService,
     UpdateBankService,
     UpdateBankStatusService,
+    DeleteBankService,
     GetOperatorBanksService,
     GetBankTransactionsForOperatorService,
   ],

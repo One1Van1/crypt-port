@@ -470,4 +470,26 @@
       "insufficientPlatformBalance": "Insufficient USDT on platform"
     }
   }
+
+  ,"banksPage": {
+    "priorityTitle": "Banks (by priority)",
+    "createBank": "Create bank",
+    "createBankTitle": "Create bank",
+    "nameLabel": "Name",
+    "namePlaceholder": "For example, Banco Galicia",
+    "codeLabel": "Code (optional)",
+    "codePlaceholder": "For example, GALI",
+    "create": "Create",
+    "creating": "Creating…",
+    "deleting": "Deleting…",
+    "enterNameError": "Enter bank name",
+    "createdToast": "Bank created",
+    "deletedToast": "Bank deleted",
+    "createFailed": "Failed to create bank",
+    "deleteFailed": "Failed to delete bank",
+    "deleteBankTitle": "Delete bank",
+    "deleteConfirmQuestion": "Are you sure you want to delete bank {{name}}?",
+    "deleteSoftInfo": "Soft delete: the bank will disappear from the list but stay visible in history.",
+    "deleteLinkedInfo": "If bank accounts are linked to this bank, deletion will be blocked."
+  }
 }

@@ -16,12 +16,16 @@ export class GetMyTransactionsService {
   async execute(query: GetMyTransactionsQueryDto, user: User): Promise<GetMyTransactionsResponseDto> {
     const queryBuilder = this.transactionRepository
       .createQueryBuilder('transaction')
+      .withDeleted()
       .leftJoinAndSelect('transaction.shift', 'shift')
       .leftJoinAndSelect('shift.platform', 'platform')
       .leftJoinAndSelect('transaction.bankAccount', 'bankAccount')
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .where('transaction.userId = :userId', { userId: user.id });
+
+    // Don't return soft-deleted transactions (but keep soft-deleted relations like banks)
+    queryBuilder.andWhere('transaction.deletedAt IS NULL');
 
     // Фильтр по статусу
     if (query.status) {
