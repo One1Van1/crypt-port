@@ -25,6 +25,10 @@ import { GetWorkingDepositSectionsService } from '../features/working-deposit/ge
 import { GetWorkingDepositSectionsLedgerController } from '../features/working-deposit/get-sections-ledger/get-sections-ledger.controller';
 import { GetWorkingDepositSectionsLedgerService } from '../features/working-deposit/get-sections-ledger/get-sections-ledger.service';
 
+// Get Sections (Free USDT from ledger) v2
+import { GetWorkingDepositSectionsLedgerV2Controller } from '../features/working-deposit/get-sections-ledger-v2/get-sections-ledger-v2.controller';
+import { GetWorkingDepositSectionsLedgerV2Service } from '../features/working-deposit/get-sections-ledger-v2/get-sections-ledger-v2.service';
+
 // Get History
 import { GetWorkingDepositHistoryController } from '../features/working-deposit/get-history/get-history.controller';
 import { GetWorkingDepositHistoryService } from '../features/working-deposit/get-history/get-history.service';
@@ -61,6 +65,7 @@ import { ReserveProfitService } from '../features/working-deposit/reserve-profit
   controllers: [
     GetWorkingDepositSectionsController,
     GetWorkingDepositSectionsLedgerController,
+    GetWorkingDepositSectionsLedgerV2Controller,
     GetWorkingDepositHistoryController,
     GetProfitHistoryController,
     ReserveProfitController,
@@ -68,6 +73,7 @@ import { ReserveProfitService } from '../features/working-deposit/reserve-profit
   providers: [
     GetWorkingDepositSectionsService,
     GetWorkingDepositSectionsLedgerService,
+    GetWorkingDepositSectionsLedgerV2Service,
     GetWorkingDepositHistoryService,
     GetProfitHistoryService,
     ReserveProfitService,
