@@ -10,6 +10,8 @@ import { GetFreeUsdtLedgerController } from '../features/free-usdt/get-ledger/ge
 import { GetFreeUsdtLedgerService } from '../features/free-usdt/get-ledger/get-ledger.service';
 import { DistributeFreeUsdtController } from '../features/free-usdt/distribute/distribute.controller';
 import { DistributeFreeUsdtService } from '../features/free-usdt/distribute/distribute.service';
+import { DistributeFreeUsdtBatchController } from '../features/free-usdt/distribute-batch/distribute-batch.controller';
+import { DistributeFreeUsdtBatchService } from '../features/free-usdt/distribute-batch/distribute-batch.service';
 import { GetFreeUsdtDistributionsController } from '../features/free-usdt/get-distributions/get-distributions.controller';
 import { GetFreeUsdtDistributionsService } from '../features/free-usdt/get-distributions/get-distributions.service';
 
@@ -27,8 +29,14 @@ import { GetFreeUsdtDistributionsService } from '../features/free-usdt/get-distr
   controllers: [
     GetFreeUsdtLedgerController,
     DistributeFreeUsdtController,
+    DistributeFreeUsdtBatchController,
     GetFreeUsdtDistributionsController,
   ],
-  providers: [GetFreeUsdtLedgerService, DistributeFreeUsdtService, GetFreeUsdtDistributionsService],
+  providers: [
+    GetFreeUsdtLedgerService,
+    DistributeFreeUsdtService,
+    DistributeFreeUsdtBatchService,
+    GetFreeUsdtDistributionsService,
+  ],
 })
 export class FreeUsdtModule {}

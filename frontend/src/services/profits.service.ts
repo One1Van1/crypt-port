@@ -67,4 +67,9 @@ export const profitsService = {
     const response = await apiClient.post('/profits/withdraw-simple-ledger', dto);
     return response.data;
   },
+
+  withdrawSimpleV2: async (dto: WithdrawSimpleProfitRequest): Promise<WithdrawSimpleProfitResponse> => {
+    const response = await apiClient.post('/profits/withdraw-simple-ledger-v2', dto);
+    return response.data;
+  },
 };

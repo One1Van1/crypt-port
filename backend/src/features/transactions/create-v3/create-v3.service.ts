@@ -8,6 +8,10 @@ import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
 import { NeoBankWithdrawal } from '../../../entities/neo-bank-withdrawal.entity';
 import { Platform } from '../../../entities/platform.entity';
 import { User } from '../../../entities/user.entity';
+import {
+  BankAccountWithdrawnOperation,
+  BankAccountWithdrawnOperationType,
+} from '../../../entities/bank-account-withdrawn-operation.entity';
 
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
 import { ShiftStatus } from '../../../common/enums/shift.enum';
@@ -144,6 +148,19 @@ export class CreateTransactionV3Service {
       }
 
       await queryRunner.manager.save(bankAccount);
+
+      const withdrawnOp = queryRunner.manager.create(BankAccountWithdrawnOperation, {
+        bankAccountId: bankAccount.id,
+        type: BankAccountWithdrawnOperationType.CREDIT,
+        amountPesos: String(arsAmount),
+        remainingPesos: String(arsAmount),
+        platformId: platform.id,
+        platformRate: String(platformRate),
+        sourceDropNeoBankId: sourceNeoBank.id,
+        transactionId: transaction.id,
+        createdByUserId: user.id,
+      });
+      await queryRunner.manager.save(withdrawnOp);
 
       platform.balance = Number(platform.balance) - usdtDelta;
       await queryRunner.manager.save(platform);

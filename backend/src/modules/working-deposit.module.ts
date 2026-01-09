@@ -41,6 +41,10 @@ import { GetProfitHistoryService } from '../features/working-deposit/get-profit-
 import { ReserveProfitController } from '../features/working-deposit/reserve-profit/reserve-profit.controller';
 import { ReserveProfitService } from '../features/working-deposit/reserve-profit/reserve-profit.service';
 
+// Reserve Profit v2
+import { ReserveProfitV2Controller } from '../features/working-deposit/reserve-profit-v2/reserve-profit-v2.controller';
+import { ReserveProfitV2Service } from '../features/working-deposit/reserve-profit-v2/reserve-profit-v2.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -69,6 +73,7 @@ import { ReserveProfitService } from '../features/working-deposit/reserve-profit
     GetWorkingDepositHistoryController,
     GetProfitHistoryController,
     ReserveProfitController,
+    ReserveProfitV2Controller,
   ],
   providers: [
     GetWorkingDepositSectionsService,
@@ -77,6 +82,7 @@ import { ReserveProfitService } from '../features/working-deposit/reserve-profit
     GetWorkingDepositHistoryService,
     GetProfitHistoryService,
     ReserveProfitService,
+    ReserveProfitV2Service,
   ],
 })
 export class WorkingDepositModule {}

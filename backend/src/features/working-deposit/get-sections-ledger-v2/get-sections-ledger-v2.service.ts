@@ -4,6 +4,10 @@ import { Repository } from 'typeorm';
 import { BankAccount } from '../../../entities/bank-account.entity';
 import { CashWithdrawal } from '../../../entities/cash-withdrawal.entity';
 import { DropNeoBank } from '../../../entities/drop-neo-bank.entity';
+import {
+  BankAccountWithdrawnOperation,
+  BankAccountWithdrawnOperationType,
+} from '../../../entities/bank-account-withdrawn-operation.entity';
 import { FreeUsdtDistribution } from '../../../entities/free-usdt-distribution.entity';
 import { FreeUsdtAdjustment } from '../../../entities/free-usdt-adjustment.entity';
 import { FreeUsdtEntry } from '../../../entities/free-usdt-entry.entity';
@@ -127,24 +131,50 @@ export class GetWorkingDepositSectionsLedgerV2Service {
     const accountDtos: AccountV2Dto[] = [];
 
     // Business rule: "Unpaid pesos" must be sourced ONLY from bank_accounts.withdrawnAmount.
-    const bankAccounts = await this.bankAccountRepository.find({
-      order: { id: 'ASC' },
-    });
+    const bankAccounts = await this.bankAccountRepository.find({ order: { id: 'ASC' } });
 
     let totalPesos = 0;
     let totalUsdt = 0;
-    const defaultRate = 1100;
+
+    const opRepo = this.transactionRepository.manager.getRepository(BankAccountWithdrawnOperation);
 
     for (const account of bankAccounts) {
       const amountPesos = Number(account.withdrawnAmount) || 0;
       if (amountPesos <= 0) continue;
 
-      const rate = defaultRate;
-      const amountUsdt = rate > 0 ? amountPesos / rate : 0;
-
       totalPesos += amountPesos;
-      totalUsdt += Number.isFinite(amountUsdt) ? amountUsdt : 0;
 
+      const credits = await opRepo.find({
+        where: {
+          bankAccountId: account.id,
+          type: BankAccountWithdrawnOperationType.CREDIT,
+        },
+        order: { id: 'ASC' },
+      });
+
+      let accountUsdt = 0;
+      let lastPlatformId = 0;
+      let lastPlatformName = '—';
+
+      for (const c of credits) {
+        const remaining = Number(c.remainingPesos ?? 0);
+        const rate = Number(c.platformRate ?? 0);
+        if (!Number.isFinite(remaining) || remaining <= 0) continue;
+        if (!Number.isFinite(rate) || rate <= 0) continue;
+
+        accountUsdt += remaining / rate;
+
+        if (c.platformId) {
+          lastPlatformId = Number(c.platformId);
+          lastPlatformName = c.platform?.name ?? lastPlatformName;
+        }
+      }
+
+      if (!Number.isFinite(accountUsdt)) accountUsdt = 0;
+
+      totalUsdt += accountUsdt;
+
+      const effectiveRate = accountUsdt > 0 ? amountPesos / accountUsdt : 0;
       const identifier = account.cbu ? `${account.alias} - ${account.cbu}` : account.alias;
 
       accountDtos.push(
@@ -153,15 +183,15 @@ export class GetWorkingDepositSectionsLedgerV2Service {
           type: 'bank_account',
           identifier,
           balance: amountPesos,
-          platformId: 0,
-          platformName: '—',
-          rate,
-          balanceUsdt: Number.isFinite(amountUsdt) ? amountUsdt : 0,
+          platformId: lastPlatformId,
+          platformName: lastPlatformName,
+          rate: effectiveRate,
+          balanceUsdt: accountUsdt,
         }),
       );
     }
 
-    return new PesosAccountsV2Section(totalPesos, Number.isFinite(totalUsdt) ? totalUsdt : 0, accountDtos);
+    return new PesosAccountsV2Section(totalPesos, totalUsdt, accountDtos);
   }
 
   private async calculateFreeUsdt(): Promise<FreeUsdtV2Section> {

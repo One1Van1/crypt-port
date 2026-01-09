@@ -6,6 +6,11 @@ import { BankAccount } from '../../../entities/bank-account.entity';
 import { UpdateTransactionStatusRequestDto } from './update-status.request.dto';
 import { UpdateTransactionStatusResponseDto } from './update-status.response.dto';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
+import {
+  BankAccountWithdrawnOperation,
+  BankAccountWithdrawnOperationType,
+} from '../../../entities/bank-account-withdrawn-operation.entity';
+import { applyWithdrawnDebitFifo } from '../../../common/utils/apply-withdrawn-operations';
 
 @Injectable()
 export class UpdateTransactionStatusService {
@@ -54,6 +59,26 @@ export class UpdateTransactionStatusService {
         if (bankAccount) {
           bankAccount.withdrawnAmount = Number(bankAccount.withdrawnAmount) - Number(transaction.amount);
           await queryRunner.manager.save(bankAccount);
+
+          const platformId = transaction.platform?.id;
+          const platformRate = transaction.platform?.exchangeRate;
+
+          const debitOp = queryRunner.manager.create(BankAccountWithdrawnOperation, {
+            bankAccountId: bankAccount.id,
+            type: BankAccountWithdrawnOperationType.DEBIT,
+            amountPesos: String(Number(transaction.amount)),
+            remainingPesos: '0',
+            platformId: platformId,
+            platformRate: platformRate != null ? String(Number(platformRate)) : null,
+            transactionId: transaction.id,
+          });
+          await queryRunner.manager.save(debitOp);
+
+          await applyWithdrawnDebitFifo({
+            manager: queryRunner.manager,
+            bankAccountId: bankAccount.id,
+            amountPesos: Number(transaction.amount),
+          });
 
           // Обновляем статистику смены
           if (transaction.shift) {

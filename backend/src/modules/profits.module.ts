@@ -28,6 +28,10 @@ import { WithdrawSimpleConfirmedProfitService } from '../features/profits/withdr
 import { WithdrawSimpleLedgerProfitController } from '../features/profits/withdraw-simple-ledger/withdraw-simple-ledger.controller';
 import { WithdrawSimpleLedgerProfitService } from '../features/profits/withdraw-simple-ledger/withdraw-simple-ledger.service';
 
+// Withdraw Profit (simple, from Free USDT ledger, rounding-safe v2)
+import { WithdrawSimpleLedgerV2ProfitController } from '../features/profits/withdraw-simple-ledger-v2/withdraw-simple-ledger-v2.controller';
+import { WithdrawSimpleLedgerV2ProfitService } from '../features/profits/withdraw-simple-ledger-v2/withdraw-simple-ledger-v2.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -46,6 +50,7 @@ import { WithdrawSimpleLedgerProfitService } from '../features/profits/withdraw-
     WithdrawSimpleProfitController,
     WithdrawSimpleConfirmedProfitController,
     WithdrawSimpleLedgerProfitController,
+    WithdrawSimpleLedgerV2ProfitController,
   ],
   providers: [
     WithdrawProfitService,
@@ -53,6 +58,7 @@ import { WithdrawSimpleLedgerProfitService } from '../features/profits/withdraw-
     WithdrawSimpleProfitService,
     WithdrawSimpleConfirmedProfitService,
     WithdrawSimpleLedgerProfitService,
+    WithdrawSimpleLedgerV2ProfitService,
   ],
 })
 export class ProfitsModule {}

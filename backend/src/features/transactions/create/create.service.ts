@@ -9,6 +9,10 @@ import { User } from '../../../entities/user.entity';
 import { NeoBankWithdrawal } from '../../../entities/neo-bank-withdrawal.entity';
 import { CreateTransactionRequestDto } from './create.request.dto';
 import { CreateTransactionResponseDto } from './create.response.dto';
+import {
+  BankAccountWithdrawnOperation,
+  BankAccountWithdrawnOperationType,
+} from '../../../entities/bank-account-withdrawn-operation.entity';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
 import { ShiftStatus } from '../../../common/enums/shift.enum';
 import { BankAccountStatus } from '../../../common/enums/bank-account.enum';
@@ -143,6 +147,20 @@ export class CreateTransactionService {
       }
       
       await queryRunner.manager.save(bankAccount);
+
+      const platformRate = Number(activeShift.platform.exchangeRate);
+      const withdrawnOp = queryRunner.manager.create(BankAccountWithdrawnOperation, {
+        bankAccountId: bankAccount.id,
+        type: BankAccountWithdrawnOperationType.CREDIT,
+        amountPesos: String(dto.amount),
+        remainingPesos: String(dto.amount),
+        platformId: activeShift.platform.id,
+        platformRate: Number.isFinite(platformRate) ? String(platformRate) : null,
+        sourceDropNeoBankId: sourceNeoBank.id,
+        transactionId: transaction.id,
+        createdByUserId: user.id,
+      });
+      await queryRunner.manager.save(withdrawnOp);
 
       // 6.2. Вычитаем сумму из нео-банка и ПРОПОРЦИОНАЛЬНО уменьшаем USDT
       const balanceBefore = Number(sourceNeoBank.currentBalance);

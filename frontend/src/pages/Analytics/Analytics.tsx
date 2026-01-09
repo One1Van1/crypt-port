@@ -27,6 +27,7 @@ import { platformsService } from '../../services/platforms.service';
 import { transactionsService } from '../../services/transactions.service';
 import { workingDepositService } from '../../services/workingDepositService';
 import { profitsService } from '../../services/profits.service';
+import { freeUsdtService } from '../../services/freeUsdt.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import DatePicker from '../../components/DatePicker/DatePicker';
@@ -111,6 +112,10 @@ export default function Analytics() {
   const [profitWithdrawDraft, setProfitWithdrawDraft] = useState<string>('');
   const [profitAdminRateDraft, setProfitAdminRateDraft] = useState<string>('');
 
+  const [freeUsdtDistributePlatformId, setFreeUsdtDistributePlatformId] = useState<number | null>(null);
+  const [freeUsdtDistributeAmountDraft, setFreeUsdtDistributeAmountDraft] = useState<string>('');
+  const [freeUsdtDistributeCommentDraft, setFreeUsdtDistributeCommentDraft] = useState<string>('');
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
     queryFn: analyticsService.getGeneral,
@@ -174,6 +179,12 @@ export default function Analytics() {
     enabled: user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD,
   });
 
+  const { data: freeUsdtDistributionsHistory, isLoading: isFreeUsdtDistributionsLoading } = useQuery({
+    queryKey: ['freeUsdtDistributionsHistory'],
+    queryFn: () => freeUsdtService.getDistributions({ page: 1, limit: 50 }),
+    enabled: user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD,
+  });
+
   const setInitialDepositMutation = useMutation({
     mutationFn: (amount: number) => workingDepositService.setInitialDeposit(amount),
     onSuccess: () => {
@@ -188,7 +199,7 @@ export default function Analytics() {
 
   const withdrawProfitMutation = useMutation({
     mutationFn: (dto: { profitUsdtAmount: number; adminRate: number }) =>
-      profitsService.withdrawSimple(dto),
+      profitsService.withdrawSimpleV2(dto),
     onSuccess: () => {
       toast.success('Профит выведен');
       queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
@@ -202,7 +213,7 @@ export default function Analytics() {
   });
 
   const reserveProfitMutation = useMutation({
-    mutationFn: () => workingDepositService.reserveProfit(),
+    mutationFn: () => workingDepositService.reserveProfitV2(),
     onSuccess: () => {
       toast.success('Профит записан');
       queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
@@ -211,6 +222,23 @@ export default function Analytics() {
     onError: (e: any) => {
       const msg = e?.response?.data?.message;
       toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка записи профита');
+    },
+  });
+
+  const distributeFreeUsdtMutation = useMutation({
+    mutationFn: (dto: { platformId: number; amountUsdt: number; comment?: string }) =>
+      freeUsdtService.distribute(dto),
+    onSuccess: () => {
+      toast.success('USDT распределены');
+      queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
+      queryClient.invalidateQueries({ queryKey: ['platforms'] });
+      queryClient.invalidateQueries({ queryKey: ['freeUsdtDistributionsHistory'] });
+      setFreeUsdtDistributeAmountDraft('');
+      setFreeUsdtDistributeCommentDraft('');
+    },
+    onError: (e: any) => {
+      const msg = e?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка распределения USDT');
     },
   });
 
@@ -869,7 +897,7 @@ export default function Analytics() {
                   Детали
                 </h3>
               </div>
-              <div className="widget-content" style={{ padding: '14px', height: 'calc(100% - 60px)', overflow: 'auto' }}>
+              <div className="widget-content analytics-details-scroll" style={{ padding: '14px', height: 'calc(100% - 60px)', overflow: 'auto' }}>
                 {workingDepositData ? (
                   (() => {
                     const displayedTotalUsdt = Number(workingDepositData.summary.totalUsdt || 0);
@@ -1257,6 +1285,7 @@ export default function Analytics() {
 
                     if (selectedSection === 'free') {
                       const conversions = workingDepositData.freeUsdt.conversions || [];
+                      const parsedDistributeAmount = Number(String(freeUsdtDistributeAmountDraft).replace(',', '.'));
                       return (
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>✨ Свободные USDT</div>
@@ -1268,6 +1297,119 @@ export default function Analytics() {
                             <div>Зарезервированный профит</div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{Number(workingDepositData.profitReserve?.totalUsdt || 0).toFixed(2)} USDT</div>
                           </div>
+
+                          {(user?.role === UserRole.ADMIN) && (
+                            <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 4, marginBottom: 14 }}>
+                              <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10, fontSize: '0.95rem' }}>
+                                Переместить на площадку
+                              </div>
+                              <div style={{ display: 'grid', gap: 10 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Площадка</span>
+                                  <select
+                                    value={freeUsdtDistributePlatformId ?? ''}
+                                    onChange={(e) => {
+                                      const v = Number(e.target.value);
+                                      setFreeUsdtDistributePlatformId(Number.isFinite(v) ? v : null);
+                                    }}
+                                    style={{
+                                      width: 220,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                    }}
+                                  >
+                                    <option value="" disabled>
+                                      Выберите площадку
+                                    </option>
+                                    {(platformsData?.items ?? []).map((p) => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.name}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Сумма (USDT)</span>
+                                  <input
+                                    value={freeUsdtDistributeAmountDraft}
+                                    onChange={(e) => setFreeUsdtDistributeAmountDraft(e.target.value)}
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    style={{
+                                      width: 140,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                      textAlign: 'right',
+                                    }}
+                                  />
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Комментарий</span>
+                                  <input
+                                    value={freeUsdtDistributeCommentDraft}
+                                    onChange={(e) => setFreeUsdtDistributeCommentDraft(e.target.value)}
+                                    placeholder="(необязательно)"
+                                    style={{
+                                      width: 220,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                    }}
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  disabled={distributeFreeUsdtMutation.isPending}
+                                  onClick={() => {
+                                    if (!freeUsdtDistributePlatformId) {
+                                      toast.error('Выберите площадку');
+                                      return;
+                                    }
+
+                                    if (!Number.isFinite(parsedDistributeAmount) || parsedDistributeAmount <= 0) {
+                                      toast.error('Введите сумму в USDT');
+                                      return;
+                                    }
+
+                                    distributeFreeUsdtMutation.mutate({
+                                      platformId: freeUsdtDistributePlatformId,
+                                      amountUsdt: parsedDistributeAmount,
+                                      comment: freeUsdtDistributeCommentDraft?.trim() || undefined,
+                                    });
+                                  }}
+                                  style={{
+                                    marginTop: 4,
+                                    padding: '10px 12px',
+                                    borderRadius: 12,
+                                    border: '1px solid var(--border-color)',
+                                    background: 'transparent',
+                                    color: 'var(--text-primary)',
+                                    fontWeight: 800,
+                                    fontSize: '0.95rem',
+                                    cursor: distributeFreeUsdtMutation.isPending ? 'not-allowed' : 'pointer',
+                                    opacity: distributeFreeUsdtMutation.isPending ? 0.6 : 1,
+                                  }}
+                                >
+                                  {distributeFreeUsdtMutation.isPending ? 'Перемещение...' : 'Переместить'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
                           {conversions.length ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                               <thead>
@@ -1288,6 +1430,40 @@ export default function Analytics() {
                           ) : (
                             <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет данных</div>
                           )}
+
+                          <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 12 }}>
+                            <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10, fontSize: '0.95rem' }}>
+                              История распределений
+                            </div>
+                            {isFreeUsdtDistributionsLoading ? (
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>Загрузка...</div>
+                            ) : freeUsdtDistributionsHistory?.items?.length ? (
+                              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
+                                <thead>
+                                  <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Дата</th>
+                                    <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Площадка</th>
+                                    <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {freeUsdtDistributionsHistory.items.slice(0, 10).map((d) => (
+                                    <tr key={d.id} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                      <td style={{ padding: '8px', color: 'var(--text-primary)' }}>
+                                        {new Date(d.createdAt).toLocaleString('ru-RU')}
+                                      </td>
+                                      <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{d.platformName}</td>
+                                      <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 700 }}>
+                                        {Number(d.amountUsdt || 0).toFixed(2)}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            ) : (
+                              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Нет операций</div>
+                            )}
+                          </div>
                         </div>
                       );
                     }

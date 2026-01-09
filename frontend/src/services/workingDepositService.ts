@@ -135,4 +135,9 @@ export const workingDepositService = {
     const response = await apiClient.post('/working-deposit/reserve-profit', dto);
     return response.data;
   },
+
+  reserveProfitV2: async (dto: ReserveProfitRequest = {}): Promise<ReserveProfitResponse> => {
+    const response = await apiClient.post('/working-deposit/reserve-profit-v2', dto);
+    return response.data;
+  },
 };
