@@ -31,10 +31,16 @@ export class DropNeoBank extends BaseEntity {
   @Column({ type: 'decimal', precision: 15, scale: 4, nullable: true, name: 'usdt_equivalent' })
   usdtEquivalent: number;
 
-  @Column({ name: 'drop_id', nullable: true })
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true, name: 'daily_limit' })
+  dailyLimit: number;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true, name: 'monthly_limit' })
+  monthlyLimit: number;
+
+  @Column({ name: 'drop_id' })
   dropId: number;
 
-  @ManyToOne(() => Drop, { nullable: true })
+  @ManyToOne(() => Drop)
   @JoinColumn({ name: 'drop_id' })
   drop: Drop;
 

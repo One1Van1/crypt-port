@@ -77,6 +77,8 @@ export class UpdateDropNeoBankService {
     if (dto.status !== undefined) dropNeoBank.status = dto.status;
     if (dto.comment !== undefined) dropNeoBank.comment = dto.comment;
     if (dto.currentBalance !== undefined) dropNeoBank.currentBalance = dto.currentBalance;
+    if (dto.dailyLimit !== undefined) dropNeoBank.dailyLimit = dto.dailyLimit;
+    if (dto.monthlyLimit !== undefined) dropNeoBank.monthlyLimit = dto.monthlyLimit;
 
     return this.dropNeoBankRepository.save(dropNeoBank);
   }

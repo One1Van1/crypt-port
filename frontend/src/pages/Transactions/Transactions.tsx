@@ -30,8 +30,8 @@ export default function Transactions() {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
-  const [highlightTransactionId, setHighlightTransactionId] = useState<number | null>(null);
-  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const [highlightTransactionId, setHighlightTransactionId] = useState<string | null>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedShiftId, setSelectedShiftId] = useState<string>('');
@@ -46,7 +46,7 @@ export default function Transactions() {
   const [showFilters, setShowFilters] = useState(false);
   const limit = 10;
 
-  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
 
@@ -54,9 +54,14 @@ export default function Transactions() {
   useEffect(() => {
     const state = location.state as { highlightTransactionId?: unknown; viewMode?: unknown } | null;
     const maybeId = state?.highlightTransactionId;
-    const id = typeof maybeId === 'number' ? maybeId : Number(maybeId);
+    const id =
+      typeof maybeId === 'string'
+        ? maybeId.trim()
+        : typeof maybeId === 'number' && Number.isFinite(maybeId)
+          ? String(maybeId)
+          : '';
 
-    if (Number.isFinite(id) && id > 0) {
+    if (id) {
       if (isTeamLeadOrAdmin) {
         setViewMode('all');
       }

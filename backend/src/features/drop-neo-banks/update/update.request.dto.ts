@@ -73,4 +73,28 @@ export class UpdateDropNeoBankRequestDto {
   @IsNumber()
   @Min(0)
   currentBalance?: number;
+
+  @ApiProperty({
+    description: 'Daily limit in ARS',
+    example: 250000,
+    minimum: 0,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  dailyLimit?: number;
+
+  @ApiProperty({
+    description: 'Monthly limit in ARS',
+    example: 2000000,
+    minimum: 0,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  monthlyLimit?: number;
 }

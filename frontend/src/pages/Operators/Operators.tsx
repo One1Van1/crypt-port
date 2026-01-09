@@ -68,7 +68,7 @@ export default function Operators() {
         response.items.map(async (user) => {
           try {
             const accountsResponse = await bankAccountsService.getAll({ 
-              userId: user.id,
+              userId: String(user.id),
               limit: 100 
             });
             

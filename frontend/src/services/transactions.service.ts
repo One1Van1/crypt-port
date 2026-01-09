@@ -16,6 +16,7 @@ export interface Transaction {
   id: string;
   amount: number;
   status: TransactionStatus;
+  comment?: string;
   // Physical bank
   bank: {
     id: number;

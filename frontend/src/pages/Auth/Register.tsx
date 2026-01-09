@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
-import { Lock, User, Mail, AlertCircle, Loader, Globe, Sun, Moon, CheckCircle, Crown, Key } from 'lucide-react';
+import { AlertCircle, Loader, Globe, Sun, Moon, CheckCircle, Crown } from 'lucide-react';
 import { authService } from '../../services/auth.service';
 import { useAppStore } from '../../store/appStore';
 import './Login.css';

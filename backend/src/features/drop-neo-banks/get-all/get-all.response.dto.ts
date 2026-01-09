@@ -21,6 +21,12 @@ export class DropNeoBankItemDto {
   @ApiProperty({ description: 'Current balance in ARS', example: 500000 })
   currentBalance: number;
 
+  @ApiProperty({ description: 'Daily limit in ARS', required: false, example: 250000 })
+  dailyLimit?: number;
+
+  @ApiProperty({ description: 'Monthly limit in ARS', required: false, example: 2000000 })
+  monthlyLimit?: number;
+
   @ApiProperty({ required: false })
   drop?: {
     id: number;
@@ -44,6 +50,8 @@ export class DropNeoBankItemDto {
     this.status = dropNeoBank.status;
     this.comment = dropNeoBank.comment;
     this.currentBalance = Number(dropNeoBank.currentBalance);
+    this.dailyLimit = dropNeoBank.dailyLimit !== null && dropNeoBank.dailyLimit !== undefined ? Number(dropNeoBank.dailyLimit) : undefined;
+    this.monthlyLimit = dropNeoBank.monthlyLimit !== null && dropNeoBank.monthlyLimit !== undefined ? Number(dropNeoBank.monthlyLimit) : undefined;
     
     if (dropNeoBank.drop) {
       this.drop = {

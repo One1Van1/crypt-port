@@ -193,7 +193,7 @@ export default function Dashboard() {
                     <Building size={24} />
                   </div>
                   <div className="transaction-bank">
-                    {transaction.bankName || t('common.unknownBank')}
+                    {transaction.bank?.name || t('common.unknownBank')}
                   </div>
                   <div className="transaction-meta">
                     <Calendar size={14} />

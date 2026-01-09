@@ -60,7 +60,7 @@
     "operatorDashboard": "Workspace",
     "banks": "Banks",
     "drops": "Drops",
-    "dropNeoBanks": "Withdrawal Banks",
+    "dropNeoBanks": "Neo-banks",
     "teamleadDashboard": "Team Lead",
     "users": "Users",
     "withdraw": "Withdraw",
@@ -406,9 +406,9 @@
     "frozen": "Frozen"
   },
   "dropNeoBanks": {
-    "title": "Withdrawal Banks (Platform Accounts)",
+    "title": "Neo-banks",
     "subtitle": "Manage withdrawal bank accounts for receiving payments",
-    "addNeoBank": "Add Withdrawal Bank",
+    "addNeoBank": "Create neo-bank",
     "editNeoBank": "Edit Withdrawal Bank",
     "updateBalance": "Update Balance",
     "exchangeTitle": "Convert USDT → pesos",
@@ -459,7 +459,7 @@
       "deleteError": "Failed to delete withdrawal bank",
       "balanceError": "Failed to update balance",
       "exchangeError": "Failed to convert",
-      "notFound": "Withdrawal banks not found"
+      "notFound": "Neo-banks not found"
     },
     "info": {
       "currentBalance": "Current Balance"
