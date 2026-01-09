@@ -13,6 +13,9 @@ interface DatePickerProps {
   placeholder?: string;
   minDate?: Date;
   maxDate?: Date;
+  showTimeSelect?: boolean;
+  timeIntervals?: number;
+  dateFormat?: string;
 }
 
 export default function DatePicker({
@@ -21,6 +24,9 @@ export default function DatePicker({
   placeholder = 'Выберите дату',
   minDate,
   maxDate,
+  showTimeSelect = false,
+  timeIntervals = 5,
+  dateFormat,
 }: DatePickerProps) {
   const formatDateInput = (input: string) => {
     if (!input) return '';
@@ -44,6 +50,7 @@ export default function DatePicker({
   };
 
   const handleChangeRaw = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (showTimeSelect) return;
     if (!e?.target?.value) return;
     const input = e.target.value;
     const formatted = formatDateInput(input);
@@ -56,9 +63,12 @@ export default function DatePicker({
       <ReactDatePicker
         selected={selected}
         onChange={onChange}
-        onSelect={handleChangeRaw as any}
+        onSelect={showTimeSelect ? undefined : (handleChangeRaw as any)}
         locale="ru"
-        dateFormat="dd.MM.yyyy"
+        dateFormat={dateFormat || (showTimeSelect ? 'dd.MM.yyyy HH:mm' : 'dd.MM.yyyy')}
+        showTimeSelect={showTimeSelect}
+        timeIntervals={timeIntervals}
+        timeCaption="Время"
         minDate={minDate}
         maxDate={maxDate}
         placeholderText={placeholder}

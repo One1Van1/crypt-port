@@ -56,9 +56,40 @@ export interface GetAllDropNeoBanksParams {
   status?: string;
 }
 
+export interface DropNeoBankLimitsRemaining {
+  id: number;
+  provider: string;
+  accountId: string;
+  status: 'active' | 'frozen';
+  alias?: string | null;
+  dropId: number;
+  dropName: string;
+  platformId?: number | null;
+  platformName?: string | null;
+  dailyLimit?: number | null;
+  dailyLimitRemaining?: number | null;
+  monthlyLimit?: number | null;
+  monthlyLimitRemaining?: number | null;
+}
+
+export interface GetNeoBankLimitsRemainingParams {
+  dropId?: number;
+  platformId?: number;
+  provider?: string;
+  status?: string;
+}
+
 const dropNeoBanksService = {
   async getAll(params?: GetAllDropNeoBanksParams) {
     const response = await apiClient.get<{ items: DropNeoBank[] }>('/drop-neo-banks', { params });
+    return response.data;
+  },
+
+  async getLimitsRemaining(params?: GetNeoBankLimitsRemainingParams) {
+    const response = await apiClient.get<{ items: DropNeoBankLimitsRemaining[] }>(
+      '/drop-neo-banks/limits-remaining',
+      { params },
+    );
     return response.data;
   },
 

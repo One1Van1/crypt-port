@@ -165,7 +165,7 @@ export default function Analytics() {
   // Fetch working deposit sections
   const { data: workingDepositData } = useQuery({
     queryKey: ['workingDepositSections'],
-    queryFn: () => workingDepositService.getSections(),
+    queryFn: () => workingDepositService.getSectionsV2(),
   });
 
   const { data: profitWithdrawalsHistory, isLoading: isProfitHistoryLoading } = useQuery({

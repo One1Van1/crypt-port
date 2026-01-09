@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DropNeoBank } from '../entities/drop-neo-bank.entity';
 import { Drop } from '../entities/drop.entity';
 import { Platform } from '../entities/platform.entity';
+import { NeoBankWithdrawal } from '../entities/neo-bank-withdrawal.entity';
 
 // Create
 import { CreateDropNeoBankController } from '../features/drop-neo-banks/create/create.controller';
@@ -24,11 +25,16 @@ import { DeleteDropNeoBankService } from '../features/drop-neo-banks/delete/dele
 import { UpdateBalanceController } from '../features/drop-neo-banks/update-balance/update-balance.controller';
 import { UpdateBalanceService } from '../features/drop-neo-banks/update-balance/update-balance.service';
 
+// Get Limits Remaining
+import { GetNeoBankLimitsRemainingController } from '../features/drop-neo-banks/get-limits-remaining/get-limits-remaining.controller';
+import { GetNeoBankLimitsRemainingService } from '../features/drop-neo-banks/get-limits-remaining/get-limits-remaining.service';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform])],
+  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform, NeoBankWithdrawal])],
   controllers: [
     CreateDropNeoBankController,
     GetAllDropNeoBanksController,
+    GetNeoBankLimitsRemainingController,
     UpdateDropNeoBankController,
     UpdateBalanceController,
     DeleteDropNeoBankController,
@@ -36,6 +42,7 @@ import { UpdateBalanceService } from '../features/drop-neo-banks/update-balance/
   providers: [
     CreateDropNeoBankService,
     GetAllDropNeoBanksService,
+    GetNeoBankLimitsRemainingService,
     UpdateDropNeoBankService,
     UpdateBalanceService,
     DeleteDropNeoBankService,

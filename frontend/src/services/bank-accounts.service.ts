@@ -31,6 +31,33 @@ export interface GetBankAccountsResponse {
   total: number;
 }
 
+export interface GetRequisiteV2Platform {
+  id: number;
+  name: string;
+  exchangeRate: number;
+}
+
+export interface GetRequisiteV2Shift {
+  id: number;
+  platform: GetRequisiteV2Platform;
+}
+
+export interface GetRequisiteV2NeoBank {
+  id: number;
+  provider: string;
+  accountId: string;
+  alias?: string | null;
+  dailyLimit?: number | null;
+  monthlyLimit?: number | null;
+  dropId: number;
+}
+
+export interface GetRequisiteV2Response {
+  shift: GetRequisiteV2Shift;
+  bankAccount: BankAccount;
+  neoBanks: GetRequisiteV2NeoBank[];
+}
+
 class BankAccountsService {
   async getAll(params?: {
     page?: number;
@@ -43,7 +70,7 @@ class BankAccountsService {
   }
 
   async getById(id: string): Promise<BankAccount> {
-    const response = await apiClient.get<BankAccount>(`/bank-accounts/${id}`);
+    const response = await apiClient.get<BankAccount>(`/bank-accounts/by-id/${id}`);
     return response.data;
   }
 
@@ -77,6 +104,11 @@ class BankAccountsService {
 
   async getAvailable(params?: { amount?: number; bankId?: number }): Promise<BankAccount> {
     const response = await apiClient.get<BankAccount>('/bank-accounts/available', { params });
+    return response.data;
+  }
+
+  async getRequisiteV2(): Promise<GetRequisiteV2Response> {
+    const response = await apiClient.get<GetRequisiteV2Response>('/bank-accounts/requisite-v2');
     return response.data;
   }
 

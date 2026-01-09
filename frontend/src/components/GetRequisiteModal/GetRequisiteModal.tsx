@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { 
@@ -14,10 +14,12 @@ import {
   CheckCircle,
   Wallet
 } from 'lucide-react';
-import { bankAccountsService, BankAccount } from '../../services/bank-accounts.service';
+import {
+  bankAccountsService,
+  BankAccount,
+  GetRequisiteV2NeoBank,
+} from '../../services/bank-accounts.service';
 import { transactionsService, CreateTransactionRequest } from '../../services/transactions.service';
-import { shiftsService } from '../../services/shifts.service';
-import dropNeoBanksService from '../../services/drop-neo-banks.service';
 import './GetRequisiteModal.css';
 
 interface GetRequisiteModalProps {
@@ -34,6 +36,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const [step, setStep] = useState<Step>('loading');
   const [selectedNeoBank, setSelectedNeoBank] = useState<number | null>(null);
   const [requisite, setRequisite] = useState<BankAccount | null>(null);
+  const [neoBanks, setNeoBanks] = useState<GetRequisiteV2NeoBank[]>([]);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
@@ -81,52 +84,29 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     };
   }, [isOpen]);
 
-  // Получить текущую смену
-  const { data: currentShift } = useQuery({
-    queryKey: ['current-shift'],
-    queryFn: () => shiftsService.getMyCurrentShift(),
-    enabled: isOpen,
-  });
-
-  // Получить активные банки вывода платформы текущей смены
-  const { data: neoBanks = [], isLoading: neoBanksLoading } = useQuery({
-    queryKey: ['neo-banks-for-platform', currentShift?.platformId],
-    queryFn: async () => {
-      if (!currentShift?.platformId) return [];
-      const result = await dropNeoBanksService.getAll({ 
-        platformId: currentShift.platformId,
-        status: 'active' 
-      });
-      return result.items;
-    },
-    enabled: isOpen && !!currentShift?.platformId,
-  });
-
   // Автоматически получаем реквизит при открытии модалки
   useEffect(() => {
-    if (isOpen && currentShift && step === 'loading') {
+    if (isOpen && step === 'loading') {
       handleGetRequisite();
     }
-  }, [isOpen, currentShift]);
+  }, [isOpen]);
 
   // Создать транзакцию
   const createTransaction = useMutation({
-    mutationFn: (data: CreateTransactionRequest) => transactionsService.create(data),
+    mutationFn: (data: CreateTransactionRequest) => transactionsService.createV3(data),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['current-shift'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions-recent'] });
       queryClient.invalidateQueries({ queryKey: ['bank-accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['neo-banks-for-platform'] });
       
-      // Обновить реквизит с сервера чтобы показать новый лимит
-      if (requisite?.id) {
-        try {
-          const updatedRequisite = await bankAccountsService.getById(String(requisite.id));
-          setRequisite(updatedRequisite);
-        } catch (error) {
-          console.error('Failed to refresh requisite:', error);
-        }
+      // Обновить реквизит + остатки лимитов по нео-банкам
+      try {
+        const updated = await bankAccountsService.getRequisiteV2();
+        setRequisite(updated.bankAccount);
+        setNeoBanks(updated.neoBanks);
+      } catch (error) {
+        console.error('Failed to refresh requisite-v2:', error);
       }
       
       setStep('success');
@@ -140,20 +120,13 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   });
 
   const handleGetRequisite = async () => {
-    if (!currentShift) {
-      const errorMsg = 'Нет активной смены. Начните смену перед получением реквизита.';
-      setError(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
     setError('');
     setStep('loading');
     
     try {
-      // Система автоматически подбирает оптимальный реквизит по приоритетам
-      const result = await bankAccountsService.getAvailable();
-      setRequisite(result);
+      const result = await bankAccountsService.getRequisiteV2();
+      setRequisite(result.bankAccount);
+      setNeoBanks(result.neoBanks);
       setStep('select-source');
       toast.success('Реквизит успешно получен');
     } catch (err: any) {
@@ -177,7 +150,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   };
 
   const handleSubmitAmount = () => {
-    if (!requisite || !currentShift) return;
+    if (!requisite) return;
 
     const amountNum = parseFloat(amount);
     const availableAmount = requisite.currentLimitAmount || 0;
@@ -206,6 +179,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setStep('loading');
     setSelectedNeoBank(null);
     setRequisite(null);
+    setNeoBanks([]);
     setAmount('');
     setComment('');
     setError('');
@@ -350,21 +324,16 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
 
               <div className="divider" style={{ margin: '1.5rem 0' }}></div>
 
-              {neoBanksLoading ? (
-                <div className="step-loading">
-                  <Loader size={48} className="spin" />
-                  <p>Загрузка банков вывода...</p>
-                </div>
-              ) : neoBanks.length === 0 ? (
+              {neoBanks.length === 0 ? (
                 <div className="empty-state">
                   <Wallet size={48} />
-                  <p>Нет доступных банков вывода для этого дропа</p>
+                  <p>Нет доступных нео-банков для этой платформы</p>
                   <small>Обратитесь к администратору</small>
                 </div>
               ) : (
                 <>
                   <div className="instructions">
-                    <p>Выберите нео-банк <strong>({requisite.dropName})</strong>, с которого будете выводить средства</p>
+                    <p>Выберите нео-банк, через который проведём операцию (для истории)</p>
                   </div>
 
                   <div className="neo-banks-list">
@@ -388,8 +357,16 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                             <span className="value">{neoBank.accountId}</span>
                           </div>
                           <div className="info-item">
-                            <span className="label">Баланс:</span>
-                            <span className="value balance">{formatCurrency(neoBank.currentBalance || 0)}</span>
+                            <span className="label">Alias:</span>
+                            <span className="value">{neoBank.alias || '—'}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="label">Дневной лимит:</span>
+                            <span className="value">{neoBank.dailyLimit ? formatCurrency(neoBank.dailyLimit) : '—'}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="label">Месячный лимит:</span>
+                            <span className="value">{neoBank.monthlyLimit ? formatCurrency(neoBank.monthlyLimit) : '—'}</span>
                           </div>
                         </div>
                       </div>
@@ -427,7 +404,8 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
             <div className="step-amount">
               <div className="requisite-summary">
                 <p><strong>Исходный нео-банк:</strong> <span className={`provider-badge ${getProviderBadgeClass(selectedNeoBankData.provider)}`}>{getProviderLabel(selectedNeoBankData.provider)}</span></p>
-                <p><small>Дроп: {selectedNeoBankData.drop?.name || 'Unknown'} | Баланс: {formatCurrency(selectedNeoBankData.currentBalance || 0)}</small></p>
+                <p><small>Аккаунт: {selectedNeoBankData.accountId} | Alias: {selectedNeoBankData.alias || '—'}</small></p>
+                <p><small>Лимиты: дневной {selectedNeoBankData.dailyLimit ? formatCurrency(selectedNeoBankData.dailyLimit) : '—'} / месячный {selectedNeoBankData.monthlyLimit ? formatCurrency(selectedNeoBankData.monthlyLimit) : '—'}</small></p>
                 <div className="divider"></div>
                 <p><strong>Реквизит для вывода:</strong> {requisite.bankName || requisite.bank?.name}</p>
                 <p><strong>Владелец:</strong> {requisite.dropName}</p>

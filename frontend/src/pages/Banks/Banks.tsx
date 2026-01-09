@@ -442,7 +442,7 @@ const Banks = () => {
                         onDoubleClick={() => {
                           if (!isAdminOrTeamlead) return;
                           navigate('/transactions', {
-                            state: { highlightTransactionId: tx.id, viewMode: 'all' },
+                            state: { highlightTransactionId: tx.id, viewMode: 'all', source: 'banks' },
                           });
                         }}
                       >

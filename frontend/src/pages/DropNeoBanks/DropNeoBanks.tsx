@@ -3,7 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
-import dropNeoBanksService, { DropNeoBank, CreateDropNeoBankDto, UpdateDropNeoBankDto } from '../../services/drop-neo-banks.service';
+import dropNeoBanksService, {
+  DropNeoBank,
+  CreateDropNeoBankDto,
+  UpdateDropNeoBankDto,
+  DropNeoBankLimitsRemaining,
+} from '../../services/drop-neo-banks.service';
 import { platformsService, Platform } from '../../services/platforms.service';
 import { dropsService } from '../../services/drops.service';
 import { exchangeUsdtToPesosService } from '../../services/exchange-usdt-to-pesos.service';
@@ -68,6 +73,22 @@ export default function DropNeoBanks() {
       status: filterStatus || undefined 
     }),
   });
+
+  const { data: limitsRemaining } = useQuery({
+    queryKey: ['drop-neo-banks-limits-remaining', filterDropId, filterPlatformId, filterProvider, filterStatus],
+    queryFn: () =>
+      dropNeoBanksService.getLimitsRemaining({
+        dropId: filterDropId,
+        platformId: filterPlatformId,
+        provider: filterProvider.trim() || undefined,
+        status: filterStatus || undefined,
+      }),
+    enabled: activeTab === 'limits',
+  });
+
+  const limitsRemainingById = new Map<number, DropNeoBankLimitsRemaining>(
+    (limitsRemaining?.items ?? []).map((item) => [item.id, item]),
+  );
 
   // Получить площадки для селектора
   const { data: platforms } = useQuery({
@@ -606,12 +627,20 @@ export default function DropNeoBanks() {
                   <>
                     <td>
                       <strong>
-                        {neoBank.dailyLimit === null || neoBank.dailyLimit === undefined ? '-' : formatCurrency(Number(neoBank.dailyLimit))}
+                        {(() => {
+                          const row = limitsRemainingById.get(neoBank.id);
+                          const value = row?.dailyLimitRemaining;
+                          return value === null || value === undefined ? '-' : formatCurrency(Number(value));
+                        })()}
                       </strong>
                     </td>
                     <td>
                       <strong>
-                        {neoBank.monthlyLimit === null || neoBank.monthlyLimit === undefined ? '-' : formatCurrency(Number(neoBank.monthlyLimit))}
+                        {(() => {
+                          const row = limitsRemainingById.get(neoBank.id);
+                          const value = row?.monthlyLimitRemaining;
+                          return value === null || value === undefined ? '-' : formatCurrency(Number(value));
+                        })()}
                       </strong>
                     </td>
                   </>

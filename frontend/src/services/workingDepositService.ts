@@ -105,6 +105,11 @@ export const workingDepositService = {
     return response.data;
   },
 
+  getSectionsV2: async (): Promise<WorkingDepositSections> => {
+    const response = await apiClient.get('/working-deposit/sections-ledger-v2');
+    return response.data;
+  },
+
   getHistory: async (days: number = 30): Promise<WorkingDepositHistory> => {
     const response = await apiClient.get('/working-deposit/history', {
       params: { days },

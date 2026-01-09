@@ -40,12 +40,17 @@ import { BlockBankAccountService } from '../features/bank-accounts/block/block.s
 import { GetAvailableBankAccountController } from '../features/bank-accounts/get-available/get-available.controller';
 import { GetAvailableBankAccountService } from '../features/bank-accounts/get-available/get-available.service';
 
+// Get Requisite V2
+import { GetRequisiteV2Controller } from '../features/bank-accounts/get-requisite-v2/get-requisite-v2.controller';
+import { GetRequisiteV2Service } from '../features/bank-accounts/get-requisite-v2/get-requisite-v2.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([BankAccount, Bank, Drop])],
   controllers: [
     CreateBankAccountController,
     GetAllBankAccountsController,
     GetAvailableBankAccountController,
+    GetRequisiteV2Controller,
     GetBankAccountByIdController,
     UpdateBankAccountController,
     UpdateBankAccountStatusController,
@@ -62,6 +67,7 @@ import { GetAvailableBankAccountService } from '../features/bank-accounts/get-av
     UpdateBankAccountPriorityService,
     BlockBankAccountService,
     GetAvailableBankAccountService,
+    GetRequisiteV2Service,
     DeleteBankAccountService,
   ],
 })

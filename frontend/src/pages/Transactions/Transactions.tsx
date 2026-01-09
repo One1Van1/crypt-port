@@ -52,8 +52,11 @@ export default function Transactions() {
 
   // Auto-highlight a transaction from navigation state
   useEffect(() => {
-    const state = location.state as { highlightTransactionId?: unknown; viewMode?: unknown } | null;
+    const state = location.state as
+      | { highlightTransactionId?: unknown; viewMode?: unknown; source?: unknown }
+      | null;
     const maybeId = state?.highlightTransactionId;
+    const isFromBanks = state?.source === 'banks';
     const id =
       typeof maybeId === 'string'
         ? maybeId.trim()
@@ -66,6 +69,63 @@ export default function Transactions() {
         setViewMode('all');
       }
       setHighlightTransactionId(id);
+      setSearchQuery(id);
+      setShowFilters(true);
+      setPage(1);
+      setSelectedShiftId('');
+      setSelectedBankId('');
+      setSelectedPlatformId('');
+      setSelectedUserId('');
+      setSelectedDropNeoBankId('');
+      setDateFrom(null);
+      setDateTo(null);
+      setMinAmount('');
+      setMaxAmount('');
+
+      const idNum = Number(id);
+      if (isTeamLeadOrAdmin && isFromBanks && Number.isFinite(idNum)) {
+        (async () => {
+          try {
+            const resp = await transactionsService.getAllV2({ page: 1, limit: 1, search: String(idNum) });
+            const tx = resp.items?.[0];
+            if (!tx) return;
+
+            const createdAt = new Date(tx.createdAt);
+            const from = new Date(createdAt);
+            from.setHours(0, 0, 0, 0);
+            const to = new Date(from);
+            to.setDate(to.getDate() + 1);
+
+            setDateFrom(from);
+            setDateTo(to);
+            setSelectedUserId(String(tx.user?.id ?? ''));
+            setSelectedBankId(String(tx.bank?.id ?? ''));
+            setSelectedDropNeoBankId(tx.dropNeoBank?.id ? String(tx.dropNeoBank.id) : '');
+            setMinAmount(String(tx.amount));
+            setMaxAmount(String(tx.amount));
+          } catch {
+            try {
+              const dto = await transactionsService.getByIdAdmin(idNum);
+
+              const createdAt = new Date(dto.createdAt);
+              const from = new Date(createdAt);
+              from.setHours(0, 0, 0, 0);
+              const to = new Date(from);
+              to.setDate(to.getDate() + 1);
+
+              setDateFrom(from);
+              setDateTo(to);
+              setSelectedUserId(dto.operatorId ? String(dto.operatorId) : '');
+              setSelectedBankId(dto.bankId ? String(dto.bankId) : '');
+              setMinAmount(String(dto.amount));
+              setMaxAmount(String(dto.amount));
+            } catch {
+              // ignore; keep empty filters
+            }
+          }
+        })();
+      }
+
       // Clear state so it doesn't re-apply on refresh
       window.history.replaceState({}, document.title);
     }
@@ -77,11 +137,11 @@ export default function Transactions() {
     if (state?.filterDate) {
       // Parse date as local date to avoid timezone issues
       const [year, month, day] = state.filterDate.split('-').map(Number);
-      const dateFrom = new Date(year, month - 1, day);
-      const dateTo = new Date(year, month - 1, day);
-      dateTo.setDate(dateTo.getDate() + 1); // Next day
-      setDateFrom(dateFrom);
-      setDateTo(dateTo);
+      const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+      const end = new Date(year, month - 1, day, 0, 0, 0, 0);
+      end.setDate(end.getDate() + 1);
+      setDateFrom(start);
+      setDateTo(end);
       setShowFilters(true);
       setViewMode('all');
       // Clear location state to prevent reapplying on refresh
@@ -148,17 +208,16 @@ export default function Transactions() {
   const { data: allTransactionsData } = useQuery({
     queryKey: ['all-transactions', page, selectedUserId, selectedPlatformId, selectedBankId, selectedDropNeoBankId, searchQuery, dateFrom, dateTo, minAmount, maxAmount],
     queryFn: () => {
-      // Prepare dates as ISO strings in local timezone
       let startDate: string | undefined;
       let endDate: string | undefined;
-      
+
       if (dateFrom) {
         const year = dateFrom.getFullYear();
         const month = String(dateFrom.getMonth() + 1).padStart(2, '0');
         const day = String(dateFrom.getDate()).padStart(2, '0');
         startDate = `${year}-${month}-${day}T00:00:00.000Z`;
       }
-      
+
       if (dateTo) {
         const year = dateTo.getFullYear();
         const month = String(dateTo.getMonth() + 1).padStart(2, '0');
@@ -179,7 +238,9 @@ export default function Transactions() {
         minAmount: minAmount ? parseFloat(minAmount) : undefined,
         maxAmount: maxAmount ? parseFloat(maxAmount) : undefined,
       };
-      return transactionsService.getAll(params);
+
+      const isNumericSearch = typeof searchQuery === 'string' && /^[0-9]+$/.test(searchQuery.trim());
+      return isNumericSearch ? transactionsService.getAllV2(params) : transactionsService.getAll(params);
     },
     enabled: isTeamLeadOrAdmin && viewMode === 'all',
   });
@@ -412,9 +473,6 @@ export default function Transactions() {
             <DatePicker
               selected={dateFrom}
               onChange={(date) => {
-                if (date) {
-                  date.setHours(0, 0, 0, 0);
-                }
                 setDateFrom(date);
               }}
               placeholder="Выберите дату"
@@ -427,9 +485,6 @@ export default function Transactions() {
             <DatePicker
               selected={dateTo}
               onChange={(date) => {
-                if (date) {
-                  date.setHours(0, 0, 0, 0);
-                }
                 setDateTo(date);
               }}
               placeholder="Выберите дату"
@@ -492,17 +547,19 @@ export default function Transactions() {
           )}
 
           <div className="transactions-list">
-            {transactions.map((transaction) => (
+            {transactions.map((transaction: any) => {
+              const txId = String(transaction.id);
+              return (
               <div
-                key={transaction.id}
+                key={txId}
                 ref={(el) => {
                   if (el) {
-                    cardRefs.current.set(transaction.id, el);
+                    cardRefs.current.set(txId, el);
                   } else {
-                    cardRefs.current.delete(transaction.id);
+                    cardRefs.current.delete(txId);
                   }
                 }}
-                className={`transaction-card ${highlightedId === transaction.id ? 'transaction-highlight' : ''}`}
+                className={`transaction-card ${highlightedId === txId ? 'transaction-highlight' : ''}`}
               >
                 <div className="transaction-card-header">
                   <div className="bank-icon">
@@ -549,7 +606,8 @@ export default function Transactions() {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </>
       )}

@@ -11,6 +11,14 @@ import { Platform } from '../entities/platform.entity';
 import { CreateTransactionController } from '../features/transactions/create/create.controller';
 import { CreateTransactionService } from '../features/transactions/create/create.service';
 
+// Create Transaction v2
+import { CreateTransactionV2Controller } from '../features/transactions/create-v2/create-v2.controller';
+import { CreateTransactionV2Service } from '../features/transactions/create-v2/create-v2.service';
+
+// Create Transaction v3
+import { CreateTransactionV3Controller } from '../features/transactions/create-v3/create-v3.controller';
+import { CreateTransactionV3Service } from '../features/transactions/create-v3/create-v3.service';
+
 // Get My Transactions
 import { GetMyTransactionsController } from '../features/transactions/get-my/get-my.controller';
 import { GetMyTransactionsService } from '../features/transactions/get-my/get-my.service';
@@ -26,6 +34,10 @@ import { GetMyTransactionsService as GetMyTransactionsDetailedService } from '..
 // Get All Transactions
 import { GetAllTransactionsController } from '../features/transactions/get-all/get-all.controller';
 import { GetAllTransactionsService } from '../features/transactions/get-all/get-all.service';
+ 
+// Get All Transactions v2
+import { GetAllTransactionsV2Controller } from '../features/transactions/get-all-v2/get-all-v2.controller';
+import { GetAllTransactionsV2Service } from '../features/transactions/get-all-v2/get-all-v2.service';
 
 // Get Transaction By ID
 import { GetTransactionByIdController } from '../features/transactions/get-by-id/get-by-id.controller';
@@ -43,20 +55,26 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
   imports: [TypeOrmModule.forFeature([Transaction, Shift, BankAccount, DropNeoBank, NeoBankWithdrawal, Platform])],
   controllers: [
     CreateTransactionController,
+    CreateTransactionV2Controller,
+    CreateTransactionV3Controller,
     GetMyTransactionsController,
     GetMyBanksController,
     GetMyTransactionsDetailedController,
     GetAllTransactionsController,
+    GetAllTransactionsV2Controller,
     GetTransactionByIdController,
     UpdateTransactionStatusController,
     GetTransactionsStatsController,
   ],
   providers: [
     CreateTransactionService,
+    CreateTransactionV2Service,
+    CreateTransactionV3Service,
     GetMyTransactionsService,
     GetMyBanksService,
     GetMyTransactionsDetailedService,
     GetAllTransactionsService,
+    GetAllTransactionsV2Service,
     GetTransactionByIdService,
     UpdateTransactionStatusService,
     GetTransactionsStatsService,
