@@ -12,6 +12,7 @@ import './DropNeoBanks.css';
 export default function DropNeoBanks() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<'neoBanks' | 'limits'>('neoBanks');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [editingNeoBank, setEditingNeoBank] = useState<DropNeoBank | null>(null);
@@ -30,7 +31,9 @@ export default function DropNeoBanks() {
     dropId: 0,
     platformId: 0,
     currentBalance: 0,
-    comment: '',
+    alias: '',
+    dailyLimit: undefined,
+    monthlyLimit: undefined,
   });
 
   const [addUsdtInput, setAddUsdtInput] = useState<string>('');
@@ -137,7 +140,9 @@ export default function DropNeoBanks() {
       dropId: 0,
       platformId: 0,
       currentBalance: 0,
-      comment: '',
+      alias: '',
+      dailyLimit: undefined,
+      monthlyLimit: undefined,
     });
     setAddUsdtInput('');
     setIsModalOpen(true);
@@ -151,7 +156,9 @@ export default function DropNeoBanks() {
       dropId: neoBank.drop?.id || 0,
       platformId: neoBank.platform?.id || 0,
       currentBalance: neoBank.currentBalance,
-      comment: neoBank.comment,
+      alias: neoBank.alias,
+      dailyLimit: neoBank.dailyLimit,
+      monthlyLimit: neoBank.monthlyLimit,
     });
     setAddUsdtInput('');
     setIsModalOpen(true);
@@ -205,6 +212,16 @@ export default function DropNeoBanks() {
       toast.error('Введите название банка');
       return;
     }
+
+    if (formData.dailyLimit !== undefined && (Number.isNaN(Number(formData.dailyLimit)) || Number(formData.dailyLimit) < 0)) {
+      toast.error('Введите корректный дневной лимит');
+      return;
+    }
+
+    if (formData.monthlyLimit !== undefined && (Number.isNaN(Number(formData.monthlyLimit)) || Number(formData.monthlyLimit) < 0)) {
+      toast.error('Введите корректный месячный лимит');
+      return;
+    }
     
     (async () => {
       try {
@@ -216,7 +233,9 @@ export default function DropNeoBanks() {
               platformId: formData.platformId,
               provider: formData.provider.trim(),
               accountId: formData.accountId,
-              comment: formData.comment,
+              alias: formData.alias,
+              dailyLimit: formData.dailyLimit,
+              monthlyLimit: formData.monthlyLimit,
             },
           });
 
@@ -345,6 +364,23 @@ export default function DropNeoBanks() {
         </button>
       </div>
 
+      <div className="neo-bank-tabs">
+        <button
+          type="button"
+          className={`neo-bank-tab ${activeTab === 'neoBanks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('neoBanks')}
+        >
+          {t('dropNeoBanks.tabs.neoBanks')}
+        </button>
+        <button
+          type="button"
+          className={`neo-bank-tab ${activeTab === 'limits' ? 'active' : ''}`}
+          onClick={() => setActiveTab('limits')}
+        >
+          {t('dropNeoBanks.tabs.limits')}
+        </button>
+      </div>
+
       {/* Filters */}
       <div className="filters">
         {/* Drop Filter */}
@@ -356,7 +392,7 @@ export default function DropNeoBanks() {
             <span>
               {filterDropId
                 ? (drops as any)?.items?.find((d: any) => Number(d.id) === Number(filterDropId))?.name
-                : 'Все дропы'}
+                : t('dropNeoBanks.filters.allDrops')}
             </span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -371,7 +407,7 @@ export default function DropNeoBanks() {
                   setOpenDropdown(null);
                 }}
               >
-                Все дропы
+                {t('dropNeoBanks.filters.allDrops')}
               </div>
               {(drops as any)?.items?.map((drop: any) => (
                 <div
@@ -516,12 +552,21 @@ export default function DropNeoBanks() {
           <thead>
             <tr>
               <th>{t('dropNeoBanks.table.platform')}</th>
-              <th>Дроп</th>
+              <th>{t('dropNeoBanks.table.drop')}</th>
               <th>{t('dropNeoBanks.table.provider')}</th>
               <th>{t('dropNeoBanks.table.accountId')}</th>
-              <th>{t('dropNeoBanks.table.currentBalance')}</th>
-              <th>{t('dropNeoBanks.table.status')}</th>
-              <th>{t('dropNeoBanks.table.comment')}</th>
+              {activeTab === 'neoBanks' ? (
+                <>
+                  <th>{t('dropNeoBanks.table.currentBalance')}</th>
+                  <th>{t('dropNeoBanks.table.status')}</th>
+                </>
+              ) : (
+                <>
+                  <th>{t('dropNeoBanks.table.dailyLimit')}</th>
+                  <th>{t('dropNeoBanks.table.monthlyLimit')}</th>
+                </>
+              )}
+              <th>{t('dropNeoBanks.table.alias')}</th>
               <th>{t('dropNeoBanks.table.actions')}</th>
             </tr>
           </thead>
@@ -546,16 +591,33 @@ export default function DropNeoBanks() {
                 <td>
                   <code>{neoBank.accountId}</code>
                 </td>
+                {activeTab === 'neoBanks' ? (
+                  <>
+                    <td>
+                      <strong>{formatCurrency(neoBank.currentBalance)}</strong>
+                    </td>
+                    <td>
+                      <span className={`badge ${neoBank.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                        {t(`statuses.${neoBank.status}`)}
+                      </span>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td>
+                      <strong>
+                        {neoBank.dailyLimit === null || neoBank.dailyLimit === undefined ? '-' : formatCurrency(Number(neoBank.dailyLimit))}
+                      </strong>
+                    </td>
+                    <td>
+                      <strong>
+                        {neoBank.monthlyLimit === null || neoBank.monthlyLimit === undefined ? '-' : formatCurrency(Number(neoBank.monthlyLimit))}
+                      </strong>
+                    </td>
+                  </>
+                )}
                 <td>
-                  <strong>{formatCurrency(neoBank.currentBalance)}</strong>
-                </td>
-                <td>
-                  <span className={`badge ${neoBank.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
-                    {t(`statuses.${neoBank.status}`)}
-                  </span>
-                </td>
-                <td>
-                  <span className="comment-text">{neoBank.comment || '-'}</span>
+                  <span className="comment-text">{neoBank.alias || '-'}</span>
                 </td>
                 <td>
                   <div className="action-buttons">
@@ -656,7 +718,7 @@ export default function DropNeoBanks() {
               </div>
 
               <div className="form-group">
-                <label>Имя дропа *</label>
+                <label>{t('dropNeoBanks.form.drop')} *</label>
                 <div className="modal-custom-select">
                   <button
                     type="button"
@@ -666,7 +728,7 @@ export default function DropNeoBanks() {
                     <span>
                       {formData.dropId
                         ? (drops as any)?.items?.find((d: any) => Number(d.id) === Number(formData.dropId))?.name
-                        : 'Выберите дропа'}
+                        : t('dropNeoBanks.form.selectDrop')}
                     </span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                       <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
@@ -681,7 +743,7 @@ export default function DropNeoBanks() {
                           setOpenModalDropdown(null);
                         }}
                       >
-                        Выберите дропа
+                        {t('dropNeoBanks.form.selectDrop')}
                       </div>
                       {(drops as any)?.items?.map((drop: any) => (
                         <div
@@ -744,11 +806,45 @@ export default function DropNeoBanks() {
               </div>
 
               <div className="form-group">
-                <label>Алиас</label>
+                <label>{t('dropNeoBanks.form.dailyLimit')}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.dailyLimit ?? ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      dailyLimit: e.target.value === '' ? undefined : Number(e.target.value),
+                    })
+                  }
+                  placeholder="0"
+                  min={0}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.monthlyLimit')}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.monthlyLimit ?? ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      monthlyLimit: e.target.value === '' ? undefined : Number(e.target.value),
+                    })
+                  }
+                  placeholder="0"
+                  min={0}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.alias')}</label>
                 <textarea
-                  value={formData.comment}
-                  onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-                  placeholder="Введите алиас"
+                  value={formData.alias}
+                  onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
+                  placeholder={t('dropNeoBanks.form.aliasPlaceholder')}
                   rows={3}
                 />
               </div>

@@ -35,13 +35,13 @@ export class CreateDropNeoBankRequestDto {
   platformId: number;
 
   @ApiProperty({
-    description: 'Optional comment',
-    example: 'Main Ripio account',
+    description: 'Optional alias',
+    example: 'BYBIT.YONT.1',
     required: false,
   })
   @IsOptional()
   @IsString()
-  comment?: string;
+  alias?: string;
 
   @ApiProperty({
     description: 'Current balance in ARS',

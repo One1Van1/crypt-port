@@ -12,8 +12,8 @@ export class DropNeoBank extends BaseEntity {
   @Column({ name: 'account_id' })
   accountId: string;
 
-  @Column({ nullable: true })
-  comment: string;
+  @Column({ nullable: true, name: 'alias' })
+  alias: string;
 
   @Column({
     type: 'enum',

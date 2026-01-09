@@ -409,38 +409,50 @@
     "title": "Neo-banks",
     "subtitle": "Manage withdrawal bank accounts for receiving payments",
     "addNeoBank": "Create neo-bank",
+    "tabs": {
+      "neoBanks": "Neo-banks",
+      "limits": "Neo-bank limits"
+    },
     "editNeoBank": "Edit Withdrawal Bank",
     "updateBalance": "Update Balance",
     "exchangeTitle": "Convert USDT → pesos",
     "exchangeButton": "Convert",
     "deleteConfirm": "Are you sure you want to delete this withdrawal bank?",
     "filters": {
+      "allDrops": "All Drops",
       "allPlatforms": "All Platforms",
       "allProviders": "All Providers",
       "allStatuses": "All Statuses"
     },
     "table": {
       "platform": "Platform",
+      "drop": "Drop",
       "provider": "Provider",
       "accountId": "Account ID",
       "currentBalance": "Current Balance",
+      "dailyLimit": "Daily limit",
+      "monthlyLimit": "Monthly limit",
       "status": "Status",
-      "comment": "Comment",
+      "alias": "Alias",
       "actions": "Actions"
     },
     "form": {
       "platform": "Platform",
       "selectPlatform": "Select Platform",
+      "drop": "Drop",
+      "selectDrop": "Select drop",
       "platformRate": "Rate",
       "platformBalance": "Platform balance",
       "usdtAmount": "USDT amount",
       "provider": "Provider",
       "accountId": "Account ID",
       "accountIdPlaceholder": "e.g., cuenta.ivan2024",
+      "dailyLimit": "Daily limit (ARS)",
+      "monthlyLimit": "Monthly limit (ARS)",
       "initialBalance": "Initial Balance (ARS)",
       "newBalance": "New Balance (ARS)",
-      "comment": "Comment",
-      "commentPlaceholder": "Optional notes"
+      "alias": "Alias",
+      "aliasPlaceholder": "Enter alias"
     },
     "actions": {
       "updateBalanceTitle": "Update Balance",

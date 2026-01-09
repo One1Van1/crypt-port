@@ -6,7 +6,9 @@ export interface DropNeoBank {
   accountId: string;
   status: 'active' | 'frozen';
   currentBalance: number;
-  comment?: string;
+  alias?: string;
+  dailyLimit?: number;
+  monthlyLimit?: number;
   drop?: {
     id: number;
     name: string;
@@ -26,7 +28,9 @@ export interface CreateDropNeoBankDto {
   dropId: number;
   platformId: number;
   currentBalance?: number;
-  comment?: string;
+  alias?: string;
+  dailyLimit?: number;
+  monthlyLimit?: number;
 }
 
 export interface UpdateDropNeoBankDto {
@@ -36,7 +40,9 @@ export interface UpdateDropNeoBankDto {
   accountId?: string;
   status?: 'active' | 'frozen';
   currentBalance?: number;
-  comment?: string;
+  alias?: string;
+  dailyLimit?: number;
+  monthlyLimit?: number;
 }
 
 export interface UpdateBalanceDto {

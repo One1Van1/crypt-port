@@ -410,38 +410,50 @@
     "title": "Нео-банки",
     "subtitle": "Управление аккаунтами банков вывода для приёма платежей",
     "addNeoBank": "Создать нео-банк",
+    "tabs": {
+      "neoBanks": "Нео-банки",
+      "limits": "Лимиты нео-банков"
+    },
     "editNeoBank": "Редактировать банк вывода",
     "updateBalance": "Обновить баланс",
     "exchangeTitle": "Конвертировать USDT → песо",
     "exchangeButton": "Конвертировать",
     "deleteConfirm": "Вы уверены, что хотите удалить этот банк вывода?",
     "filters": {
+      "allDrops": "Все дропы",
       "allPlatforms": "Все площадки",
       "allProviders": "Все названия банков",
       "allStatuses": "Все статусы"
     },
     "table": {
       "platform": "Площадка",
+      "drop": "Дроп",
       "provider": "Название банка",
       "accountId": "СВУ",
       "currentBalance": "Текущий баланс",
+      "dailyLimit": "Дневной лимит",
+      "monthlyLimit": "Месячный лимит",
       "status": "Статус",
-      "comment": "Комментарий",
+      "alias": "Алиас",
       "actions": "Действия"
     },
     "form": {
       "platform": "Площадка",
       "selectPlatform": "Выберите площадку",
+      "drop": "Дроп",
+      "selectDrop": "Выберите дропа",
       "platformRate": "Курс",
       "platformBalance": "Баланс площадки",
       "usdtAmount": "Сумма USDT",
       "provider": "Название банка",
       "accountId": "СВУ",
       "accountIdPlaceholder": "например, cuenta.ivan2024",
+      "dailyLimit": "Дневной лимит (ARS)",
+      "monthlyLimit": "Месячный лимит (ARS)",
       "initialBalance": "Начальный баланс (ARS)",
       "newBalance": "Новый баланс (ARS)",
-      "comment": "Комментарий",
-      "commentPlaceholder": "Необязательные заметки"
+      "alias": "Алиас",
+      "aliasPlaceholder": "Введите алиас"
     },
     "actions": {
       "updateBalanceTitle": "Обновить баланс",

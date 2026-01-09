@@ -59,7 +59,7 @@ export class CreateDropNeoBankService {
     const dropNeoBank = this.dropNeoBankRepository.create({
       provider: dto.provider,
       accountId: dto.accountId,
-      comment: dto.comment,
+      alias: dto.alias,
       currentBalance: dto.currentBalance || 0,
       dailyLimit: dto.dailyLimit,
       monthlyLimit: dto.monthlyLimit,

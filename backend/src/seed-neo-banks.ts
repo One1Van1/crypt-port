@@ -72,7 +72,7 @@ async function seed() {
           accountId: `${drop.name.toLowerCase().replace(/\s+/g, '.')}.${provider.split('_')[0]}${Math.floor(Math.random() * 1000)}`,
           status: NeoBankStatus.ACTIVE,
           currentBalance: Math.floor(Math.random() * 500000) + 100000, // 100k - 600k ARS
-          comment: `Auto-generated ${provider} account for ${drop.name}`,
+              alias: `Auto-generated ${provider} account for ${drop.name}`,
         });
 
         await dropNeoBankRepository.save(neoBank);

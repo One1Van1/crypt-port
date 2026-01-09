@@ -11,6 +11,39 @@
   margin-bottom: 2rem;
 }
 
+.neo-bank-tabs {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+}
+
+.neo-bank-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.neo-bank-tab:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+
+.neo-bank-tab.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
 /* Header primary action should not stretch (some pages set .btn-primary { flex: 1 }) */
 .drop-neo-banks-page .page-header .btn.btn-primary {
   flex: 0 0 auto;

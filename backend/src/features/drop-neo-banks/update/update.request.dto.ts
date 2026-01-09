@@ -56,12 +56,12 @@ export class UpdateDropNeoBankRequestDto {
   status?: NeoBankStatus;
 
   @ApiProperty({
-    description: 'Comment',
+    description: 'Alias',
     required: false,
   })
   @IsOptional()
   @IsString()
-  comment?: string;
+  alias?: string;
 
   @ApiProperty({
     description: 'Current balance in ARS (for display, use update-balance endpoint for operations)',
