@@ -341,6 +341,19 @@ export default function DropNeoBanks() {
     setEditingNeoBank(null);
   };
 
+  const isCreateFormValid =
+    Boolean(formData.platformId) &&
+    Boolean(formData.dropId) &&
+    formData.provider.trim().length > 0 &&
+    /^\d{22}$/.test(formData.accountId) &&
+    (formData.alias ?? '').trim().length === 6 &&
+    formData.dailyLimit !== undefined &&
+    Number.isFinite(Number(formData.dailyLimit)) &&
+    Number(formData.dailyLimit) >= 0 &&
+    formData.monthlyLimit !== undefined &&
+    Number.isFinite(Number(formData.monthlyLimit)) &&
+    Number(formData.monthlyLimit) >= 0;
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -374,8 +387,39 @@ export default function DropNeoBanks() {
       return;
     }
 
+    if (!formData.accountId.trim()) {
+      toast.error('Введите СВУ');
+      return;
+    }
+
+    if (!/^\d{22}$/.test(formData.accountId)) {
+      toast.error('СВУ должно быть строго 22 цифры');
+      return;
+    }
+
+    const trimmedAlias = (formData.alias ?? '').trim();
+    if (!trimmedAlias) {
+      toast.error('Введите алиас');
+      return;
+    }
+
+    if (trimmedAlias.length !== 6) {
+      toast.error('Алиас должен быть строго 6 символов');
+      return;
+    }
+
+    if (formData.dailyLimit === undefined) {
+      toast.error('Введите дневной лимит');
+      return;
+    }
+
     if (formData.dailyLimit !== undefined && (Number.isNaN(Number(formData.dailyLimit)) || Number(formData.dailyLimit) < 0)) {
       toast.error('Введите корректный дневной лимит');
+      return;
+    }
+
+    if (formData.monthlyLimit === undefined) {
+      toast.error('Введите месячный лимит');
       return;
     }
 
@@ -1070,7 +1114,15 @@ export default function DropNeoBanks() {
                 <input
                   type="text"
                   value={formData.accountId}
-                  onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
+                  inputMode="numeric"
+                  pattern="\d{22}"
+                  maxLength={22}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      accountId: e.target.value.replace(/\D/g, '').slice(0, 22),
+                    })
+                  }
                   placeholder="Введите СВУ"
                   required
                 />
@@ -1100,7 +1152,7 @@ export default function DropNeoBanks() {
               )}
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.dailyLimit')}</label>
+                <label>{t('dropNeoBanks.form.dailyLimit')} *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1113,11 +1165,12 @@ export default function DropNeoBanks() {
                   }
                   placeholder="0"
                   min={0}
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.monthlyLimit')}</label>
+                <label>{t('dropNeoBanks.form.monthlyLimit')} *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1130,16 +1183,22 @@ export default function DropNeoBanks() {
                   }
                   placeholder="0"
                   min={0}
+                  required
                 />
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.alias')}</label>
+                <label>{t('dropNeoBanks.form.alias')} * (6 символов)</label>
                 <textarea
-                  value={formData.alias}
-                  onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
+                  value={formData.alias ?? ''}
+                  onChange={(e) =>
+                    setFormData({ ...formData, alias: e.target.value.slice(0, 6) })
+                  }
                   placeholder={t('dropNeoBanks.form.aliasPlaceholder')}
+                  minLength={6}
+                  maxLength={6}
                   rows={3}
+                  required
                 />
               </div>
 
@@ -1150,7 +1209,7 @@ export default function DropNeoBanks() {
                 <button 
                   type="submit" 
                   className="btn btn-primary"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={createMutation.isPending || updateMutation.isPending || !isCreateFormValid}
                 >
                   {editingNeoBank ? t('common.save') : t('common.add')}
                 </button>
