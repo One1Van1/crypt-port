@@ -413,6 +413,16 @@
       "neoBanks": "Neo-banks",
       "limits": "Neo-bank limits"
     },
+    "freezeHistory": {
+      "title": "Freeze history",
+      "when": "When",
+      "action": "Action",
+      "amount": "Amount",
+      "who": "Who",
+      "empty": "No history",
+      "freeze": "Frozen",
+      "unfreeze": "Unfrozen"
+    },
     "editNeoBank": "Edit Withdrawal Bank",
     "updateBalance": "Update Balance",
     "exchangeTitle": "Convert USDT → pesos",
@@ -429,6 +439,7 @@
       "drop": "Drop",
       "provider": "Provider",
       "accountId": "Account ID",
+      "frozenAmountArs": "Frozen ARS",
       "currentBalance": "Current Balance",
       "dailyLimit": "Daily limit",
       "monthlyLimit": "Monthly limit",
@@ -460,12 +471,36 @@
       "edit": "Edit",
       "delete": "Delete"
     },
+    "prompts": {
+      "enterFrozenAmountArs": "Enter frozen amount (ARS)",
+      "invalidFrozenAmount": "Enter a valid amount",
+      "confirmUnfreeze": "Unfreeze account?",
+      "statusClickHint": "Click to freeze/unfreeze"
+    },
+    "freezeModal": {
+      "freezeTitle": "Freeze account",
+      "unfreezeTitle": "Unfreeze account",
+      "unfreezeHint": "Confirm unfreezing this account.",
+      "freezeButton": "Freeze",
+      "unfreezeButton": "Unfreeze"
+    },
+    "limitsEditModal": {
+      "title": "Edit limits"
+    },
+    "frozenEditModal": {
+      "title": "Freeze management",
+      "updateAmountButton": "Save amount"
+    },
     "messages": {
       "created": "Withdrawal bank created successfully",
       "updated": "Withdrawal bank updated successfully",
       "deleted": "Withdrawal bank deleted successfully",
       "balanceUpdated": "Balance updated successfully",
       "exchangeSuccess": "Conversion completed",
+      "frozenSuccess": "Account frozen",
+      "freezeError": "Failed to freeze account",
+      "unfrozenSuccess": "Account unfrozen",
+      "unfreezeError": "Failed to unfreeze account",
       "createError": "Failed to create withdrawal bank",
       "updateError": "Failed to update withdrawal bank",
       "deleteError": "Failed to delete withdrawal bank",

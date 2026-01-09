@@ -3,28 +3,37 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, DollarSign } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import dropNeoBanksService, {
   DropNeoBank,
   CreateDropNeoBankDto,
   UpdateDropNeoBankDto,
   DropNeoBankLimitsRemaining,
   NeoBankWithdrawalsHistoryItem,
+  DropNeoBankFreezeHistoryItem,
 } from '../../services/drop-neo-banks.service';
 import { platformsService, Platform } from '../../services/platforms.service';
 import { dropsService } from '../../services/drops.service';
 import { exchangeUsdtToPesosService } from '../../services/exchange-usdt-to-pesos.service';
 import './DropNeoBanks.css';
+import { getProviderBadgeClass } from '../../utils/providerBadgeClass';
 
 export default function DropNeoBanks() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'neoBanks' | 'limits'>('neoBanks');
+  const [activeTab, setActiveTab] = useState<'neoBanks' | 'limits'>('limits');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+  const [deleteConfirmNeoBank, setDeleteConfirmNeoBank] = useState<DropNeoBank | null>(null);
+  const [isLimitsEditModalOpen, setIsLimitsEditModalOpen] = useState(false);
+  const [limitsEditingNeoBank, setLimitsEditingNeoBank] = useState<DropNeoBank | null>(null);
+  const [limitsDailyLimitInput, setLimitsDailyLimitInput] = useState<string>('');
+  const [limitsMonthlyLimitInput, setLimitsMonthlyLimitInput] = useState<string>('');
+
+  const [isFrozenEditModalOpen, setIsFrozenEditModalOpen] = useState(false);
+  const [frozenEditingNeoBank, setFrozenEditingNeoBank] = useState<DropNeoBank | null>(null);
+  const [frozenAmountInput, setFrozenAmountInput] = useState<string>('');
   const [editingNeoBank, setEditingNeoBank] = useState<DropNeoBank | null>(null);
-  const [exchangeNeoBank, setExchangeNeoBank] = useState<DropNeoBank | null>(null);
   const [filterDropId, setFilterDropId] = useState<number | undefined>();
   const [filterPlatformId, setFilterPlatformId] = useState<number | undefined>();
   const [filterProvider, setFilterProvider] = useState<string>('');
@@ -32,6 +41,7 @@ export default function DropNeoBanks() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openModalDropdown, setOpenModalDropdown] = useState<string | null>(null);
   const [expandedNeoBankId, setExpandedNeoBankId] = useState<number | null>(null);
+  const [expandedFreezeHistoryNeoBankId, setExpandedFreezeHistoryNeoBankId] = useState<number | null>(null);
 
   // Форма
   const [formData, setFormData] = useState<CreateDropNeoBankDto>({
@@ -46,8 +56,6 @@ export default function DropNeoBanks() {
   });
 
   const [addUsdtInput, setAddUsdtInput] = useState<string>('');
-
-  const [exchangeUsdtAmount, setExchangeUsdtAmount] = useState<string>('');
 
   // Закрытие dropdown при клике вне его
   useEffect(() => {
@@ -107,6 +115,40 @@ export default function DropNeoBanks() {
 
   const withdrawalsHistoryItems: NeoBankWithdrawalsHistoryItem[] = withdrawalsHistory?.items ?? [];
 
+  const { data: freezeHistory } = useQuery({
+    queryKey: ['drop-neo-bank-freeze-history', expandedFreezeHistoryNeoBankId],
+    queryFn: () =>
+      dropNeoBanksService.getFreezeHistory({
+        neoBankId: expandedFreezeHistoryNeoBankId as number,
+        limit: 50,
+        offset: 0,
+      }),
+    enabled: activeTab === 'neoBanks' && expandedFreezeHistoryNeoBankId !== null,
+  });
+
+  const freezeHistoryItems: DropNeoBankFreezeHistoryItem[] = freezeHistory?.items ?? [];
+
+  const freezeHistoryUnfrozenAmountById = (() => {
+    const byId = new Map<number, number>();
+    const ordered = [...freezeHistoryItems].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+
+    let currentFrozenAmount = 0;
+    for (const item of ordered) {
+      if (item.action === 'freeze') {
+        currentFrozenAmount = Number(item.frozenAmount ?? 0);
+        continue;
+      }
+
+      // For "unfreeze", store how much was unfrozen (the amount frozen right before unfreezing)
+      byId.set(item.id, currentFrozenAmount);
+      currentFrozenAmount = 0;
+    }
+
+    return byId;
+  })();
+
   // Получить площадки для селектора
   const { data: platforms } = useQuery({
     queryKey: ['platforms'],
@@ -144,6 +186,31 @@ export default function DropNeoBanks() {
     },
   });
 
+  const freezeMutation = useMutation({
+    mutationFn: ({ id, frozenAmount }: { id: number; frozenAmount: number }) =>
+      dropNeoBanksService.freeze(id, { frozenAmount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
+      queryClient.invalidateQueries({ queryKey: ['drop-neo-bank-freeze-history'] });
+      toast.success(t('dropNeoBanks.messages.frozenSuccess'));
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || t('dropNeoBanks.messages.freezeError'));
+    },
+  });
+
+  const unfreezeMutation = useMutation({
+    mutationFn: (id: number) => dropNeoBanksService.unfreeze(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
+      queryClient.invalidateQueries({ queryKey: ['drop-neo-bank-freeze-history'] });
+      toast.success(t('dropNeoBanks.messages.unfrozenSuccess'));
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || t('dropNeoBanks.messages.unfreezeError'));
+    },
+  });
+
   const exchangeMutation = useMutation({
     mutationFn: (dto: { platformId: number; neoBankId: number; usdtAmount: number }) =>
       exchangeUsdtToPesosService.exchange(dto),
@@ -151,7 +218,6 @@ export default function DropNeoBanks() {
       queryClient.invalidateQueries({ queryKey: ['drop-neo-banks'] });
       queryClient.invalidateQueries({ queryKey: ['platforms'] });
       toast.success(t('dropNeoBanks.messages.exchangeSuccess'));
-      closeExchangeModal();
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || t('dropNeoBanks.messages.exchangeError'));
@@ -187,25 +253,87 @@ export default function DropNeoBanks() {
   };
 
   const openEditModal = (neoBank: DropNeoBank) => {
-    setEditingNeoBank(neoBank);
-    setFormData({
-      provider: neoBank.provider,
-      accountId: neoBank.accountId,
-      dropId: neoBank.drop?.id || 0,
-      platformId: neoBank.platform?.id || 0,
-      currentBalance: neoBank.currentBalance,
-      alias: neoBank.alias,
-      dailyLimit: neoBank.dailyLimit,
-      monthlyLimit: neoBank.monthlyLimit,
-    });
-    setAddUsdtInput('');
-    setIsModalOpen(true);
+    if (activeTab === 'limits') {
+      setLimitsEditingNeoBank(neoBank);
+      setLimitsDailyLimitInput(neoBank.dailyLimit === null || neoBank.dailyLimit === undefined ? '' : String(neoBank.dailyLimit));
+      setLimitsMonthlyLimitInput(
+        neoBank.monthlyLimit === null || neoBank.monthlyLimit === undefined ? '' : String(neoBank.monthlyLimit),
+      );
+      setIsLimitsEditModalOpen(true);
+      return;
+    }
+
+    if (activeTab === 'neoBanks') {
+      setFrozenEditingNeoBank(neoBank);
+      setFrozenAmountInput(neoBank.frozenAmount === null || neoBank.frozenAmount === undefined ? '0' : String(neoBank.frozenAmount));
+      setIsFrozenEditModalOpen(true);
+    }
   };
 
-  const openExchangeModal = (neoBank: DropNeoBank) => {
-    setExchangeNeoBank(neoBank);
-    setExchangeUsdtAmount('');
-    setIsExchangeModalOpen(true);
+  const closeLimitsEditModal = () => {
+    setIsLimitsEditModalOpen(false);
+    setLimitsEditingNeoBank(null);
+    setLimitsDailyLimitInput('');
+    setLimitsMonthlyLimitInput('');
+  };
+
+  const closeFrozenEditModal = () => {
+    setIsFrozenEditModalOpen(false);
+    setFrozenEditingNeoBank(null);
+    setFrozenAmountInput('');
+  };
+
+  const handleLimitsEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!limitsEditingNeoBank) return;
+
+    const dailyRaw = limitsDailyLimitInput.trim().replace(',', '.');
+    const monthlyRaw = limitsMonthlyLimitInput.trim().replace(',', '.');
+
+    const dailyLimit = dailyRaw === '' ? undefined : Number(dailyRaw);
+    const monthlyLimit = monthlyRaw === '' ? undefined : Number(monthlyRaw);
+
+    if (dailyLimit !== undefined && (!Number.isFinite(dailyLimit) || dailyLimit < 0)) {
+      toast.error(t('dropNeoBanks.prompts.invalidFrozenAmount'));
+      return;
+    }
+
+    if (monthlyLimit !== undefined && (!Number.isFinite(monthlyLimit) || monthlyLimit < 0)) {
+      toast.error(t('dropNeoBanks.prompts.invalidFrozenAmount'));
+      return;
+    }
+
+    await updateMutation.mutateAsync({
+      id: limitsEditingNeoBank.id,
+      data: {
+        dailyLimit,
+        monthlyLimit,
+      },
+    });
+
+    closeLimitsEditModal();
+  };
+
+  const handleFrozenFreezeOrUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!frozenEditingNeoBank) return;
+
+    const normalized = frozenAmountInput.trim().replace(',', '.');
+    const amount = normalized === '' ? 0 : Number(normalized);
+
+    if (!Number.isFinite(amount) || amount < 0) {
+      toast.error(t('dropNeoBanks.prompts.invalidFrozenAmount'));
+      return;
+    }
+
+    await freezeMutation.mutateAsync({ id: frozenEditingNeoBank.id, frozenAmount: amount });
+    closeFrozenEditModal();
+  };
+
+  const handleFrozenUnfreeze = async () => {
+    if (!frozenEditingNeoBank) return;
+    await unfreezeMutation.mutateAsync(frozenEditingNeoBank.id);
+    closeFrozenEditModal();
   };
 
   const closeModal = () => {
@@ -213,16 +341,11 @@ export default function DropNeoBanks() {
     setEditingNeoBank(null);
   };
 
-  const closeExchangeModal = () => {
-    setIsExchangeModalOpen(false);
-    setExchangeNeoBank(null);
-    setExchangeUsdtAmount('');
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const addUsdtAmount = addUsdtInput.trim() === '' ? 0 : Number(addUsdtInput);
+    const addUsdtAmount = editingNeoBank ? (addUsdtInput.trim() === '' ? 0 : Number(addUsdtInput)) : 0;
     if (Number.isNaN(addUsdtAmount) || addUsdtAmount < 0) {
       toast.error('Введите корректную сумму');
       return;
@@ -291,14 +414,7 @@ export default function DropNeoBanks() {
             // balances are updated only via exchange operation
             currentBalance: 0,
           });
-
-          if (addUsdtAmount > 0) {
-            await exchangeMutation.mutateAsync({
-              platformId: formData.platformId,
-              neoBankId: created.id,
-              usdtAmount: addUsdtAmount,
-            });
-          }
+          void created;
         }
 
         setAddUsdtInput('');
@@ -309,43 +425,15 @@ export default function DropNeoBanks() {
     })();
   };
 
-  const handleExchange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!exchangeNeoBank) return;
 
-    const platformId = exchangeNeoBank.platform?.id ?? 0;
-    if (!platformId) {
-      toast.error('У банка вывода не выбрана площадка');
-      return;
-    }
-
-    const usdtAmount = Number(exchangeUsdtAmount);
-    if (!usdtAmount || usdtAmount <= 0) {
-      toast.error('Введите сумму USDT');
-      return;
-    }
-
-    exchangeMutation.mutate({
-      platformId,
-      neoBankId: exchangeNeoBank.id,
-      usdtAmount,
-    });
+  const requestDelete = (neoBank: DropNeoBank) => {
+    setDeleteConfirmNeoBank(neoBank);
   };
 
-  const handleDelete = (id: number) => {
-    if (confirm(t('dropNeoBanks.deleteConfirm'))) {
-      deleteMutation.mutate(id);
-    }
-  };
-
-  const getProviderBadgeClass = (provider: string) => {
-    const classes = {
-      ripio: 'badge-ripio',
-      lemon_cash: 'badge-lemon',
-      satoshi_tango: 'badge-satoshi',
-      yont: 'badge-yont',
-    };
-    return classes[provider as keyof typeof classes] || 'badge-default';
+  const confirmDelete = () => {
+    if (!deleteConfirmNeoBank) return;
+    deleteMutation.mutate(deleteConfirmNeoBank.id);
+    setDeleteConfirmNeoBank(null);
   };
 
   const formatCurrency = (amount: number) => {
@@ -356,6 +444,14 @@ export default function DropNeoBanks() {
     }).format(amount);
   };
 
+  const formatArsAmount = (amount: number) => {
+    const formatted = new Intl.NumberFormat('es-AR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+    return `${formatted} ARS`;
+  };
+
   const formatUsdt = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
@@ -364,16 +460,6 @@ export default function DropNeoBanks() {
   };
 
   const selectedPlatform = platforms?.items.find((p: Platform) => p.id === formData.platformId);
-
-  const exchangePlatform = platforms?.items.find(
-    (p: Platform) => p.id === (exchangeNeoBank?.platform?.id ?? 0),
-  );
-
-  const exchangeUsdt = Number(exchangeUsdtAmount);
-  const exchangeRate = Number(exchangePlatform?.exchangeRate ?? 0);
-  const exchangePesosPreview = exchangeUsdt > 0 && exchangeRate > 0 ? exchangeUsdt * exchangeRate : 0;
-  const platformUsdtBalance = Number(exchangePlatform?.balance ?? 0);
-  const platformUsdtBalanceAfter = exchangeUsdt > 0 ? platformUsdtBalance - exchangeUsdt : platformUsdtBalance;
 
   if (isLoading) {
     return <div className="loading">{t('common.loading')}</div>;
@@ -405,17 +491,17 @@ export default function DropNeoBanks() {
       <div className="neo-bank-tabs">
         <button
           type="button"
-          className={`neo-bank-tab ${activeTab === 'neoBanks' ? 'active' : ''}`}
-          onClick={() => setActiveTab('neoBanks')}
-        >
-          {t('dropNeoBanks.tabs.neoBanks')}
-        </button>
-        <button
-          type="button"
           className={`neo-bank-tab ${activeTab === 'limits' ? 'active' : ''}`}
           onClick={() => setActiveTab('limits')}
         >
           {t('dropNeoBanks.tabs.limits')}
+        </button>
+        <button
+          type="button"
+          className={`neo-bank-tab ${activeTab === 'neoBanks' ? 'active' : ''}`}
+          onClick={() => setActiveTab('neoBanks')}
+        >
+          {t('dropNeoBanks.tabs.neoBanks')}
         </button>
       </div>
 
@@ -595,7 +681,7 @@ export default function DropNeoBanks() {
               <th>{t('dropNeoBanks.table.accountId')}</th>
               {activeTab === 'neoBanks' ? (
                 <>
-                  <th>{t('dropNeoBanks.table.currentBalance')}</th>
+                  <th>{t('dropNeoBanks.table.frozenAmountArs')}</th>
                   <th>{t('dropNeoBanks.table.status')}</th>
                 </>
               ) : (
@@ -613,10 +699,16 @@ export default function DropNeoBanks() {
               <Fragment key={neoBank.id}>
                 <tr
                   onClick={() => {
-                    if (activeTab !== 'limits') return;
-                    setExpandedNeoBankId((prev) => (prev === neoBank.id ? null : neoBank.id));
+                    if (activeTab === 'limits') {
+                      setExpandedNeoBankId((prev) => (prev === neoBank.id ? null : neoBank.id));
+                      return;
+                    }
+
+                    if (activeTab === 'neoBanks') {
+                      setExpandedFreezeHistoryNeoBankId((prev) => (prev === neoBank.id ? null : neoBank.id));
+                    }
                   }}
-                  style={activeTab === 'limits' ? { cursor: 'pointer' } : undefined}
+                  style={activeTab === 'limits' || activeTab === 'neoBanks' ? { cursor: 'pointer' } : undefined}
                 >
                 <td>
                   <div className="drop-cell">
@@ -639,10 +731,13 @@ export default function DropNeoBanks() {
                 {activeTab === 'neoBanks' ? (
                   <>
                     <td>
-                      <strong>{formatCurrency(neoBank.currentBalance)}</strong>
+                      <strong>{formatArsAmount(Number(neoBank.frozenAmount ?? 0))}</strong>
                     </td>
                     <td>
-                      <span className={`badge ${neoBank.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                      <span
+                        className={`badge ${neoBank.status === 'active' ? 'badge-success' : 'badge-warning'}`}
+                        style={{ cursor: 'default' }}
+                      >
                         {t(`statuses.${neoBank.status}`)}
                       </span>
                     </td>
@@ -654,7 +749,7 @@ export default function DropNeoBanks() {
                         {(() => {
                           const row = limitsRemainingById.get(neoBank.id);
                           const value = row?.dailyLimitRemaining;
-                          return value === null || value === undefined ? '-' : formatCurrency(Number(value));
+                          return value === null || value === undefined ? '-' : formatArsAmount(Number(value));
                         })()}
                       </strong>
                     </td>
@@ -663,7 +758,7 @@ export default function DropNeoBanks() {
                         {(() => {
                           const row = limitsRemainingById.get(neoBank.id);
                           const value = row?.monthlyLimitRemaining;
-                          return value === null || value === undefined ? '-' : formatCurrency(Number(value));
+                          return value === null || value === undefined ? '-' : formatArsAmount(Number(value));
                         })()}
                       </strong>
                     </td>
@@ -675,35 +770,85 @@ export default function DropNeoBanks() {
                 <td>
                   <div className="action-buttons">
                     <button
-                      className="btn-icon btn-icon-primary"
-                      onClick={() => openExchangeModal(neoBank)}
-                      title={t('dropNeoBanks.actions.exchangeTitle')}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClickCapture={(e) => e.stopPropagation()}
-                    >
-                      <DollarSign size={16} />
-                    </button>
-                    <button
+                      type="button"
                       className="btn-icon btn-icon-secondary"
-                      onClick={() => openEditModal(neoBank)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditModal(neoBank);
+                      }}
                       title={t('dropNeoBanks.actions.edit')}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClickCapture={(e) => e.stopPropagation()}
                     >
                       <Edit2 size={16} />
                     </button>
-                    <button
-                      className="btn-icon btn-icon-danger"
-                      onClick={() => handleDelete(neoBank.id)}
-                      title={t('dropNeoBanks.actions.delete')}
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClickCapture={(e) => e.stopPropagation()}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {activeTab === 'limits' && (
+                      <button
+                        type="button"
+                        className="btn-icon btn-icon-danger"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          requestDelete(neoBank);
+                        }}
+                        title={t('dropNeoBanks.actions.delete')}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </td>
                 </tr>
+
+                {activeTab === 'neoBanks' && expandedFreezeHistoryNeoBankId === neoBank.id && (
+                  <tr key={`${neoBank.id}-freeze-history`}>
+                    <td colSpan={8}>
+                      <div style={{ padding: '12px 8px' }}>
+                        <div style={{ marginBottom: 8, fontWeight: 600 }}>
+                          {t('dropNeoBanks.freezeHistory.title')}
+                        </div>
+
+                        <div className="table-container">
+                          <table className="data-table">
+                            <thead>
+                              <tr>
+                                <th>{t('dropNeoBanks.freezeHistory.when')}</th>
+                                <th>{t('dropNeoBanks.freezeHistory.action')}</th>
+                                <th>{t('dropNeoBanks.freezeHistory.amount')}</th>
+                                <th>{t('dropNeoBanks.freezeHistory.who')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {freezeHistoryItems.length === 0 ? (
+                                <tr>
+                                  <td colSpan={4} style={{ opacity: 0.7 }}>
+                                    {t('dropNeoBanks.freezeHistory.empty')}
+                                  </td>
+                                </tr>
+                              ) : (
+                                freezeHistoryItems.map((item) => (
+                                  <tr key={item.id}>
+                                    <td>{new Date(item.createdAt).toLocaleString()}</td>
+                                    <td>
+                                      {item.action === 'freeze'
+                                        ? t('dropNeoBanks.freezeHistory.freeze')
+                                        : t('dropNeoBanks.freezeHistory.unfreeze')}
+                                    </td>
+                                    <td>
+                                      {item.action === 'freeze'
+                                        ? formatCurrency(Number(item.frozenAmount ?? 0))
+                                        : freezeHistoryUnfrozenAmountById.has(item.id)
+                                          ? formatCurrency(freezeHistoryUnfrozenAmountById.get(item.id) as number)
+                                          : '-'}
+                                    </td>
+                                    <td>{item.performedByUser?.username || '-'}</td>
+                                  </tr>
+                                ))
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
 
                 {activeTab === 'limits' && expandedNeoBankId === neoBank.id && (
                   <tr key={`${neoBank.id}-history`}>
@@ -766,6 +911,42 @@ export default function DropNeoBanks() {
           </div>
         )}
       </div>
+
+      {deleteConfirmNeoBank && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirmNeoBank(null)}>
+          <div className="modal-content modal-medium drop-neo-banks-delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('dropNeoBanks.actions.delete')}</h2>
+              <button className="modal-close" onClick={() => setDeleteConfirmNeoBank(null)}>
+                ×
+              </button>
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ margin: 0, color: 'var(--text-secondary)' }}>{t('dropNeoBanks.deleteConfirm')}</p>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDeleteConfirmNeoBank(null)}
+                  disabled={deleteMutation.isPending}
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={confirmDelete}
+                  disabled={deleteMutation.isPending}
+                >
+                  {t('common.delete')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
@@ -895,26 +1076,28 @@ export default function DropNeoBanks() {
                 />
               </div>
 
-              <div className="form-group">
-                <label>Сколько USDT вы хотите конвертировать и добавить</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={addUsdtInput}
-                  onChange={(e) => setAddUsdtInput(e.target.value)}
-                  placeholder="Введите сумму USDT"
-                />
+              {editingNeoBank && (
+                <div className="form-group">
+                  <label>Сколько USDT вы хотите конвертировать и добавить</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={addUsdtInput}
+                    onChange={(e) => setAddUsdtInput(e.target.value)}
+                    placeholder="Введите сумму USDT"
+                  />
 
-                <div className="helper-text" style={{ marginTop: 8 }}>
-                  Уже на счету: {formatCurrency(editingNeoBank ? Number(editingNeoBank.currentBalance ?? 0) : 0)}
-                </div>
-
-                {selectedPlatform && addUsdtInput.trim() !== '' && Number(addUsdtInput) > 0 && (
-                  <div className="helper-text" style={{ marginTop: 6 }}>
-                    Будет начислено: {formatCurrency(Number(addUsdtInput) * Number(selectedPlatform.exchangeRate || 0))}
+                  <div className="helper-text" style={{ marginTop: 8 }}>
+                    Уже на счету: {formatCurrency(Number(editingNeoBank.currentBalance ?? 0))}
                   </div>
-                )}
-              </div>
+
+                  {selectedPlatform && addUsdtInput.trim() !== '' && Number(addUsdtInput) > 0 && (
+                    <div className="helper-text" style={{ marginTop: 6 }}>
+                      Будет начислено: {formatCurrency(Number(addUsdtInput) * Number(selectedPlatform.exchangeRate || 0))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="form-group">
                 <label>{t('dropNeoBanks.form.dailyLimit')}</label>
@@ -977,69 +1160,126 @@ export default function DropNeoBanks() {
         </div>
       )}
 
-      {/* Update Balance Modal */}
-      {isExchangeModalOpen && exchangeNeoBank && (
-        <div className="modal-overlay" onClick={closeExchangeModal}>
+      {/* Limits Edit Modal (limits-only) */}
+      {isLimitsEditModalOpen && limitsEditingNeoBank && (
+        <div className="modal-overlay" onClick={closeLimitsEditModal}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('dropNeoBanks.exchangeTitle')}</h2>
-              <button className="modal-close" onClick={closeExchangeModal}>×</button>
+              <h2>{t('dropNeoBanks.limitsEditModal.title')}</h2>
+              <button className="modal-close" onClick={closeLimitsEditModal}>×</button>
             </div>
 
             <div className="balance-info">
-              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {exchangeNeoBank.platform?.name || '-'}</p>
-              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {exchangeNeoBank.provider}</p>
-              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {exchangeNeoBank.accountId}</p>
-              <p><strong>{t('dropNeoBanks.info.currentBalance')}:</strong> {formatCurrency(exchangeNeoBank.currentBalance)}</p>
+              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {limitsEditingNeoBank.platform?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {limitsEditingNeoBank.drop?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {limitsEditingNeoBank.provider}</p>
+              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {limitsEditingNeoBank.accountId}</p>
             </div>
 
-            {exchangePlatform && (
-              <div className="balance-info" style={{ marginTop: 12 }}>
-                <p><strong>{t('dropNeoBanks.form.platformRate')}:</strong> {exchangePlatform.exchangeRate}</p>
-                <p><strong>{t('dropNeoBanks.form.platformBalance')}:</strong> {formatUsdt(exchangePlatform.balance)} USDT</p>
-              </div>
-            )}
-
-            <form onSubmit={handleExchange}>
+            <form onSubmit={handleLimitsEditSubmit}>
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.usdtAmount')} *</label>
+                <label>{t('dropNeoBanks.form.dailyLimit')}</label>
                 <input
                   type="number"
                   step="0.01"
-                  value={exchangeUsdtAmount}
-                  onChange={(e) => setExchangeUsdtAmount(e.target.value)}
-                  placeholder="0.00 USDT"
-                  required
+                  min={0}
+                  value={limitsDailyLimitInput}
+                  onChange={(e) => setLimitsDailyLimitInput(e.target.value)}
+                  placeholder="0"
                   autoFocus
                 />
               </div>
 
-              <div className="balance-info" style={{ marginTop: 12 }}>
-                <p><strong>{t('dropNeoBanks.exchange.previewPesos')}:</strong> {formatCurrency(exchangePesosPreview)}</p>
-                {exchangePlatform && exchangeUsdt > 0 && (
-                  <p><strong>{t('dropNeoBanks.exchange.platformBalanceAfter')}:</strong> {formatUsdt(platformUsdtBalanceAfter)} USDT</p>
-                )}
-                {exchangePlatform && exchangeUsdt > 0 && platformUsdtBalanceAfter < 0 && (
-                  <p style={{ color: 'var(--text-tertiary)' }}>{t('dropNeoBanks.exchange.insufficientPlatformBalance')}</p>
-                )}
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.monthlyLimit')}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={limitsMonthlyLimitInput}
+                  onChange={(e) => setLimitsMonthlyLimitInput(e.target.value)}
+                  placeholder="0"
+                />
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeExchangeModal}>
+                <button type="button" className="btn btn-secondary" onClick={closeLimitsEditModal}>
                   {t('common.cancel')}
                 </button>
-                <button 
-                  type="submit" 
-                  className="btn btn-primary"
-                  disabled={exchangeMutation.isPending}
-                >
-                  {t('dropNeoBanks.exchangeButton')}
+                <button type="submit" className="btn btn-primary" disabled={updateMutation.isPending}>
+                  {t('common.save')}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Frozen Edit Modal (status + frozen amount only) */}
+      {isFrozenEditModalOpen && frozenEditingNeoBank && (
+        <div className="modal-overlay" onClick={closeFrozenEditModal}>
+          <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{t('dropNeoBanks.frozenEditModal.title')}</h2>
+              <button className="modal-close" onClick={closeFrozenEditModal}>×</button>
+            </div>
+
+            <div className="balance-info">
+              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {frozenEditingNeoBank.platform?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {frozenEditingNeoBank.drop?.name || '-'}</p>
+              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {frozenEditingNeoBank.provider}</p>
+              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {frozenEditingNeoBank.accountId}</p>
+              <p>
+                <strong>{t('dropNeoBanks.table.status')}:</strong>{' '}
+                <span className={`badge ${frozenEditingNeoBank.status === 'active' ? 'badge-success' : 'badge-warning'}`}>
+                  {t(`statuses.${frozenEditingNeoBank.status}`)}
+                </span>
+              </p>
+            </div>
+
+            <form onSubmit={handleFrozenFreezeOrUpdate}>
+              <div className="form-group">
+                <label>{t('dropNeoBanks.prompts.enterFrozenAmountArs')}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  value={frozenAmountInput}
+                  onChange={(e) => setFrozenAmountInput(e.target.value)}
+                  placeholder="0"
+                  autoFocus
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={closeFrozenEditModal}>
+                  {t('common.cancel')}
+                </button>
+                {frozenEditingNeoBank.status === 'frozen' && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={handleFrozenUnfreeze}
+                    disabled={freezeMutation.isPending || unfreezeMutation.isPending}
+                  >
+                    {t('dropNeoBanks.freezeModal.unfreezeButton')}
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={freezeMutation.isPending || unfreezeMutation.isPending}
+                >
+                  {frozenEditingNeoBank.status === 'active'
+                    ? t('dropNeoBanks.freezeModal.freezeButton')
+                    : t('dropNeoBanks.frozenEditModal.updateAmountButton')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

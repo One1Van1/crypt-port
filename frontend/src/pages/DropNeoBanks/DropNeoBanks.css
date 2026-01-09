@@ -319,6 +319,13 @@
   max-width: 450px;
 }
 
+.drop-neo-banks-delete-modal {
+  height: auto !important;
+  min-height: unset !important;
+  max-height: 260px !important;
+  overflow-y: auto !important;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -503,6 +510,21 @@ form {
 
 .btn-secondary:hover {
   background: #545b62;
+}
+
+.btn-danger {
+  background: var(--accent-error);
+  color: white;
+}
+
+.btn-danger:hover {
+  filter: brightness(0.9);
+}
+
+.btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
 }
 
 .balance-info {

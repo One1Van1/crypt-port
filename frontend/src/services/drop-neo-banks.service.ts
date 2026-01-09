@@ -6,6 +6,7 @@ export interface DropNeoBank {
   accountId: string;
   status: 'active' | 'frozen';
   currentBalance: number;
+  frozenAmount: number;
   alias?: string;
   dailyLimit?: number;
   monthlyLimit?: number;
@@ -99,9 +100,53 @@ export interface GetNeoBankWithdrawalsHistoryParams {
   offset?: number;
 }
 
+export interface FreezeDropNeoBankRequestDto {
+  frozenAmount: number;
+}
+
+export interface DropNeoBankFreezeHistoryUser {
+  id: number;
+  username: string;
+  email?: string | null;
+}
+
+export type DropNeoBankFreezeHistoryAction = 'freeze' | 'unfreeze';
+
+export interface DropNeoBankFreezeHistoryItem {
+  id: number;
+  action: DropNeoBankFreezeHistoryAction;
+  frozenAmount: number;
+  createdAt: string;
+  performedByUser: DropNeoBankFreezeHistoryUser;
+}
+
+export interface GetDropNeoBankFreezeHistoryParams {
+  neoBankId: number;
+  limit?: number;
+  offset?: number;
+}
+
 const dropNeoBanksService = {
   async getAll(params?: GetAllDropNeoBanksParams) {
     const response = await apiClient.get<{ items: DropNeoBank[] }>('/drop-neo-banks', { params });
+    return response.data;
+  },
+
+  async freeze(id: number, data: FreezeDropNeoBankRequestDto) {
+    const response = await apiClient.patch(`/drop-neo-banks/${id}/freeze`, data);
+    return response.data;
+  },
+
+  async unfreeze(id: number) {
+    const response = await apiClient.patch(`/drop-neo-banks/${id}/unfreeze`);
+    return response.data;
+  },
+
+  async getFreezeHistory(params: GetDropNeoBankFreezeHistoryParams) {
+    const response = await apiClient.get<{ items: DropNeoBankFreezeHistoryItem[]; total: number }>(
+      '/drop-neo-banks/freeze-history',
+      { params },
+    );
     return response.data;
   },
 

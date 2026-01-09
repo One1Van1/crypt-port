@@ -14,6 +14,16 @@
     "cancel": "Отмена",
     "delete": "Удалить",
     "edit": "Редактировать",
+    "freezeHistory": {
+      "title": "История заморозки",
+      "when": "Когда",
+      "action": "Действие",
+      "amount": "Сумма",
+      "who": "Кто",
+      "empty": "История пуста",
+      "freeze": "Заморозили",
+      "unfreeze": "Разморозили"
+    },
     "add": "Добавить",
     "search": "Поиск",
     "filter": "Фильтр",
@@ -38,6 +48,18 @@
     "registerAsAdmin": "Зарегистрироваться как администратор",
     "masterKey": "Мастер-ключ",
     "createAdminAccount": "Создание аккаунта администратора",
+    "prompts": {
+      "enterFrozenAmountArs": "Введите сумму заморозки (ARS)",
+      "invalidFrozenAmount": "Введите корректную сумму",
+      "confirmUnfreeze": "Разморозить счёт?",
+      "statusClickHint": "Нажмите чтобы заморозить/разморозить"
+    },
+    "messages": {
+      "frozenSuccess": "Счёт заморожен",
+      "freezeError": "Не удалось заморозить счёт",
+      "unfrozenSuccess": "Счёт разморожен",
+      "unfreezeError": "Не удалось разморозить счёт"
+    },
     "username": "Имя пользователя",
     "email": "Email",
     "password": "Пароль",
@@ -411,8 +433,18 @@
     "subtitle": "Управление аккаунтами банков вывода для приёма платежей",
     "addNeoBank": "Создать нео-банк",
     "tabs": {
-      "neoBanks": "Нео-банки",
+      "neoBanks": "Замороженные счета",
       "limits": "Лимиты нео-банков"
+    },
+    "freezeHistory": {
+      "title": "История заморозки",
+      "when": "Когда",
+      "action": "Действие",
+      "amount": "Сумма",
+      "who": "Кто",
+      "empty": "История пуста",
+      "freeze": "Заморозили",
+      "unfreeze": "Разморозили"
     },
     "editNeoBank": "Редактировать банк вывода",
     "updateBalance": "Обновить баланс",
@@ -430,6 +462,7 @@
       "drop": "Дроп",
       "provider": "Название банка",
       "accountId": "СВУ",
+      "frozenAmountArs": "Замороженно ARS",
       "currentBalance": "Текущий баланс",
       "dailyLimit": "Дневной лимит",
       "monthlyLimit": "Месячный лимит",
@@ -461,12 +494,36 @@
       "edit": "Редактировать",
       "delete": "Удалить"
     },
+    "prompts": {
+      "enterFrozenAmountArs": "Введите сумму заморозки (ARS)",
+      "invalidFrozenAmount": "Введите корректную сумму",
+      "confirmUnfreeze": "Разморозить счёт?",
+      "statusClickHint": "Нажмите чтобы заморозить/разморозить"
+    },
+    "freezeModal": {
+      "freezeTitle": "Заморозить счёт",
+      "unfreezeTitle": "Разморозить счёт",
+      "unfreezeHint": "Подтвердите разморозку счёта.",
+      "freezeButton": "Заморозить",
+      "unfreezeButton": "Разморозить"
+    },
+    "limitsEditModal": {
+      "title": "Изменить лимиты"
+    },
+    "frozenEditModal": {
+      "title": "Управление заморозкой",
+      "updateAmountButton": "Сохранить сумму"
+    },
     "messages": {
       "created": "Банк вывода успешно создан",
       "updated": "Банк вывода успешно обновлён",
       "deleted": "Банк вывода успешно удалён",
       "balanceUpdated": "Баланс успешно обновлён",
       "exchangeSuccess": "Конвертация выполнена",
+      "frozenSuccess": "Счёт заморожен",
+      "freezeError": "Не удалось заморозить счёт",
+      "unfrozenSuccess": "Счёт разморожен",
+      "unfreezeError": "Не удалось разморозить счёт",
       "createError": "Не удалось создать банк вывода",
       "updateError": "Не удалось обновить банк вывода",
       "deleteError": "Не удалось удалить банк вывода",

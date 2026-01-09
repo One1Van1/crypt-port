@@ -21,6 +21,9 @@ export class DropNeoBankItemDto {
   @ApiProperty({ description: 'Current balance in ARS', example: 500000 })
   currentBalance: number;
 
+  @ApiProperty({ description: 'Frozen amount in ARS', example: 150000 })
+  frozenAmount: number;
+
   @ApiProperty({ description: 'Daily limit in ARS', required: false, example: 250000 })
   dailyLimit?: number;
 
@@ -50,6 +53,7 @@ export class DropNeoBankItemDto {
     this.status = dropNeoBank.status;
     this.alias = dropNeoBank.alias;
     this.currentBalance = Number(dropNeoBank.currentBalance);
+    this.frozenAmount = Number(dropNeoBank.frozenAmount);
     this.dailyLimit = dropNeoBank.dailyLimit !== null && dropNeoBank.dailyLimit !== undefined ? Number(dropNeoBank.dailyLimit) : undefined;
     this.monthlyLimit = dropNeoBank.monthlyLimit !== null && dropNeoBank.monthlyLimit !== undefined ? Number(dropNeoBank.monthlyLimit) : undefined;
     

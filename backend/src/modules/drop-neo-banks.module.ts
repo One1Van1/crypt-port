@@ -4,6 +4,7 @@ import { DropNeoBank } from '../entities/drop-neo-bank.entity';
 import { Drop } from '../entities/drop.entity';
 import { Platform } from '../entities/platform.entity';
 import { NeoBankWithdrawal } from '../entities/neo-bank-withdrawal.entity';
+import { DropNeoBankFreezeEvent } from '../entities/drop-neo-bank-freeze-event.entity';
 
 // Create
 import { CreateDropNeoBankController } from '../features/drop-neo-banks/create/create.controller';
@@ -33,15 +34,26 @@ import { GetNeoBankLimitsRemainingService } from '../features/drop-neo-banks/get
 import { GetNeoBankWithdrawalsHistoryController } from '../features/drop-neo-banks/get-withdrawals-history/get-withdrawals-history.controller';
 import { GetNeoBankWithdrawalsHistoryService } from '../features/drop-neo-banks/get-withdrawals-history/get-withdrawals-history.service';
 
+// Freeze / Unfreeze + History
+import { FreezeDropNeoBankController } from '../features/drop-neo-banks/freeze/freeze.controller';
+import { FreezeDropNeoBankService } from '../features/drop-neo-banks/freeze/freeze.service';
+import { UnfreezeDropNeoBankController } from '../features/drop-neo-banks/unfreeze/unfreeze.controller';
+import { UnfreezeDropNeoBankService } from '../features/drop-neo-banks/unfreeze/unfreeze.service';
+import { GetDropNeoBankFreezeHistoryController } from '../features/drop-neo-banks/get-freeze-history/get-freeze-history.controller';
+import { GetDropNeoBankFreezeHistoryService } from '../features/drop-neo-banks/get-freeze-history/get-freeze-history.service';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform, NeoBankWithdrawal])],
+  imports: [TypeOrmModule.forFeature([DropNeoBank, Drop, Platform, NeoBankWithdrawal, DropNeoBankFreezeEvent])],
   controllers: [
     CreateDropNeoBankController,
     GetAllDropNeoBanksController,
     GetNeoBankLimitsRemainingController,
     GetNeoBankWithdrawalsHistoryController,
+    GetDropNeoBankFreezeHistoryController,
     UpdateDropNeoBankController,
     UpdateBalanceController,
+    FreezeDropNeoBankController,
+    UnfreezeDropNeoBankController,
     DeleteDropNeoBankController,
   ],
   providers: [
@@ -49,8 +61,11 @@ import { GetNeoBankWithdrawalsHistoryService } from '../features/drop-neo-banks/
     GetAllDropNeoBanksService,
     GetNeoBankLimitsRemainingService,
     GetNeoBankWithdrawalsHistoryService,
+    GetDropNeoBankFreezeHistoryService,
     UpdateDropNeoBankService,
     UpdateBalanceService,
+    FreezeDropNeoBankService,
+    UnfreezeDropNeoBankService,
     DeleteDropNeoBankService,
   ],
   exports: [],

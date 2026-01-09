@@ -593,6 +593,7 @@ function RequisitesSection({
               <tr>
                 <th>Приоритет</th>
                 <th>Банк</th>
+                <th>Дроп</th>
                 <th>CBU</th>
                 <th>Alias</th>
                 <th>Статус</th>
@@ -647,6 +648,7 @@ function RequisitesSection({
                       />
                     </td>
                     <td>{account.bank?.name || account.bankName || '-'}</td>
+                    <td>{account.drop?.name || account.dropName || '-'}</td>
                     <td className="cbu-cell">{account.cbu || '-'}</td>
                     <td>{account.alias || '-'}</td>
                     <td>

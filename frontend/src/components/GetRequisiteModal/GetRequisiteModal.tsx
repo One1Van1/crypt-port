@@ -20,6 +20,7 @@ import {
   GetRequisiteV2NeoBank,
 } from '../../services/bank-accounts.service';
 import { transactionsService, CreateTransactionRequest } from '../../services/transactions.service';
+import { getProviderBadgeClass } from '../../utils/providerBadgeClass';
 import './GetRequisiteModal.css';
 
 interface GetRequisiteModalProps {
@@ -41,6 +42,10 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const [comment, setComment] = useState<string>('');
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
   const [error, setError] = useState<string>('');
+
+  const formatNeoBankLimit = (value?: number | null) => {
+    return value === null || value === undefined ? '—' : formatCurrency(value);
+  };
 
   // Блокировка скролла body когда модалка открыта
   useEffect(() => {
@@ -102,7 +107,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       
       // Обновить реквизит + остатки лимитов по нео-банкам
       try {
-        const updated = await bankAccountsService.getRequisiteV2();
+        const updated = await bankAccountsService.getRequisiteV3();
         setRequisite(updated.bankAccount);
         setNeoBanks(updated.neoBanks);
       } catch (error) {
@@ -124,7 +129,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setStep('loading');
     
     try {
-      const result = await bankAccountsService.getRequisiteV2();
+      const result = await bankAccountsService.getRequisiteV3();
       setRequisite(result.bankAccount);
       setNeoBanks(result.neoBanks);
       setStep('select-source');
@@ -211,16 +216,6 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       yont: 'Yont',
     };
     return labels[provider] || provider;
-  };
-
-  const getProviderBadgeClass = (provider: string) => {
-    const classes: Record<string, string> = {
-      ripio: 'badge-ripio',
-      lemon_cash: 'badge-lemon',
-      satoshi_tango: 'badge-satoshi',
-      yont: 'badge-yont',
-    };
-    return classes[provider] || 'badge-default';
   };
 
   return (
@@ -362,11 +357,11 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                           </div>
                           <div className="info-item">
                             <span className="label">Дневной лимит:</span>
-                            <span className="value">{neoBank.dailyLimit ? formatCurrency(neoBank.dailyLimit) : '—'}</span>
+                            <span className="value">{formatNeoBankLimit(neoBank.dailyLimit)}</span>
                           </div>
                           <div className="info-item">
                             <span className="label">Месячный лимит:</span>
-                            <span className="value">{neoBank.monthlyLimit ? formatCurrency(neoBank.monthlyLimit) : '—'}</span>
+                            <span className="value">{formatNeoBankLimit(neoBank.monthlyLimit)}</span>
                           </div>
                         </div>
                       </div>
@@ -405,7 +400,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
               <div className="requisite-summary">
                 <p><strong>Исходный нео-банк:</strong> <span className={`provider-badge ${getProviderBadgeClass(selectedNeoBankData.provider)}`}>{getProviderLabel(selectedNeoBankData.provider)}</span></p>
                 <p><small>Аккаунт: {selectedNeoBankData.accountId} | Alias: {selectedNeoBankData.alias || '—'}</small></p>
-                <p><small>Лимиты: дневной {selectedNeoBankData.dailyLimit ? formatCurrency(selectedNeoBankData.dailyLimit) : '—'} / месячный {selectedNeoBankData.monthlyLimit ? formatCurrency(selectedNeoBankData.monthlyLimit) : '—'}</small></p>
+                <p><small>Лимиты: дневной {formatNeoBankLimit(selectedNeoBankData.dailyLimit)} / месячный {formatNeoBankLimit(selectedNeoBankData.monthlyLimit)}</small></p>
                 <div className="divider"></div>
                 <p><strong>Реквизит для вывода:</strong> {requisite.bankName || requisite.bank?.name}</p>
                 <p><strong>Владелец:</strong> {requisite.dropName}</p>

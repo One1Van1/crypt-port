@@ -91,9 +91,9 @@ export class GetNeoBankLimitsRemainingService {
         status: String(neoBank.status).toLowerCase(),
         alias: neoBank.alias ?? null,
         dailyLimit,
-        dailyLimitRemaining: dailyLimit === null ? null : Math.max(0, dailyLimit - dailyUsed),
+        dailyLimitRemaining: dailyLimit === null ? null : dailyLimit - dailyUsed,
         monthlyLimit,
-        monthlyLimitRemaining: monthlyLimit === null ? null : Math.max(0, monthlyLimit - monthlyUsed),
+        monthlyLimitRemaining: monthlyLimit === null ? null : monthlyLimit - monthlyUsed,
       });
     });
 

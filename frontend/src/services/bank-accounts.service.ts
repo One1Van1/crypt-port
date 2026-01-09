@@ -112,6 +112,11 @@ class BankAccountsService {
     return response.data;
   }
 
+  async getRequisiteV3(): Promise<GetRequisiteV2Response> {
+    const response = await apiClient.get<GetRequisiteV2Response>('/bank-accounts/requisite-v3');
+    return response.data;
+  }
+
   async delete(id: string): Promise<void> {
     await apiClient.delete(`/bank-accounts/${id}`);
   }
