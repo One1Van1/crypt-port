@@ -1,9 +1,9 @@
-{$APP_DOMAIN} {
+http://{$APP_DOMAIN} {
   encode gzip
   reverse_proxy frontend:80
 }
 
-{$API_DOMAIN} {
+http://{$API_DOMAIN} {
   encode gzip
   reverse_proxy backend:3000
 }
