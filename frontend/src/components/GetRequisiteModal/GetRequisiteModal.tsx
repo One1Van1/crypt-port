@@ -270,7 +270,9 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   <Tag size={20} />
                   <div>
                     <span className="label">Владелец (Дроп)</span>
-                    <span className="value">{requisite.dropName || 'Неизвестный'}</span>
+                    <span className="value">
+                      {requisite.dropName || requisite.drop?.name || 'Неизвестный'}
+                    </span>
                   </div>
                 </div>
 
