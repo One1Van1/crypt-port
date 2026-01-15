@@ -31,6 +31,7 @@ import { freeUsdtService } from '../../services/freeUsdt.service';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types/user.types';
 import DatePicker from '../../components/DatePicker/DatePicker';
+import { DebtDetailsPanel } from './components/DebtDetailsPanel';
 import './Analytics.css';
 
 type DateFilter = 'today' | 'yesterday' | 'week' | 'month' | 'custom';
@@ -583,22 +584,31 @@ export default function Analytics() {
                       rawValue: workingDepositData.deficit.totalUsdt || 0,
                       color: 'var(--text-tertiary)',
                     },
-                  ].filter(item => item.rawValue > 0);
+                    {
+                      key: 'debt',
+                      name: '📌 Долг',
+                      rawValue: Number(workingDepositData.debt?.totalUsdt ?? 0),
+                      color: '#f43f5e',
+                    },
+                  ].filter((item) => item.rawValue !== 0);
 
-                  const totalRaw = rawData.reduce((sum, item) => sum + item.rawValue, 0);
-                  const minShare = 0.02; // ~2% of chart minimum for visibility
-                  const maxShare = 0.06; // cap so it doesn't look too distorted
-                  const boostedFree = (rawFree: number) => {
-                    if (rawFree <= 0 || totalRaw <= 0) return rawFree;
-                    const minValue = totalRaw * minShare;
-                    const maxValue = totalRaw * maxShare;
-                    return Math.min(Math.max(rawFree, minValue), maxValue);
-                  };
+                  const totalRaw = rawData.reduce((sum, item) => sum + Math.abs(item.rawValue), 0);
+                  // Chart-only normalization: make each non-zero slice at least 5% visible,
+                  // while preserving differences between small sections.
+                  const minChartShare = 0.05;
+                  const slicesCount = rawData.length;
+                  const effectiveMinShare = slicesCount > 0 ? Math.min(minChartShare, 1 / slicesCount) : minChartShare;
+                  const remainingShare = Math.max(0, 1 - slicesCount * effectiveMinShare);
 
-                  const chartData = rawData.map(item => ({
-                    ...item,
-                    value: item.key === 'free' ? boostedFree(item.rawValue) : item.rawValue,
-                  }));
+                  const chartData = rawData.map((item) => {
+                    const rawAbs = Math.abs(item.rawValue);
+                    const originalShare = totalRaw > 0 ? rawAbs / totalRaw : 0;
+                    const adjustedShare = effectiveMinShare + remainingShare * originalShare;
+                    return {
+                      ...item,
+                      value: adjustedShare,
+                    };
+                  });
 
                   return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -652,7 +662,7 @@ export default function Analytics() {
                         }}
                       >
                         {rawData.map((item) => {
-                          const percent = totalRaw > 0 ? (item.rawValue / totalRaw) * 100 : 0;
+                          const percent = totalRaw > 0 ? (Math.abs(item.rawValue) / totalRaw) * 100 : 0;
                           return (
                             <div
                               key={item.key}
@@ -849,6 +859,33 @@ export default function Analytics() {
                       </tr>
 
                       <tr 
+                        onClick={() => setSelectedSection((prev) => (prev === 'debt' ? null : 'debt'))}
+                        style={{ 
+                          backgroundColor: selectedSection === 'debt' ? 'rgba(244, 63, 94, 0.18)' : 'rgba(244, 63, 94, 0.06)',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedSection !== 'debt') {
+                            e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.12)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedSection !== 'debt') {
+                            e.currentTarget.style.backgroundColor = 'rgba(244, 63, 94, 0.06)';
+                          }
+                        }}
+                      >
+                        <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
+                          <span style={{ color: '#f43f5e', marginRight: '6px' }}>●</span>
+                          📌 Долг
+                        </td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: '#f43f5e', fontWeight: '600' }}>
+                          {Number(workingDepositData.debt?.totalUsdt ?? 0).toFixed(2)}
+                        </td>
+                      </tr>
+
+                      <tr 
                         onClick={() => setSelectedSection((prev) => (prev === 'deficit' ? null : 'deficit'))}
                         style={{ 
                           backgroundColor: selectedSection === 'deficit' ? 'rgba(148, 163, 184, 0.18)' : 'rgba(148, 163, 184, 0.06)',
@@ -890,14 +927,27 @@ export default function Analytics() {
 
           {/* Right Widget - New Widget */}
           <div className="deposit-right">
-            <div className="deposit-widget" style={{ height: '100%' }}>
+            <div
+              className="deposit-widget"
+              style={{
+                height: selectedSection === 'debt' ? 'auto' : '100%',
+                overflow: selectedSection === 'debt' ? 'visible' : undefined,
+              }}
+            >
               <div className="widget-header">
                 <h3 className="widget-title" style={{ fontSize: '0.9rem' }}>
                   <BarChart3 size={18} />
                   Детали
                 </h3>
               </div>
-              <div className="widget-content analytics-details-scroll" style={{ padding: '14px', height: 'calc(100% - 60px)', overflow: 'auto' }}>
+              <div
+                className={selectedSection === 'debt' ? 'widget-content' : 'widget-content analytics-details-scroll'}
+                style={{
+                  padding: '14px',
+                  height: selectedSection === 'debt' ? 'auto' : 'calc(100% - 60px)',
+                  overflow: selectedSection === 'debt' ? 'visible' : 'auto',
+                }}
+              >
                 {workingDepositData ? (
                   (() => {
                     const displayedTotalUsdt = Number(workingDepositData.summary.totalUsdt || 0);
@@ -1466,6 +1516,10 @@ export default function Analytics() {
                           </div>
                         </div>
                       );
+                    }
+
+                    if (selectedSection === 'debt') {
+                      return <DebtDetailsPanel debtSummary={workingDepositData.debt} />;
                     }
 
                     if (selectedSection === 'deficit') {

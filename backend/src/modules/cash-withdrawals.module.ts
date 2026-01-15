@@ -12,6 +12,10 @@ import { Profit } from '../entities/profit.entity';
 import { SystemSetting } from '../entities/system-setting.entity';
 import { FreeUsdtEntry } from '../entities/free-usdt-entry.entity';
 import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity';
+import { FreeUsdtAdjustment } from '../entities/free-usdt-adjustment.entity';
+import { ProfitReserve } from '../entities/profit-reserve.entity';
+import { Debt } from '../entities/debt.entity';
+import { DebtOperation } from '../entities/debt-operation.entity';
 import { WithdrawCashController } from '../features/cash-withdrawals/withdraw/withdraw-cash.controller';
 import { WithdrawCashService } from '../features/cash-withdrawals/withdraw/withdraw-cash.service';
 import { ConvertToUsdtController } from '../features/cash-withdrawals/convert-to-usdt/convert-to-usdt.controller';
@@ -24,6 +28,8 @@ import { ConfirmConversionController } from '../features/cash-withdrawals/confir
 import { ConfirmConversionService } from '../features/cash-withdrawals/confirm-conversion/confirm-conversion.service';
 import { ConfirmConversionLedgerController } from '../features/cash-withdrawals/confirm-conversion-ledger/confirm-conversion-ledger.controller';
 import { ConfirmConversionLedgerService } from '../features/cash-withdrawals/confirm-conversion-ledger/confirm-conversion-ledger.service';
+import { ConfirmConversionLedgerV2Controller } from '../features/cash-withdrawals/confirm-conversion-ledger-v2/confirm-conversion-ledger-v2.controller';
+import { ConfirmConversionLedgerV2Service } from '../features/cash-withdrawals/confirm-conversion-ledger-v2/confirm-conversion-ledger-v2.service';
 import { GetAllWithdrawalsController } from '../features/cash-withdrawals/get-all-withdrawals/get-all-withdrawals.controller';
 import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-withdrawals/get-all-withdrawals.service';
 
@@ -42,6 +48,10 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
       SystemSetting,
       FreeUsdtEntry,
       FreeUsdtDistribution,
+      FreeUsdtAdjustment,
+      ProfitReserve,
+      Debt,
+      DebtOperation,
     ]),
   ],
   controllers: [
@@ -51,6 +61,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
     GetAllConversionsController,
     ConfirmConversionController,
     ConfirmConversionLedgerController,
+    ConfirmConversionLedgerV2Controller,
     GetAllWithdrawalsController,
   ],
   providers: [
@@ -60,6 +71,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
     GetAllConversionsService,
     ConfirmConversionService,
     ConfirmConversionLedgerService,
+    ConfirmConversionLedgerV2Service,
     GetAllWithdrawalsService,
   ],
 })

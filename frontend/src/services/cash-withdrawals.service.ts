@@ -115,7 +115,7 @@ class CashWithdrawalsService {
   }
 
   async confirmConversion(id: number): Promise<void> {
-    await apiClient.patch(`/cash-withdrawals/conversions/${id}/confirm-ledger`);
+    await apiClient.patch(`/cash-withdrawals/conversions/${id}/confirm-ledger-v2`);
   }
 
   async getAllWithdrawals(date?: string): Promise<GetAllWithdrawalsResponse> {

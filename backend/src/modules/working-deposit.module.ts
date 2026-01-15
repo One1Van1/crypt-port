@@ -16,6 +16,8 @@ import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity'
 import { ProfitReserve } from '../entities/profit-reserve.entity';
 import { DeficitRecord } from '../entities/deficit-record.entity';
 import { FreeUsdtAdjustment } from '../entities/free-usdt-adjustment.entity';
+import { Debt } from '../entities/debt.entity';
+import { DebtOperation } from '../entities/debt-operation.entity';
 
 // Get Sections
 import { GetWorkingDepositSectionsController } from '../features/working-deposit/get-sections/get-sections.controller';
@@ -28,6 +30,10 @@ import { GetWorkingDepositSectionsLedgerService } from '../features/working-depo
 // Get Sections (Free USDT from ledger) v2
 import { GetWorkingDepositSectionsLedgerV2Controller } from '../features/working-deposit/get-sections-ledger-v2/get-sections-ledger-v2.controller';
 import { GetWorkingDepositSectionsLedgerV2Service } from '../features/working-deposit/get-sections-ledger-v2/get-sections-ledger-v2.service';
+
+// Get Sections (Free USDT from ledger) v3 (with debt)
+import { GetWorkingDepositSectionsLedgerV3Controller } from '../features/working-deposit/get-sections-ledger-v3/get-sections-ledger-v3.controller';
+import { GetWorkingDepositSectionsLedgerV3Service } from '../features/working-deposit/get-sections-ledger-v3/get-sections-ledger-v3.service';
 
 // Get History
 import { GetWorkingDepositHistoryController } from '../features/working-deposit/get-history/get-history.controller';
@@ -64,12 +70,15 @@ import { ReserveProfitV2Service } from '../features/working-deposit/reserve-prof
       ProfitReserve,
       DeficitRecord,
       FreeUsdtAdjustment,
+      Debt,
+      DebtOperation,
     ]),
   ],
   controllers: [
     GetWorkingDepositSectionsController,
     GetWorkingDepositSectionsLedgerController,
     GetWorkingDepositSectionsLedgerV2Controller,
+    GetWorkingDepositSectionsLedgerV3Controller,
     GetWorkingDepositHistoryController,
     GetProfitHistoryController,
     ReserveProfitController,
@@ -79,6 +88,7 @@ import { ReserveProfitV2Service } from '../features/working-deposit/reserve-prof
     GetWorkingDepositSectionsService,
     GetWorkingDepositSectionsLedgerService,
     GetWorkingDepositSectionsLedgerV2Service,
+    GetWorkingDepositSectionsLedgerV3Service,
     GetWorkingDepositHistoryService,
     GetProfitHistoryService,
     ReserveProfitService,

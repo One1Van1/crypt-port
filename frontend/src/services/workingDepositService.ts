@@ -65,6 +65,11 @@ export interface WorkingDepositSections {
     totalUsdt: number;
     withdrawals: Withdrawal[];
   };
+  debt?: {
+    totalUsdt: number;
+    currentDebtUsdt: number;
+    totalRepaidUsdt: number;
+  };
   summary: {
     totalUsdt: number;
     initialDeposit: number;
@@ -106,7 +111,7 @@ export const workingDepositService = {
   },
 
   getSectionsV2: async (): Promise<WorkingDepositSections> => {
-    const response = await apiClient.get('/working-deposit/sections-ledger-v2');
+    const response = await apiClient.get('/working-deposit/sections-ledger-v3');
     return response.data;
   },
 
