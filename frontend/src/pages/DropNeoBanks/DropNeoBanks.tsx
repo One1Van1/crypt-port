@@ -346,7 +346,7 @@ export default function DropNeoBanks() {
     Boolean(formData.dropId) &&
     formData.provider.trim().length > 0 &&
     /^\d{22}$/.test(formData.accountId) &&
-    (formData.alias ?? '').trim().length === 6 &&
+    (formData.alias ?? '').trim().length > 0 &&
     formData.dailyLimit !== undefined &&
     Number.isFinite(Number(formData.dailyLimit)) &&
     Number(formData.dailyLimit) >= 0 &&
@@ -400,11 +400,6 @@ export default function DropNeoBanks() {
     const trimmedAlias = (formData.alias ?? '').trim();
     if (!trimmedAlias) {
       toast.error('Введите алиас');
-      return;
-    }
-
-    if (trimmedAlias.length !== 6) {
-      toast.error('Алиас должен быть строго 6 символов');
       return;
     }
 
@@ -1188,15 +1183,13 @@ export default function DropNeoBanks() {
               </div>
 
               <div className="form-group">
-                <label>{t('dropNeoBanks.form.alias')} * (6 символов)</label>
+                <label>{t('dropNeoBanks.form.alias')} *</label>
                 <textarea
                   value={formData.alias ?? ''}
                   onChange={(e) =>
-                    setFormData({ ...formData, alias: e.target.value.slice(0, 6) })
+                    setFormData({ ...formData, alias: e.target.value })
                   }
                   placeholder={t('dropNeoBanks.form.aliasPlaceholder')}
-                  minLength={6}
-                  maxLength={6}
                   rows={3}
                   required
                 />
