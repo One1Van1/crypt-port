@@ -43,6 +43,7 @@ export default function DropNeoBanks() {
   const [filterPlatformId, setFilterPlatformId] = useState<number | undefined>();
   const [filterProvider, setFilterProvider] = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterAccountIdLast4, setFilterAccountIdLast4] = useState<string>('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [openModalDropdown, setOpenModalDropdown] = useState<string | null>(null);
   const [expandedNeoBankId, setExpandedNeoBankId] = useState<number | null>(null);
@@ -564,6 +565,15 @@ export default function DropNeoBanks() {
     ),
   ).sort((a, b) => a.localeCompare(b, 'ru', { sensitivity: 'base' }));
 
+  const allNeoBankItems: DropNeoBank[] = neoBanks?.items ?? [];
+  const accountIdLastDigitsFilter = filterAccountIdLast4.replace(/\D/g, '').trim();
+  const visibleNeoBankItems: DropNeoBank[] = accountIdLastDigitsFilter
+    ? allNeoBankItems.filter((nb) => {
+        const digits = String(nb.accountId ?? '').replace(/\D/g, '');
+        return digits.endsWith(accountIdLastDigitsFilter);
+      })
+    : allNeoBankItems;
+
   return (
     <div className="drop-neo-banks-page">
       <div className="page-header">
@@ -759,6 +769,21 @@ export default function DropNeoBanks() {
             </div>
           )}
         </div>
+
+        {/* SVU last 4 digits filter */}
+        <div className="custom-filter">
+          <input
+            className="filter-input"
+            value={filterAccountIdLast4}
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder={`${t('dropNeoBanks.table.accountId')} (последние 4)`}
+            onChange={(e) => {
+              const next = e.target.value.replace(/\D/g, '').slice(0, 4);
+              setFilterAccountIdLast4(next);
+            }}
+          />
+        </div>
       </div>
 
       {/* Table */}
@@ -786,7 +811,7 @@ export default function DropNeoBanks() {
             </tr>
           </thead>
           <tbody>
-            {neoBanks?.items.map((neoBank: DropNeoBank) => (
+            {visibleNeoBankItems.map((neoBank: DropNeoBank) => (
               <Fragment key={neoBank.id}>
                 <tr
                   onClick={() => {
@@ -996,7 +1021,7 @@ export default function DropNeoBanks() {
           </tbody>
         </table>
 
-        {neoBanks?.items.length === 0 && (
+        {visibleNeoBankItems.length === 0 && (
           <div className="empty-state">
             <p>{t('dropNeoBanks.messages.notFound')}</p>
           </div>

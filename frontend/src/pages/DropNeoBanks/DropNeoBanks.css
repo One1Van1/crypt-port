@@ -100,6 +100,26 @@
   transition: transform 0.2s;
 }
 
+.filter-input {
+  padding: 0.6rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-width: 180px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.filter-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.filter-input:focus {
+  border-color: var(--primary-color);
+}
+
 .filter-dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
