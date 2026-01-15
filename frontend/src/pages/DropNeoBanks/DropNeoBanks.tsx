@@ -29,6 +29,11 @@ export default function DropNeoBanks() {
   const [limitsEditingNeoBank, setLimitsEditingNeoBank] = useState<DropNeoBank | null>(null);
   const [limitsDailyLimitInput, setLimitsDailyLimitInput] = useState<string>('');
   const [limitsMonthlyLimitInput, setLimitsMonthlyLimitInput] = useState<string>('');
+  const [limitsPlatformId, setLimitsPlatformId] = useState<number>(0);
+  const [limitsDropId, setLimitsDropId] = useState<number>(0);
+  const [limitsProviderInput, setLimitsProviderInput] = useState<string>('');
+  const [limitsAccountIdInput, setLimitsAccountIdInput] = useState<string>('');
+  const [limitsAliasInput, setLimitsAliasInput] = useState<string>('');
 
   const [isFrozenEditModalOpen, setIsFrozenEditModalOpen] = useState(false);
   const [frozenEditingNeoBank, setFrozenEditingNeoBank] = useState<DropNeoBank | null>(null);
@@ -259,6 +264,11 @@ export default function DropNeoBanks() {
       setLimitsMonthlyLimitInput(
         neoBank.monthlyLimit === null || neoBank.monthlyLimit === undefined ? '' : String(neoBank.monthlyLimit),
       );
+      setLimitsPlatformId(neoBank.platform?.id ?? 0);
+      setLimitsDropId(neoBank.drop?.id ?? 0);
+      setLimitsProviderInput(neoBank.provider ?? '');
+      setLimitsAccountIdInput(neoBank.accountId ?? '');
+      setLimitsAliasInput(neoBank.alias ?? '');
       setIsLimitsEditModalOpen(true);
       return;
     }
@@ -275,6 +285,11 @@ export default function DropNeoBanks() {
     setLimitsEditingNeoBank(null);
     setLimitsDailyLimitInput('');
     setLimitsMonthlyLimitInput('');
+    setLimitsPlatformId(0);
+    setLimitsDropId(0);
+    setLimitsProviderInput('');
+    setLimitsAccountIdInput('');
+    setLimitsAliasInput('');
   };
 
   const closeFrozenEditModal = () => {
@@ -286,6 +301,38 @@ export default function DropNeoBanks() {
   const handleLimitsEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!limitsEditingNeoBank) return;
+
+    if (!limitsPlatformId) {
+      toast.error('Выберите площадку');
+      return;
+    }
+
+    if (!limitsDropId) {
+      toast.error('Выберите дропа');
+      return;
+    }
+
+    if (!limitsProviderInput.trim()) {
+      toast.error('Введите название банка');
+      return;
+    }
+
+    const accountId = limitsAccountIdInput.trim();
+    if (!accountId) {
+      toast.error('Введите СВУ');
+      return;
+    }
+
+    if (!/^\d{22}$/.test(accountId)) {
+      toast.error('СВУ должно быть строго 22 цифры');
+      return;
+    }
+
+    const alias = limitsAliasInput.trim();
+    if (!alias) {
+      toast.error('Введите алиас');
+      return;
+    }
 
     const dailyRaw = limitsDailyLimitInput.trim().replace(',', '.');
     const monthlyRaw = limitsMonthlyLimitInput.trim().replace(',', '.');
@@ -306,6 +353,11 @@ export default function DropNeoBanks() {
     await updateMutation.mutateAsync({
       id: limitsEditingNeoBank.id,
       data: {
+        platformId: limitsPlatformId,
+        dropId: limitsDropId,
+        provider: limitsProviderInput.trim(),
+        accountId,
+        alias,
         dailyLimit,
         monthlyLimit,
       },
@@ -1184,13 +1236,11 @@ export default function DropNeoBanks() {
 
               <div className="form-group">
                 <label>{t('dropNeoBanks.form.alias')} *</label>
-                <textarea
+                <input
+                  type="text"
                   value={formData.alias ?? ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, alias: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, alias: e.target.value })}
                   placeholder={t('dropNeoBanks.form.aliasPlaceholder')}
-                  rows={3}
                   required
                 />
               </div>
@@ -1217,18 +1267,145 @@ export default function DropNeoBanks() {
         <div className="modal-overlay" onClick={closeLimitsEditModal}>
           <div className="modal-content modal-small" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('dropNeoBanks.limitsEditModal.title')}</h2>
+              <h2>Редактирование нео-банка</h2>
               <button className="modal-close" onClick={closeLimitsEditModal}>×</button>
             </div>
 
             <div className="balance-info">
-              <p><strong>{t('dropNeoBanks.table.platform')}:</strong> {limitsEditingNeoBank.platform?.name || '-'}</p>
-              <p><strong>{t('dropNeoBanks.table.drop')}:</strong> {limitsEditingNeoBank.drop?.name || '-'}</p>
-              <p><strong>{t('dropNeoBanks.table.provider')}:</strong> {limitsEditingNeoBank.provider}</p>
-              <p><strong>{t('dropNeoBanks.table.accountId')}:</strong> {limitsEditingNeoBank.accountId}</p>
+              <p><strong>{t('dropNeoBanks.table.status')}:</strong> {t(`statuses.${limitsEditingNeoBank.status}`)}</p>
             </div>
 
             <form onSubmit={handleLimitsEditSubmit}>
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.platform')} *</label>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    onClick={() =>
+                      setOpenModalDropdown(openModalDropdown === 'limits-platform' ? null : 'limits-platform')
+                    }
+                  >
+                    <span>
+                      {limitsPlatformId
+                        ? platforms?.items.find((p: Platform) => p.id === limitsPlatformId)?.name
+                        : t('dropNeoBanks.form.selectPlatform')}
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </button>
+                  {openModalDropdown === 'limits-platform' && (
+                    <div className="modal-dropdown">
+                      <div
+                        className={`modal-option ${limitsPlatformId === 0 ? 'active' : ''}`}
+                        onClick={() => {
+                          setLimitsPlatformId(0);
+                          setOpenModalDropdown(null);
+                        }}
+                      >
+                        {t('dropNeoBanks.form.selectPlatform')}
+                      </div>
+                      {platforms?.items.map((platform: Platform) => (
+                        <div
+                          key={platform.id}
+                          className={`modal-option ${limitsPlatformId === platform.id ? 'active' : ''}`}
+                          onClick={() => {
+                            setLimitsPlatformId(platform.id);
+                            setOpenModalDropdown(null);
+                          }}
+                        >
+                          {platform.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.drop')} *</label>
+                <div className="modal-custom-select">
+                  <button
+                    type="button"
+                    className="modal-select-button"
+                    onClick={() => setOpenModalDropdown(openModalDropdown === 'limits-drop' ? null : 'limits-drop')}
+                  >
+                    <span>
+                      {limitsDropId
+                        ? (drops as any)?.items?.find((d: any) => Number(d.id) === Number(limitsDropId))?.name
+                        : t('dropNeoBanks.form.selectDrop')}
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none"/>
+                    </svg>
+                  </button>
+                  {openModalDropdown === 'limits-drop' && (
+                    <div className="modal-dropdown">
+                      <div
+                        className={`modal-option ${limitsDropId === 0 ? 'active' : ''}`}
+                        onClick={() => {
+                          setLimitsDropId(0);
+                          setOpenModalDropdown(null);
+                        }}
+                      >
+                        {t('dropNeoBanks.form.selectDrop')}
+                      </div>
+                      {(drops as any)?.items?.map((drop: any) => (
+                        <div
+                          key={drop.id}
+                          className={`modal-option ${Number(limitsDropId) === Number(drop.id) ? 'active' : ''}`}
+                          onClick={() => {
+                            setLimitsDropId(Number(drop.id));
+                            setOpenModalDropdown(null);
+                          }}
+                        >
+                          {drop.name}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Название банка *</label>
+                <input
+                  type="text"
+                  value={limitsProviderInput}
+                  onChange={(e) => setLimitsProviderInput(e.target.value)}
+                  placeholder="Ripio"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>СВУ *</label>
+                <input
+                  type="text"
+                  value={limitsAccountIdInput}
+                  inputMode="numeric"
+                  pattern="\d{22}"
+                  maxLength={22}
+                  onChange={(e) =>
+                    setLimitsAccountIdInput(e.target.value.replace(/\D/g, '').slice(0, 22))
+                  }
+                  placeholder="Введите СВУ"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t('dropNeoBanks.form.alias')} *</label>
+                <input
+                  type="text"
+                  value={limitsAliasInput}
+                  onChange={(e) => setLimitsAliasInput(e.target.value)}
+                  placeholder={t('dropNeoBanks.form.aliasPlaceholder')}
+                  required
+                />
+              </div>
+
               <div className="form-group">
                 <label>{t('dropNeoBanks.form.dailyLimit')}</label>
                 <input

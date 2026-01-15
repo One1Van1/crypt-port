@@ -315,6 +315,29 @@
   overflow-y: auto;
 }
 
+/* Dark theme scrollbar for modal */
+[data-theme='dark'] .modal-content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) var(--bg-secondary);
+}
+
+[data-theme='dark'] .modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme='dark'] .modal-content::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+[data-theme='dark'] .modal-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 8px;
+}
+
+[data-theme='dark'] .modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
 .modal-small {
   max-width: 450px;
 }
