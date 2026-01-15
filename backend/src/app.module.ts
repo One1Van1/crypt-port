@@ -15,7 +15,6 @@ import { ShiftsModule } from './modules/shifts.module';
 import { TransactionsModule } from './modules/transactions.module';
 import { UsersModule } from './modules/users.module';
 import { AnalyticsModule } from './modules/analytics.module';
-import { ExchangeRatesModule } from './modules/exchange-rates.module';
 import { CashWithdrawalsModule } from './modules/cash-withdrawals.module';
 import { ProfitsModule } from './modules/profits.module';
 import { WorkingDepositModule } from './modules/working-deposit.module';
@@ -43,7 +42,6 @@ import { FreeUsdtModule } from './modules/free-usdt.module';
     TransactionsModule,
     UsersModule,
     AnalyticsModule,
-    ExchangeRatesModule,
     CashWithdrawalsModule,
     ProfitsModule,
     WorkingDepositModule,
