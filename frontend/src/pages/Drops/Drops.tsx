@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   operatorService,
@@ -8,6 +9,7 @@ import {
 } from '../../services/operator.service';
 import { useAuthStore } from '../../store/authStore';
 import { dropsService } from '../../services/drops.service';
+import dropNeoBanksService, { DropNeoBank } from '../../services/drop-neo-banks.service';
 import './Drops.css';
 
 const Drops = () => {
@@ -17,10 +19,12 @@ const Drops = () => {
     comment: string | null;
     status: string;
     accountsCount: number;
-    banks: { id: number; name: string; code: string | null }[];
+    banks: { name: string }[];
+    neoBanks: Pick<DropNeoBank, 'id' | 'provider' | 'accountId' | 'alias' | 'status'>[];
   };
 
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
 
   const [drops, setDrops] = useState<DropsListItem[]>([]);
@@ -74,12 +78,79 @@ const Drops = () => {
         status: drop.status,
         accountsCount: 0,
         banks: [],
+        neoBanks: [],
       }));
 
       setDrops(mapped);
+
+      // Hydrate cards with banks + neo-banks per drop (runs after basic list render)
+      const ids = mapped.map((d) => d.id);
+      if (ids.length > 0) {
+        void hydrateDropsDetails(ids);
+      }
     } catch (error) {
       console.error('Error fetching drops:', error);
     }
+  };
+
+  const hydrateDropsDetails = async (dropIds: number[]) => {
+    const results = await Promise.allSettled(
+      dropIds.map(async (dropId) => {
+        const [dropDetails, neoBanksData] = await Promise.all([
+          dropsService.getById(String(dropId)) as Promise<any>,
+          dropNeoBanksService.getAll({ dropId }),
+        ]);
+
+        const bankAccounts: Array<{ bankName?: string | null }> = dropDetails?.bankAccounts ?? [];
+        const bankNames = new Set<string>();
+        for (const ba of bankAccounts) {
+          const name = (ba?.bankName ?? '').trim();
+          if (name) bankNames.add(name);
+        }
+
+        const banks = [...bankNames].sort((a, b) => a.localeCompare(b, 'ru')).map((name) => ({ name }));
+
+        const neoBanks = (neoBanksData?.items ?? [])
+          .map((nb) => ({
+            id: nb.id,
+            provider: nb.provider,
+            accountId: nb.accountId,
+            alias: nb.alias,
+            status: nb.status,
+          }))
+          .sort((a, b) => {
+            const aa = (a.alias ?? '').toLowerCase();
+            const bb = (b.alias ?? '').toLowerCase();
+            if (aa && bb) return aa.localeCompare(bb, 'ru');
+            if (aa) return -1;
+            if (bb) return 1;
+            return String(a.provider).localeCompare(String(b.provider), 'ru');
+          });
+
+        const accountsCount = bankAccounts.length + neoBanks.length;
+
+        return { dropId, banks, neoBanks, accountsCount };
+      }),
+    );
+
+    const byId = new Map<number, { banks: DropsListItem['banks']; neoBanks: DropsListItem['neoBanks']; accountsCount: number }>();
+    for (const r of results) {
+      if (r.status !== 'fulfilled') continue;
+      byId.set(r.value.dropId, {
+        banks: r.value.banks,
+        neoBanks: r.value.neoBanks,
+        accountsCount: r.value.accountsCount,
+      });
+    }
+
+    if (byId.size === 0) return;
+
+    setDrops((prev) =>
+      prev.map((d) => {
+        const extra = byId.get(d.id);
+        return extra ? { ...d, ...extra } : d;
+      }),
+    );
   };
 
   const getErrorMessage = (error: unknown, fallback: string) => {
@@ -295,12 +366,29 @@ const Drops = () => {
                 <div className="drop-info">
                   <p>Счетов: {drop.accountsCount}</p>
                   <div className="drop-banks">
-                    <p className="drop-banks-title">Банки:</p>
-                    {drop.banks.map((bank) => (
-                      <span key={bank.id} className="bank-tag">
-                        {bank.name}
-                      </span>
-                    ))}
+                    <p className="drop-banks-title">Физ. банки:</p>
+                    {drop.banks.length === 0 ? (
+                      <span className="bank-tag">—</span>
+                    ) : (
+                      drop.banks.map((bank) => (
+                        <span key={bank.name} className="bank-tag">
+                          {bank.name}
+                        </span>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="drop-banks">
+                    <p className="drop-banks-title">Нео-банки:</p>
+                    {drop.neoBanks.length === 0 ? (
+                      <span className="bank-tag">—</span>
+                    ) : (
+                      drop.neoBanks.map((nb) => (
+                        <span key={nb.id} className="bank-tag">
+                          {nb.alias?.trim() ? nb.alias : `${nb.provider} (${nb.accountId})`}
+                        </span>
+                      ))
+                    )}
                   </div>
                 </div>
               </div>
@@ -326,7 +414,20 @@ const Drops = () => {
                         <p>Нет транзакций</p>
                       ) : (
                         dropTransactions.map((tx) => (
-                          <div key={tx.id} className="transaction-item">
+                          <div
+                            key={tx.id}
+                            className={`transaction-item ${isAdminOrTeamlead ? 'transaction-item-clickable' : ''}`}
+                            onDoubleClick={() => {
+                              if (!isAdminOrTeamlead) return;
+                              navigate('/transactions', {
+                                state: {
+                                  highlightTransactionId: tx.id,
+                                  viewMode: 'all',
+                                  source: 'banks',
+                                },
+                              });
+                            }}
+                          >
                             <div className="transaction-main">
                               <span className="transaction-amount">
                                 {formatCurrency(tx.amount)}

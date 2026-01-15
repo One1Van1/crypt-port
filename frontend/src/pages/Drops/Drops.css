@@ -382,6 +382,14 @@
   gap: 8px;
 }
 
+.transaction-item-clickable {
+  cursor: pointer;
+}
+
+.transaction-item-clickable:hover {
+  filter: brightness(1.05);
+}
+
 .transaction-main {
   display: flex;
   align-items: center;

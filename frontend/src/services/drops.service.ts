@@ -38,7 +38,7 @@ class DropsService {
   }
 
   async getById(id: string): Promise<Drop> {
-    const response = await apiClient.get<Drop>(`/drops/${id}`);
+    const response = await apiClient.get<Drop>(`/drops/by-id/${id}`);
     return response.data;
   }
 
