@@ -119,12 +119,18 @@ const Drops = () => {
             status: nb.status,
           }))
           .sort((a, b) => {
-            const aa = (a.alias ?? '').toLowerCase();
-            const bb = (b.alias ?? '').toLowerCase();
-            if (aa && bb) return aa.localeCompare(bb, 'ru');
-            if (aa) return -1;
-            if (bb) return 1;
-            return String(a.provider).localeCompare(String(b.provider), 'ru');
+            const statusOrder = (s: string) => (s === 'active' ? 0 : s === 'frozen' ? 1 : 2);
+            const so = statusOrder(String(a.status)) - statusOrder(String(b.status));
+            if (so !== 0) return so;
+
+            const ap = String(a.provider ?? '').trim().toLowerCase();
+            const bp = String(b.provider ?? '').trim().toLowerCase();
+            const ps = ap.localeCompare(bp, 'ru');
+            if (ps !== 0) return ps;
+
+            const aa = String(a.accountId ?? '').trim().toLowerCase();
+            const bb = String(b.accountId ?? '').trim().toLowerCase();
+            return aa.localeCompare(bb, 'ru');
           });
 
         const accountsCount = bankAccounts.length + neoBanks.length;
@@ -380,15 +386,62 @@ const Drops = () => {
 
                   <div className="drop-banks">
                     <p className="drop-banks-title">Нео-банки:</p>
-                    {drop.neoBanks.length === 0 ? (
-                      <span className="bank-tag">—</span>
-                    ) : (
-                      drop.neoBanks.map((nb) => (
-                        <span key={nb.id} className="bank-tag">
-                          {nb.alias?.trim() ? nb.alias : `${nb.provider} (${nb.accountId})`}
-                        </span>
-                      ))
-                    )}
+                    {(() => {
+                      const all = drop.neoBanks;
+                      if (!all || all.length === 0) {
+                        return <span className="bank-tag">—</span>;
+                      }
+
+                      const providerCounts = new Map<string, number>();
+                      for (const nb of all) {
+                        const key = String(nb.provider ?? '').trim().toLowerCase();
+                        if (!key) continue;
+                        providerCounts.set(key, (providerCounts.get(key) ?? 0) + 1);
+                      }
+
+                      const label = (nb: (typeof all)[number]): string => {
+                        const provider = String(nb.provider ?? '').trim();
+                        const accountId = String(nb.accountId ?? '').trim();
+                        if (!provider) return accountId || '—';
+
+                        const key = provider.toLowerCase();
+                        const needsAccount = (providerCounts.get(key) ?? 0) > 1;
+                        return needsAccount && accountId ? `${provider} (${accountId})` : provider;
+                      };
+
+                      const active = all.filter((nb) => nb.status === 'active');
+                      const frozen = all.filter((nb) => nb.status === 'frozen');
+
+                      return (
+                        <>
+                          <div className="drop-neo-banks-group">
+                            <div className="drop-neo-banks-group-title">Активные</div>
+                            {active.length === 0 ? (
+                              <span className="bank-tag">—</span>
+                            ) : (
+                              active.map((nb) => (
+                                <span key={nb.id} className="bank-tag">
+                                  {label(nb)}
+                                </span>
+                              ))
+                            )}
+                          </div>
+
+                          <div className="drop-neo-banks-group">
+                            <div className="drop-neo-banks-group-title">Замороженные</div>
+                            {frozen.length === 0 ? (
+                              <span className="bank-tag">—</span>
+                            ) : (
+                              frozen.map((nb) => (
+                                <span key={nb.id} className="bank-tag">
+                                  {label(nb)}
+                                </span>
+                              ))
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

@@ -213,6 +213,21 @@
   margin-bottom: 6px;
 }
 
+.drop-neo-banks-group {
+  margin-top: 8px;
+}
+
+.drop-neo-banks-group:first-of-type {
+  margin-top: 0;
+}
+
+.drop-neo-banks-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 6px 0;
+}
+
 /* Transactions History */
 .transactions-history {
   margin-top: 20px;
