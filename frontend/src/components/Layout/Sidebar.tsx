@@ -41,9 +41,30 @@ export default function Sidebar() {
     { to: '/shifts', icon: Clock, label: t('nav.shifts'), roles: ['admin', 'teamlead', 'operator'] },
   ];
 
-  const visibleNavItems = navItems.filter(item => 
-    item.roles.includes(user?.role || '')
-  );
+  const role = user?.role || '';
+
+  const visibleNavItems = navItems
+    .filter((item) => item.roles.includes(role))
+    .sort((a, b) => {
+      if (role !== 'admin') return 0;
+
+      const adminOrder = new Map<string, number>([
+        ['/dashboard', 10],
+        ['/teamlead-dashboard', 20],
+        ['/analytics', 30],
+        ['/platforms', 40],
+        ['/banks', 50],
+        ['/drop-neo-banks', 60],
+        ['/drops', 70],
+        ['/operators', 80],
+        ['/transactions', 90],
+        ['/shifts', 100],
+      ]);
+
+      const aOrder = adminOrder.get(a.to) ?? 999;
+      const bOrder = adminOrder.get(b.to) ?? 999;
+      return aOrder - bOrder;
+    });
 
   return (
     <>
