@@ -23,6 +23,10 @@ import { CreateTransactionV3Service } from '../features/transactions/create-v3/c
 import { GetMyTransactionsController } from '../features/transactions/get-my/get-my.controller';
 import { GetMyTransactionsService } from '../features/transactions/get-my/get-my.service';
 
+// Get My Recent Transactions (dashboard)
+import { GetMyRecentTransactionsController } from '../features/transactions/get-my-recent/get-my-recent.controller';
+import { GetMyRecentTransactionsService } from '../features/transactions/get-my-recent/get-my-recent.service';
+
 // Get My Banks
 import { GetMyBanksController } from '../features/transactions/get-my-banks/get-my-banks.controller';
 import { GetMyBanksService } from '../features/transactions/get-my-banks/get-my-banks.service';
@@ -62,6 +66,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     CreateTransactionV2Controller,
     CreateTransactionV3Controller,
     GetMyTransactionsController,
+    GetMyRecentTransactionsController,
     GetMyBanksController,
     GetMyTransactionsDetailedController,
     GetAllTransactionsController,
@@ -76,6 +81,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     CreateTransactionV2Service,
     CreateTransactionV3Service,
     GetMyTransactionsService,
+    GetMyRecentTransactionsService,
     GetMyBanksService,
     GetMyTransactionsDetailedService,
     GetAllTransactionsService,

@@ -56,6 +56,26 @@ export interface GetTransactionsResponse {
   total: number;
 }
 
+export interface DashboardRecentTransaction {
+  id: number;
+  amount: number;
+  createdAt: string;
+  comment?: string;
+  bank?: {
+    id: number;
+    name: string;
+  } | null;
+  drop?: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface GetDashboardRecentTransactionsResponse {
+  items: DashboardRecentTransaction[];
+  total: number;
+}
+
 export interface CreateTransactionRequest {
   amount: number;
   sourceDropNeoBankId: number;
@@ -113,6 +133,13 @@ class TransactionsService {
     console.log('🔍 transactionsService.getMy called');
     const response = await apiClient.get<GetTransactionsResponse>('/transactions/my', { params });
     console.log('📋 getMy response:', response.data);
+    return response.data;
+  }
+
+  async getMyRecent(params?: { limit?: number }): Promise<GetDashboardRecentTransactionsResponse> {
+    const response = await apiClient.get<GetDashboardRecentTransactionsResponse>('/transactions/my-recent', {
+      params,
+    });
     return response.data;
   }
 

@@ -8,6 +8,7 @@ import {
   Building, 
   CreditCard, 
   Tag, 
+  Search,
   TrendingUp, 
   AlertTriangle,
   Loader,
@@ -37,7 +38,13 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const [step, setStep] = useState<Step>('loading');
   const [selectedNeoBank, setSelectedNeoBank] = useState<number | null>(null);
   const [requisite, setRequisite] = useState<BankAccount | null>(null);
+  const [submittedRequisite, setSubmittedRequisite] = useState<BankAccount | null>(null);
+  const [submittedAmount, setSubmittedAmount] = useState<number | null>(null);
   const [neoBanks, setNeoBanks] = useState<GetRequisiteV2NeoBank[]>([]);
+  const [neoBankSearch, setNeoBankSearch] = useState<string>('');
+  const [neoBanksUi, setNeoBanksUi] = useState<GetRequisiteV2NeoBank[]>([]);
+  const [neoBankSearchResults, setNeoBankSearchResults] = useState<GetRequisiteV2NeoBank[]>([]);
+  const [neoBankSearchLoading, setNeoBankSearchLoading] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
@@ -110,6 +117,13 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
         const updated = await bankAccountsService.getRequisiteV3();
         setRequisite(updated.bankAccount);
         setNeoBanks(updated.neoBanks);
+
+        try {
+          const neoBanksResp = await bankAccountsService.searchNeoBanksV3({ limit: 200, page: 1 });
+          setNeoBanksUi((neoBanksResp.items ?? []) as unknown as GetRequisiteV2NeoBank[]);
+        } catch {
+          setNeoBanksUi([]);
+        }
       } catch (error) {
         console.error('Failed to refresh requisite-v2:', error);
       }
@@ -132,6 +146,14 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       const result = await bankAccountsService.getRequisiteV3();
       setRequisite(result.bankAccount);
       setNeoBanks(result.neoBanks);
+
+      try {
+        const neoBanksResp = await bankAccountsService.searchNeoBanksV3({ limit: 200, page: 1 });
+        setNeoBanksUi((neoBanksResp.items ?? []) as unknown as GetRequisiteV2NeoBank[]);
+      } catch {
+        setNeoBanksUi([]);
+      }
+
       setStep('select-source');
       toast.success('Реквизит успешно получен');
     } catch (err: any) {
@@ -172,6 +194,10 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     }
 
     setError('');
+    // Snapshot values before mutation; onSuccess we refresh requisite, so success screen
+    // must not subtract the amount twice.
+    setSubmittedRequisite(requisite);
+    setSubmittedAmount(amountNum);
     createTransaction.mutate({
       amount: amountNum,
       sourceDropNeoBankId: Number(selectedNeoBank),
@@ -184,7 +210,13 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setStep('loading');
     setSelectedNeoBank(null);
     setRequisite(null);
+    setSubmittedRequisite(null);
+    setSubmittedAmount(null);
     setNeoBanks([]);
+    setNeoBankSearch('');
+    setNeoBanksUi([]);
+    setNeoBankSearchResults([]);
+    setNeoBankSearchLoading(false);
     setAmount('');
     setComment('');
     setError('');
@@ -204,9 +236,46 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     e.stopPropagation();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+    if (step !== 'select-source') return;
+
+    const q = neoBankSearch.trim();
+    if (!q) {
+      setNeoBankSearchLoading(false);
+      setNeoBankSearchResults([]);
+      return;
+    }
+
+    let cancelled = false;
+    setNeoBankSearchLoading(true);
+
+    const timer = window.setTimeout(async () => {
+      try {
+        const resp = await bankAccountsService.searchNeoBanksV3({ search: q, limit: 200, page: 1 });
+        if (cancelled) return;
+        // Keep compatibility with existing UI fields
+        setNeoBankSearchResults((resp.items ?? []) as unknown as GetRequisiteV2NeoBank[]);
+      } catch {
+        if (cancelled) return;
+        setNeoBankSearchResults([]);
+      } finally {
+        if (cancelled) return;
+        setNeoBankSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isOpen, neoBankSearch, step]);
+
   if (!isOpen) return null;
 
-  const selectedNeoBankData = neoBanks.find(nb => nb.id === selectedNeoBank);
+  const selectedNeoBankData = (neoBanksUi.length ? neoBanksUi : neoBanks).find(
+    (nb) => nb.id === selectedNeoBank,
+  );
 
   const getProviderLabel = (provider: string) => {
     const labels: Record<string, string> = {
@@ -217,6 +286,17 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     };
     return labels[provider] || provider;
   };
+
+  type NeoBankWithDropName = GetRequisiteV2NeoBank & { dropName?: string };
+  const filteredNeoBanks: NeoBankWithDropName[] = neoBankSearch.trim()
+    ? ((neoBankSearchResults as unknown as NeoBankWithDropName[]) ?? [])
+    : (((neoBanksUi.length ? neoBanksUi : neoBanks) as unknown as NeoBankWithDropName[]) ?? []);
+
+  const successAmount = submittedAmount ?? (Number.isFinite(parseFloat(amount)) ? parseFloat(amount) : 0);
+  const successRequisite = submittedRequisite ?? requisite;
+  const successRemaining = submittedRequisite
+    ? Math.max(0, (submittedRequisite.currentLimitAmount || 0) - (submittedAmount || 0))
+    : Math.max(0, (requisite?.currentLimitAmount || 0));
 
   return (
     <div className="modal-overlay" onClick={handleClose} onKeyDown={handleModalKeyDown}>
@@ -237,7 +317,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
         </div>
 
         {/* Body */}
-        <div className="modal-body">
+        <div className={`modal-body ${step === 'select-source' ? 'has-sticky-footer' : ''}`}>
           {/* Step 1: Loading */}
           {step === 'loading' && (
             <div className="step-loading">
@@ -333,8 +413,34 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                     <p>Выберите нео-банк, через который проведём операцию (для истории)</p>
                   </div>
 
+                  <div className="neo-bank-search">
+                    <div className="neo-bank-search-row">
+                      <Search size={18} className="neo-bank-search-icon" />
+                      <input
+                        type="text"
+                        value={neoBankSearch}
+                        onChange={(e) => setNeoBankSearch(e.target.value)}
+                        placeholder="Поиск по дропу, названию, alias или СВУ (можно последние 4 цифры)"
+                        className="neo-bank-search-input"
+                      />
+                      {neoBankSearch && (
+                        <button
+                          type="button"
+                          className="neo-bank-search-clear"
+                          onClick={() => setNeoBankSearch('')}
+                          aria-label="Очистить поиск"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                    {neoBankSearchLoading && (
+                      <div className="neo-bank-search-loading">Поиск…</div>
+                    )}
+                  </div>
+
                   <div className="neo-banks-list">
-                    {neoBanks.map((neoBank) => (
+                    {filteredNeoBanks.map((neoBank) => (
                       <div
                         key={neoBank.id}
                         className={`neo-bank-card ${selectedNeoBank === neoBank.id ? 'selected' : ''}`}
@@ -350,7 +456,11 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                         </div>
                         <div className="neo-bank-info">
                           <div className="info-item">
-                            <span className="label">Аккаунт:</span>
+                            <span className="label">Дроп:</span>
+                            <span className="value">{(neoBank as NeoBankWithDropName).dropName || '—'}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="label">СВУ:</span>
                             <span className="value">{neoBank.accountId}</span>
                           </div>
                           <div className="info-item">
@@ -368,6 +478,14 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                         </div>
                       </div>
                     ))}
+
+                    {!neoBankSearchLoading && neoBankSearch.trim() && filteredNeoBanks.length === 0 && (
+                      <div className="neo-banks-empty">
+                        <Wallet size={42} />
+                        <div className="neo-banks-empty-title">Нео-банки не найдены</div>
+                        <div className="neo-banks-empty-subtitle">Попробуйте другой запрос</div>
+                      </div>
+                    )}
                   </div>
 
                   {error && (
@@ -376,21 +494,6 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                       {error}
                     </div>
                   )}
-
-                  <button 
-                    className="btn-primary btn-large" 
-                    onClick={() => {
-                      if (!selectedNeoBank) {
-                        setError('Выберите нео-банк');
-                        toast.error('Выберите нео-банк');
-                        return;
-                      }
-                      setStep('amount');
-                    }}
-                    disabled={!selectedNeoBank}
-                  >
-                    Далее - Ввести сумму →
-                  </button>
                 </>
               )}
             </div>
@@ -401,7 +504,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
             <div className="step-amount">
               <div className="requisite-summary">
                 <p><strong>Исходный нео-банк:</strong> <span className={`provider-badge ${getProviderBadgeClass(selectedNeoBankData.provider)}`}>{getProviderLabel(selectedNeoBankData.provider)}</span></p>
-                <p><small>Аккаунт: {selectedNeoBankData.accountId} | Alias: {selectedNeoBankData.alias || '—'}</small></p>
+                <p><small>СВУ: {selectedNeoBankData.accountId} | Alias: {selectedNeoBankData.alias || '—'}</small></p>
                 <p><small>Лимиты: дневной {formatNeoBankLimit(selectedNeoBankData.dailyLimit)} / месячный {formatNeoBankLimit(selectedNeoBankData.monthlyLimit)}</small></p>
                 <div className="divider"></div>
                 <p><strong>Реквизит для вывода:</strong> {requisite.bankName || requisite.bank?.name}</p>
@@ -457,7 +560,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
           )}
 
           {/* Step 4: Success */}
-          {step === 'success' && requisite && (
+          {step === 'success' && successRequisite && (
             <div className="step-success">
               <CheckCircle size={64} className="success-icon" />
               <h3>Операция зафиксирована!</h3>
@@ -465,19 +568,19 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
               <div className="success-details">
                 <div className="detail-item">
                   <span className="label">Сумма вывода</span>
-                  <span className="value">{formatCurrency(parseFloat(amount))}</span>
+                  <span className="value">{formatCurrency(successAmount)}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Реквизит</span>
-                  <span className="value">{requisite.bankName || requisite.bank?.name}</span>
+                  <span className="value">{successRequisite.bankName || successRequisite.bank?.name}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Владелец</span>
-                  <span className="value">{requisite.dropName}</span>
+                  <span className="value">{successRequisite.dropName}</span>
                 </div>
                 <div className="detail-item">
                   <span className="label">Остаток на реквизите</span>
-                  <span className="value">{formatCurrency((requisite?.currentLimitAmount || 0) - parseFloat(amount))}</span>
+                  <span className="value">{formatCurrency(successRemaining)}</span>
                 </div>
                 {comment && (
                   <div className="detail-item comment-item">
@@ -503,6 +606,32 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
             </div>
           )}
         </div>
+
+        {step === 'select-source' && requisite && neoBanks.length > 0 && (
+          <div className="modal-sticky-footer">
+            {error && (
+              <div className="error-message" style={{ marginBottom: '0.75rem' }}>
+                <AlertTriangle size={18} />
+                {error}
+              </div>
+            )}
+
+            <button
+              className="btn-primary btn-large"
+              onClick={() => {
+                if (!selectedNeoBank) {
+                  setError('Выберите нео-банк');
+                  toast.error('Выберите нео-банк');
+                  return;
+                }
+                setStep('amount');
+              }}
+              disabled={!selectedNeoBank}
+            >
+              Далее - Ввести сумму →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

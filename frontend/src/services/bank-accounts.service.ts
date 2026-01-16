@@ -52,6 +52,22 @@ export interface GetRequisiteV2NeoBank {
   dropId: number;
 }
 
+export interface SearchNeoBanksV3Item {
+  id: number;
+  provider: string;
+  accountId: string;
+  alias?: string | null;
+  dailyLimit?: number | null;
+  monthlyLimit?: number | null;
+  dropId: number;
+  dropName: string;
+}
+
+export interface SearchNeoBanksV3Response {
+  items: SearchNeoBanksV3Item[];
+  total: number;
+}
+
 export interface GetRequisiteV2Response {
   shift: GetRequisiteV2Shift;
   bankAccount: BankAccount;
@@ -114,6 +130,17 @@ class BankAccountsService {
 
   async getRequisiteV3(): Promise<GetRequisiteV2Response> {
     const response = await apiClient.get<GetRequisiteV2Response>('/bank-accounts/requisite-v3');
+    return response.data;
+  }
+
+  async searchNeoBanksV3(params?: {
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<SearchNeoBanksV3Response> {
+    const response = await apiClient.get<SearchNeoBanksV3Response>('/bank-accounts/requisite-v3/neo-banks', {
+      params,
+    });
     return response.data;
   }
 

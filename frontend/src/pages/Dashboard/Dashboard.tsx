@@ -42,7 +42,7 @@ export default function Dashboard() {
   // Fetch recent transactions (for all roles)
   const { data: transactionsData } = useQuery({
     queryKey: ['my-transactions-recent'],
-    queryFn: () => transactionsService.getMy({ limit: 10 }),
+    queryFn: () => transactionsService.getMyRecent({ limit: 10 }),
   });
 
   const hasActiveShift = !!currentShift;
@@ -194,6 +194,9 @@ export default function Dashboard() {
                   </div>
                   <div className="transaction-bank">
                     {transaction.bank?.name || t('common.unknownBank')}
+                  </div>
+                  <div className="transaction-drop">
+                    {transaction.drop?.name || '—'}
                   </div>
                   <div className="transaction-meta">
                     <Calendar size={14} />

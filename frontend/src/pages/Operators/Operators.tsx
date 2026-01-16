@@ -34,7 +34,7 @@ export default function Operators() {
   const user = useAuthStore((state) => state.user);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
-  const [focusUserId, setFocusUserId] = useState<number | null>(null);
+  const [, setFocusUserId] = useState<number | null>(null);
   const [highlightUserId, setHighlightUserId] = useState<number | null>(null);
   const operatorCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 

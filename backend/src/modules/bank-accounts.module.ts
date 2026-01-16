@@ -48,6 +48,10 @@ import { GetRequisiteV2Service } from '../features/bank-accounts/get-requisite-v
 import { GetRequisiteV3Controller } from '../features/bank-accounts/get-requisite-v3/get-requisite-v3.controller';
 import { GetRequisiteV3Service } from '../features/bank-accounts/get-requisite-v3/get-requisite-v3.service';
 
+// Search Neo-Banks V3
+import { SearchNeoBanksV3Controller } from '../features/bank-accounts/search-neo-banks-v3/search-neo-banks-v3.controller';
+import { SearchNeoBanksV3Service } from '../features/bank-accounts/search-neo-banks-v3/search-neo-banks-v3.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([BankAccount, Bank, Drop])],
   controllers: [
@@ -56,6 +60,7 @@ import { GetRequisiteV3Service } from '../features/bank-accounts/get-requisite-v
     GetAvailableBankAccountController,
     GetRequisiteV2Controller,
     GetRequisiteV3Controller,
+    SearchNeoBanksV3Controller,
     GetBankAccountByIdController,
     UpdateBankAccountController,
     UpdateBankAccountStatusController,
@@ -74,6 +79,7 @@ import { GetRequisiteV3Service } from '../features/bank-accounts/get-requisite-v
     GetAvailableBankAccountService,
     GetRequisiteV2Service,
     GetRequisiteV3Service,
+    SearchNeoBanksV3Service,
     DeleteBankAccountService,
   ],
 })

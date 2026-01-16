@@ -260,6 +260,12 @@
   font-size: 1rem;
 }
 
+.transaction-drop {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: -0.15rem;
+}
+
 .transaction-meta {
   display: flex;
   align-items: center;
