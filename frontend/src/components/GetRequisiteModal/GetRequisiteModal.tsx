@@ -8,7 +8,6 @@ import {
   Building, 
   CreditCard, 
   Tag, 
-  Search,
   TrendingUp, 
   AlertTriangle,
   Loader,
@@ -41,10 +40,10 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const [submittedRequisite, setSubmittedRequisite] = useState<BankAccount | null>(null);
   const [submittedAmount, setSubmittedAmount] = useState<number | null>(null);
   const [neoBanks, setNeoBanks] = useState<GetRequisiteV2NeoBank[]>([]);
-  const [neoBankSearch, setNeoBankSearch] = useState<string>('');
+  const [neoBankProviderFilter, setNeoBankProviderFilter] = useState<string>('all');
+  const [neoBankDropFilter, setNeoBankDropFilter] = useState<string>('all');
+  const [neoBankAccountFilter, setNeoBankAccountFilter] = useState<string>('all');
   const [neoBanksUi, setNeoBanksUi] = useState<GetRequisiteV2NeoBank[]>([]);
-  const [neoBankSearchResults, setNeoBankSearchResults] = useState<GetRequisiteV2NeoBank[]>([]);
-  const [neoBankSearchLoading, setNeoBankSearchLoading] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
@@ -213,10 +212,10 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setSubmittedRequisite(null);
     setSubmittedAmount(null);
     setNeoBanks([]);
-    setNeoBankSearch('');
+    setNeoBankProviderFilter('all');
+    setNeoBankDropFilter('all');
+    setNeoBankAccountFilter('all');
     setNeoBanksUi([]);
-    setNeoBankSearchResults([]);
-    setNeoBankSearchLoading(false);
     setAmount('');
     setComment('');
     setError('');
@@ -236,43 +235,6 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     e.stopPropagation();
   };
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (step !== 'select-source') return;
-
-    const q = neoBankSearch.trim();
-    if (!q) {
-      setNeoBankSearchLoading(false);
-      setNeoBankSearchResults([]);
-      return;
-    }
-
-    let cancelled = false;
-    setNeoBankSearchLoading(true);
-
-    const timer = window.setTimeout(async () => {
-      try {
-        const resp = await bankAccountsService.searchNeoBanksV3({ search: q, limit: 200, page: 1 });
-        if (cancelled) return;
-        // Keep compatibility with existing UI fields
-        setNeoBankSearchResults((resp.items ?? []) as unknown as GetRequisiteV2NeoBank[]);
-      } catch {
-        if (cancelled) return;
-        setNeoBankSearchResults([]);
-      } finally {
-        if (cancelled) return;
-        setNeoBankSearchLoading(false);
-      }
-    }, 250);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [isOpen, neoBankSearch, step]);
-
-  if (!isOpen) return null;
-
   const selectedNeoBankData = (neoBanksUi.length ? neoBanksUi : neoBanks).find(
     (nb) => nb.id === selectedNeoBank,
   );
@@ -288,9 +250,57 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   };
 
   type NeoBankWithDropName = GetRequisiteV2NeoBank & { dropName?: string };
-  const filteredNeoBanks: NeoBankWithDropName[] = neoBankSearch.trim()
-    ? ((neoBankSearchResults as unknown as NeoBankWithDropName[]) ?? [])
-    : (((neoBanksUi.length ? neoBanksUi : neoBanks) as unknown as NeoBankWithDropName[]) ?? []);
+
+  const neoBanksForFilters: NeoBankWithDropName[] = (
+    (neoBanksUi.length ? neoBanksUi : neoBanks) as unknown as NeoBankWithDropName[]
+  ) ?? [];
+
+  const filteredNeoBanks: NeoBankWithDropName[] = neoBanksForFilters;
+
+  const providerOptions = Array.from(
+    new Set(neoBanksForFilters.map((nb) => String(nb.provider || '')).filter(Boolean)),
+  ).sort((a, b) => getProviderLabel(a).localeCompare(getProviderLabel(b), 'ru'));
+
+  const dropOptions = Array.from(
+    new Set(
+      neoBanksForFilters
+        .map((nb) => String((nb as NeoBankWithDropName).dropName || ''))
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => a.localeCompare(b, 'ru'));
+
+  const accountOptions = Array.from(
+    new Set(
+      neoBanksForFilters
+        .map((nb) => String(nb.accountId || ''))
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => a.localeCompare(b, 'en'));
+
+  const filteredNeoBanksWithDropdowns: NeoBankWithDropName[] = filteredNeoBanks
+    .filter((nb) => neoBankProviderFilter === 'all' || nb.provider === neoBankProviderFilter)
+    .filter(
+      (nb) =>
+        neoBankDropFilter === 'all' ||
+        String((nb as NeoBankWithDropName).dropName || '').trim() === neoBankDropFilter,
+    )
+    .filter(
+      (nb) => neoBankAccountFilter === 'all' || String(nb.accountId || '').trim() === neoBankAccountFilter,
+    );
+
+  useEffect(() => {
+    if (step !== 'select-source') return;
+    if (!selectedNeoBank) return;
+
+    const stillVisible = filteredNeoBanksWithDropdowns.some((nb) => nb.id === selectedNeoBank);
+    if (!stillVisible) {
+      setSelectedNeoBank(null);
+    }
+  }, [step, selectedNeoBank, filteredNeoBanksWithDropdowns]);
+
+  if (!isOpen) return null;
 
   const successAmount = submittedAmount ?? (Number.isFinite(parseFloat(amount)) ? parseFloat(amount) : 0);
   const successRequisite = submittedRequisite ?? requisite;
@@ -413,34 +423,58 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                     <p>Выберите нео-банк, через который проведём операцию (для истории)</p>
                   </div>
 
-                  <div className="neo-bank-search">
-                    <div className="neo-bank-search-row">
-                      <Search size={18} className="neo-bank-search-icon" />
-                      <input
-                        type="text"
-                        value={neoBankSearch}
-                        onChange={(e) => setNeoBankSearch(e.target.value)}
-                        placeholder="Поиск по дропу, названию, alias или СВУ (можно последние 4 цифры)"
-                        className="neo-bank-search-input"
-                      />
-                      {neoBankSearch && (
-                        <button
-                          type="button"
-                          className="neo-bank-search-clear"
-                          onClick={() => setNeoBankSearch('')}
-                          aria-label="Очистить поиск"
-                        >
-                          ×
-                        </button>
-                      )}
+                  <div className="neo-bank-filters">
+                    <div className="neo-bank-filter">
+                      <label className="neo-bank-filter-label">Банк</label>
+                      <select
+                        className="neo-bank-filter-select"
+                        value={neoBankProviderFilter}
+                        onChange={(e) => setNeoBankProviderFilter(e.target.value)}
+                      >
+                        <option value="all">Все</option>
+                        {providerOptions.map((p) => (
+                          <option key={p} value={p}>
+                            {getProviderLabel(p)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    {neoBankSearchLoading && (
-                      <div className="neo-bank-search-loading">Поиск…</div>
-                    )}
+
+                    <div className="neo-bank-filter">
+                      <label className="neo-bank-filter-label">Дроп</label>
+                      <select
+                        className="neo-bank-filter-select"
+                        value={neoBankDropFilter}
+                        onChange={(e) => setNeoBankDropFilter(e.target.value)}
+                      >
+                        <option value="all">Все</option>
+                        {dropOptions.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="neo-bank-filter">
+                      <label className="neo-bank-filter-label">СВУ</label>
+                      <select
+                        className="neo-bank-filter-select"
+                        value={neoBankAccountFilter}
+                        onChange={(e) => setNeoBankAccountFilter(e.target.value)}
+                      >
+                        <option value="all">Все</option>
+                        {accountOptions.map((a) => (
+                          <option key={a} value={a}>
+                            …{a.slice(-4)} ({a})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="neo-banks-list">
-                    {filteredNeoBanks.map((neoBank) => (
+                    {filteredNeoBanksWithDropdowns.map((neoBank) => (
                       <div
                         key={neoBank.id}
                         className={`neo-bank-card ${selectedNeoBank === neoBank.id ? 'selected' : ''}`}
@@ -479,7 +513,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                       </div>
                     ))}
 
-                    {!neoBankSearchLoading && neoBankSearch.trim() && filteredNeoBanks.length === 0 && (
+                    {(neoBankProviderFilter !== 'all' || neoBankDropFilter !== 'all' || neoBankAccountFilter !== 'all') && filteredNeoBanksWithDropdowns.length === 0 && (
                       <div className="neo-banks-empty">
                         <Wallet size={42} />
                         <div className="neo-banks-empty-title">Нео-банки не найдены</div>

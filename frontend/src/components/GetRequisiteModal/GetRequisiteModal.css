@@ -677,6 +677,48 @@
   margin-top: 10px;
 }
 
+/* Neo-bank filters (provider/drop/accountId) */
+.neo-bank-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 12px 0;
+}
+
+.neo-bank-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.neo-bank-filter-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.neo-bank-filter-select {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.neo-bank-filter-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+@media (max-width: 520px) {
+  .neo-bank-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
 .requisite-search-loading {
   color: var(--text-secondary);
   font-size: 0.9rem;
