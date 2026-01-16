@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CashWithdrawal } from '../../../entities/cash-withdrawal.entity';
@@ -25,6 +25,8 @@ import { ConfirmConversionLedgerV2ResponseDto } from './confirm-conversion-ledge
 
 @Injectable()
 export class ConfirmConversionLedgerV2Service {
+  private readonly logger = new Logger(ConfirmConversionLedgerV2Service.name);
+
   constructor(
     @InjectRepository(PesoToUsdtConversion)
     private readonly conversionRepository: Repository<PesoToUsdtConversion>,
@@ -105,7 +107,13 @@ export class ConfirmConversionLedgerV2Service {
       await this.cashWithdrawalRepository.save(withdrawal);
     }
 
-    await this.updateTodayProfit();
+    // Profit snapshot is a secondary side-effect.
+    // If it fails, confirmation is still valid and should not return 500.
+    try {
+      await this.updateTodayProfit();
+    } catch (error) {
+      this.logger.error('Failed to update today profit after confirming conversion', error as any);
+    }
 
     return new ConfirmConversionLedgerV2ResponseDto({
       id: conversion.id,

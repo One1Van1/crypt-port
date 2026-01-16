@@ -1184,12 +1184,24 @@ function WithdrawalsSection() {
                   <div className="bank-account-header">
                     <div className="bank-account-info">
                       <h3>💳 {account.alias || `Счет #${account.id}`}</h3>
-                      <p className="bank-account-details">
-                        <span>CBU: {account.cbu}</span>
-                      </p>
-                      <p className="bank-account-balance">
-                        {t('teamlead.availableForWithdrawal')}: <strong>${availableBalance.toLocaleString()} ARS</strong>
-                      </p>
+                      <div className="bank-account-details">
+                        <div className="bank-account-detail-line">
+                          <span className="bank-account-detail-label">Дроп:</span>
+                          <span className="bank-account-detail-value">
+                            {account.dropName || account.drop?.name || '—'}
+                          </span>
+                        </div>
+                        <div className="bank-account-detail-line">
+                          <span className="bank-account-detail-label">CBU:</span>
+                          <span className="bank-account-detail-value bank-account-detail-mono">{account.cbu}</span>
+                        </div>
+                        <div className="bank-account-detail-line">
+                          <span className="bank-account-detail-label">{t('teamlead.availableForWithdrawal')}:</span>
+                          <span className="bank-account-detail-value">
+                            <span className="bank-account-detail-amount">${availableBalance.toLocaleString()} ARS</span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     <button 
                       className="btn btn-primary btn-withdraw"
