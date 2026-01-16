@@ -123,6 +123,28 @@
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
 }
 
+.platform-card.platform-card-highlight {
+  outline: 3px solid rgba(99, 102, 241, 0.9);
+  outline-offset: 2px;
+  will-change: outline-color, background-color;
+  animation: platformCardHighlight 2.6s ease-out;
+}
+
+@keyframes platformCardHighlight {
+  0% {
+    outline-color: rgba(99, 102, 241, 0.9);
+    background-color: rgba(99, 102, 241, 0.12);
+  }
+  20% {
+    outline-color: rgba(99, 102, 241, 0.6);
+    background-color: rgba(99, 102, 241, 0.08);
+  }
+  100% {
+    outline-color: rgba(99, 102, 241, 0);
+    background-color: rgba(99, 102, 241, 0);
+  }
+}
+
 .platform-info {
   flex: 1;
   display: flex;

@@ -24,6 +24,7 @@ export class GetMyTransactionsService {
       .leftJoinAndSelect('bankAccount.bank', 'bank')
       .leftJoinAndSelect('bankAccount.drop', 'drop')
       .leftJoinAndSelect('transaction.user', 'user')
+      .leftJoinAndSelect('transaction.sourceDropNeoBank', 'sourceDropNeoBank')
       .where('transaction.userId = :userId', { userId: user.id });
 
     // Don't return soft-deleted transactions (but keep soft-deleted relations like users)
@@ -59,7 +60,10 @@ export class GetMyTransactionsService {
     // Сортировка
     queryBuilder.orderBy('transaction.createdAt', 'DESC');
 
-    const [items, total] = await queryBuilder.getManyAndCount();
+    const take = query.limit || 10;
+    const skip = ((query.page || 1) - 1) * take;
+
+    const [items, total] = await queryBuilder.take(take).skip(skip).getManyAndCount();
 
     const transactionItems = items.map((transaction) => {
       const item = new TransactionItemDto();
@@ -80,6 +84,13 @@ export class GetMyTransactionsService {
         : null;
       item.drop = transaction.bankAccount?.drop
         ? { id: transaction.bankAccount.drop.id, name: transaction.bankAccount.drop.name }
+        : null;
+      item.dropNeoBank = transaction.sourceDropNeoBank
+        ? {
+            id: transaction.sourceDropNeoBank.id,
+            provider: transaction.sourceDropNeoBank.provider,
+            accountId: transaction.sourceDropNeoBank.accountId,
+          }
         : null;
       item.createdAt = transaction.createdAt;
       item.updatedAt = transaction.updatedAt;

@@ -18,15 +18,32 @@ export default function TeamLeadDashboard() {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<'requisites' | 'withdrawals' | 'conversions'>('requisites');
   const [highlightBankAccountId, setHighlightBankAccountId] = useState<number | null>(null);
+  const [highlightBankAccountCbuLast4, setHighlightBankAccountCbuLast4] = useState<string | null>(null);
 
   useEffect(() => {
-    const state = location.state as { highlightBankAccountId?: unknown } | null;
+    const state = location.state as
+      | { highlightBankAccountId?: unknown; highlightBankAccountCbuLast4?: unknown }
+      | null;
+
     const maybeId = state?.highlightBankAccountId;
     const id = typeof maybeId === 'number' ? maybeId : Number(maybeId);
+
+    const maybeLast4 = state?.highlightBankAccountCbuLast4;
+    const last4 = typeof maybeLast4 === 'string' ? maybeLast4.trim() : '';
 
     if (Number.isFinite(id) && id > 0) {
       setActiveTab('requisites');
       setHighlightBankAccountId(id);
+      setHighlightBankAccountCbuLast4(null);
+      window.history.replaceState({}, document.title);
+      return;
+    }
+
+    if (last4 && last4.length <= 10) {
+      setActiveTab('requisites');
+      setHighlightBankAccountId(null);
+      setHighlightBankAccountCbuLast4(last4);
+      window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
@@ -84,7 +101,9 @@ export default function TeamLeadDashboard() {
         {activeTab === 'requisites' && (
           <RequisitesSection
             highlightBankAccountId={highlightBankAccountId}
+            highlightBankAccountCbuLast4={highlightBankAccountCbuLast4}
             onHighlightHandled={() => setHighlightBankAccountId(null)}
+            onHighlightCbuHandled={() => setHighlightBankAccountCbuLast4(null)}
           />
         )}
         {activeTab === 'withdrawals' && <WithdrawalsSection />}
@@ -97,10 +116,14 @@ export default function TeamLeadDashboard() {
 // Секция управления приоритетами реквизитов
 function RequisitesSection({
   highlightBankAccountId,
+  highlightBankAccountCbuLast4,
   onHighlightHandled,
+  onHighlightCbuHandled,
 }: {
   highlightBankAccountId: number | null;
+  highlightBankAccountCbuLast4: string | null;
   onHighlightHandled: () => void;
+  onHighlightCbuHandled: () => void;
 }) {
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
@@ -154,6 +177,29 @@ function RequisitesSection({
     row.scrollIntoView({ behavior: 'smooth', block: 'center' });
     onHighlightHandled();
   }, [highlightBankAccountId, loading, accounts, onHighlightHandled]);
+
+  useEffect(() => {
+    if (!highlightBankAccountCbuLast4) return;
+    if (loading) return;
+
+    const needle = highlightBankAccountCbuLast4.trim();
+    if (!needle) return;
+
+    const match = accounts.find((a) => {
+      const cbu = String(a?.cbu ?? '').trim();
+      return cbu.endsWith(needle);
+    });
+
+    const id = Number(match?.id);
+    if (!Number.isFinite(id) || id <= 0) return;
+
+    const row = rowRefs.current.get(id);
+    if (!row) return;
+
+    setHighlightedId(id);
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    onHighlightCbuHandled();
+  }, [highlightBankAccountCbuLast4, loading, accounts, onHighlightCbuHandled]);
 
   useEffect(() => {
     if (!highlightedId) return;

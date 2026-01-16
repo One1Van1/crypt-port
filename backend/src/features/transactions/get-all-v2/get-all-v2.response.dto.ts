@@ -45,6 +45,14 @@ class BankAccountDto {
   cbu: string;
 }
 
+class DropDto {
+  @ApiProperty({ description: 'Drop ID' })
+  id: number;
+
+  @ApiProperty({ description: 'Drop name' })
+  name: string;
+}
+
 export class TransactionV2ItemDto {
   @ApiProperty({ description: 'Transaction ID' })
   id: number;
@@ -70,6 +78,9 @@ export class TransactionV2ItemDto {
   @ApiProperty({ description: 'Bank account info', type: BankAccountDto })
   bankAccount: BankAccountDto;
 
+  @ApiProperty({ description: 'Drop (requisite owner)', type: DropDto, required: false })
+  drop?: DropDto;
+
   @ApiProperty({ description: 'Creation date' })
   createdAt: Date;
 
@@ -90,6 +101,9 @@ export class TransactionV2ItemDto {
       ? { id: transaction.sourceDropNeoBank.id, provider: transaction.sourceDropNeoBank.provider, accountId: transaction.sourceDropNeoBank.accountId }
       : undefined;
     this.bankAccount = { cbu: transaction.bankAccount?.cbu || '' };
+    this.drop = transaction.bankAccount?.drop
+      ? { id: transaction.bankAccount.drop.id, name: transaction.bankAccount.drop.name }
+      : undefined;
     this.createdAt = transaction.createdAt;
   }
 }

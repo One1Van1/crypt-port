@@ -220,6 +220,28 @@
   width: 8px;
 }
 
+.bank-card.bank-card-highlight {
+  outline: 3px solid rgba(99, 102, 241, 0.9);
+  outline-offset: 2px;
+  will-change: outline-color, background-color;
+  animation: bankCardHighlight 2.6s ease-out;
+}
+
+@keyframes bankCardHighlight {
+  0% {
+    outline-color: rgba(99, 102, 241, 0.9);
+    background-color: rgba(99, 102, 241, 0.12);
+  }
+  20% {
+    outline-color: rgba(99, 102, 241, 0.6);
+    background-color: rgba(99, 102, 241, 0.08);
+  }
+  100% {
+    outline-color: rgba(99, 102, 241, 0);
+    background-color: rgba(99, 102, 241, 0);
+  }
+}
+
 .banks-grid::-webkit-scrollbar-track {
   background: var(--bg-primary);
   border-radius: 4px;

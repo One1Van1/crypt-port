@@ -83,9 +83,10 @@
     "operatorsTransactions": "All Operations",
     "operator": "Operator",
     "physicalBank": "Physical Bank:",
-    "withdrawalBank": "Withdrawal Bank:",
+    "withdrawalBank": "Neo-bank:",
     "employee": "Employee:",
-    "platform": "Platform:"
+    "platform": "Platform:",
+    "drop": "Drop:"
   },
   "dashboard": {
     "title": "Home",

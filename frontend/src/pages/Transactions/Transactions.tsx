@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Search, 
   Building, 
@@ -29,6 +29,7 @@ export default function Transactions() {
   const user = useAuthStore((state) => state.user);
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'my' | 'all'>('my');
   const [highlightTransactionId, setHighlightTransactionId] = useState<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -50,6 +51,40 @@ export default function Transactions() {
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const isTeamLeadOrAdmin = user?.role === UserRole.TEAMLEAD || user?.role === UserRole.ADMIN;
+
+  const goToBank = (bankId: number) => {
+    if (!isTeamLeadOrAdmin) return;
+    navigate('/banks', { state: { focusBankId: bankId } });
+  };
+
+  const goToTeamleadByCbuLast4 = (cbu: string) => {
+    if (!isTeamLeadOrAdmin) return;
+    const trimmed = String(cbu ?? '').trim();
+    if (!trimmed) return;
+    const last4 = trimmed.slice(-4);
+    if (!last4) return;
+    navigate('/teamlead-dashboard', { state: { highlightBankAccountCbuLast4: last4 } });
+  };
+
+  const goToDrop = (dropId: number) => {
+    if (!isTeamLeadOrAdmin) return;
+    navigate('/drops', { state: { focusDropId: dropId } });
+  };
+
+  const goToDropNeoBank = (neoBankId: number) => {
+    if (!isTeamLeadOrAdmin) return;
+    navigate('/drop-neo-banks', { state: { focusDropNeoBankId: neoBankId } });
+  };
+
+  const goToOperator = (operatorId: number) => {
+    if (!isTeamLeadOrAdmin) return;
+    navigate('/operators', { state: { focusUserId: operatorId } });
+  };
+
+  const goToPlatform = (platformId: number) => {
+    if (!isTeamLeadOrAdmin) return;
+    navigate('/platforms', { state: { focusPlatformId: platformId } });
+  };
 
   // Auto-highlight a transaction from navigation state
   useEffect(() => {
@@ -199,6 +234,8 @@ export default function Transactions() {
     queryKey: ['my-transactions-view', page, selectedShiftId],
     queryFn: () => transactionsService.getMyTransactions({ 
       shiftId: selectedShiftId || undefined,
+      page,
+      limit,
     }),
     enabled: viewMode === 'my',
   });
@@ -521,18 +558,18 @@ export default function Transactions() {
           </div>
 
           <div className="filter-group">
-            <label>Банк вывода</label>
+            <label>Нео-банк</label>
             <CustomSelect
               value={selectedDropNeoBankId}
               onChange={setSelectedDropNeoBankId}
               options={[
-                { value: '', label: 'Все банки вывода' },
+                { value: '', label: 'Все нео-банки' },
                 ...neoBanks.map((neoBank) => ({
                   value: String(neoBank.id),
                   label: `${neoBank.provider} - ${neoBank.accountId}`
                 }))
               ]}
-              placeholder="Все банки вывода"
+              placeholder="Все нео-банки"
             />
           </div>
 
@@ -635,28 +672,79 @@ export default function Transactions() {
                   </div>
                   <div className="bank-content">
                     <h3 className="bank-name">
-                      {t('transactions.physicalBank')} {transaction.bank?.name || t('common.unknownBank')}
+                      <span
+                        onDoubleClick={() => {
+                          const id = Number(transaction.bank?.id);
+                          if (Number.isFinite(id) && id > 0) goToBank(id);
+                        }}
+                        style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                      >
+                        {t('transactions.physicalBank')} {transaction.bank?.name || t('common.unknownBank')}
+                      </span>
                     </h3>
                     <div className="bank-details">
-                      <span>CBU: ...{(transaction.bankAccount?.cbu || '').slice(-4)}</span>
+                      <span
+                        onDoubleClick={() => goToTeamleadByCbuLast4(transaction.bankAccount?.cbu || '')}
+                        style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                      >
+                        CBU реквизита: ...{(transaction.bankAccount?.cbu || '').slice(-4)}
+                      </span>
                     </div>
+                    {transaction.drop && (
+                      <div className="bank-details">
+                        <span
+                          onDoubleClick={() => {
+                            const id = Number(transaction.drop?.id);
+                            if (Number.isFinite(id) && id > 0) goToDrop(id);
+                          }}
+                          style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                        >
+                          {t('transactions.drop')} {transaction.drop.name}
+                        </span>
+                      </div>
+                    )}
                     {transaction.dropNeoBank && (
                       <div className="bank-details">
-                        <span>{t('transactions.withdrawalBank')} {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}</span>
+                        <span
+                          onDoubleClick={() => {
+                            const id = Number(transaction.dropNeoBank?.id);
+                            if (Number.isFinite(id) && id > 0) goToDropNeoBank(id);
+                          }}
+                          style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                        >
+                          {t('transactions.withdrawalBank')} {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}
+                        </span>
                       </div>
                     )}
                     {transaction.user && (
-                      <div className="operator-info">
-                        <span className="operator-label">{t('transactions.employee')}</span>
-                        <span className="operator-name">
-                          {transaction.user.username}
+                      <div className="tx-detail-line">
+                        <span className="tx-detail-label">{t('transactions.employee')}</span>
+                        <span className="tx-detail-value tx-detail-value-link">
+                          <span
+                            onDoubleClick={() => {
+                              const id = Number(transaction.user?.id);
+                              if (Number.isFinite(id) && id > 0) goToOperator(id);
+                            }}
+                            style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                          >
+                            {transaction.user.username}
+                          </span>
                         </span>
                       </div>
                     )}
                     {transaction.platform && (
-                      <div className="platform-info">
-                        <span className="platform-label">{t('transactions.platform')}</span>
-                        <span className="platform-name"> {transaction.platform.name}</span>
+                      <div className="tx-detail-line">
+                        <span className="tx-detail-value tx-detail-value-link">
+                          <span
+                            onDoubleClick={() => {
+                              const id = Number(transaction.platform?.id);
+                              if (Number.isFinite(id) && id > 0) goToPlatform(id);
+                            }}
+                            style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                          >
+                            {t('transactions.platform')} {transaction.platform.name}
+                          </span>
+                        </span>
                       </div>
                     )}
                   </div>

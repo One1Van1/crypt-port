@@ -30,6 +30,17 @@ class BankAccountDto {
   cbu: string;
 }
 
+class DropNeoBankDto {
+  @ApiProperty({ description: 'Drop Neo Bank ID' })
+  id: number;
+
+  @ApiProperty({ description: 'Provider' })
+  provider: string;
+
+  @ApiProperty({ description: 'Account ID' })
+  accountId: string;
+}
+
 class DropDto {
   @ApiProperty({ description: 'Drop ID' })
   id: number;
@@ -62,6 +73,9 @@ export class TransactionItemDto {
 
   @ApiProperty({ description: 'Drop info', type: DropDto, nullable: true })
   drop: DropDto | null;
+
+  @ApiProperty({ description: 'Withdrawal bank (Drop Neo Bank)', type: DropNeoBankDto, required: false, nullable: true })
+  dropNeoBank?: DropNeoBankDto | null;
 
   @ApiProperty({ description: 'Created at' })
   createdAt: Date;

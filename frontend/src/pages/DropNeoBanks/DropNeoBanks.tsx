@@ -1,7 +1,7 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import dropNeoBanksService, {
@@ -21,6 +21,7 @@ import { getProviderBadgeClass } from '../../utils/providerBadgeClass';
 export default function DropNeoBanks() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'neoBanks' | 'limits'>('limits');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +49,29 @@ export default function DropNeoBanks() {
   const [openModalDropdown, setOpenModalDropdown] = useState<string | null>(null);
   const [expandedNeoBankId, setExpandedNeoBankId] = useState<number | null>(null);
   const [expandedFreezeHistoryNeoBankId, setExpandedFreezeHistoryNeoBankId] = useState<number | null>(null);
+
+  const [highlightNeoBankId, setHighlightNeoBankId] = useState<number | null>(null);
+  const neoBankRowRefs = useRef<Map<number, HTMLTableRowElement>>(new Map());
+
+  useEffect(() => {
+    const state = location.state as { focusDropNeoBankId?: unknown } | null;
+    const raw = state?.focusDropNeoBankId;
+    const id =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && /^[0-9]+$/.test(raw.trim())
+          ? Number(raw)
+          : null;
+
+    if (!id || !Number.isFinite(id)) return;
+
+    setActiveTab('limits');
+    setFilterAccountIdLast4('');
+    setExpandedNeoBankId(null);
+    setExpandedFreezeHistoryNeoBankId(null);
+    setHighlightNeoBankId(id);
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
 
   // Форма
   const [formData, setFormData] = useState<CreateDropNeoBankDto>({
@@ -553,10 +577,6 @@ export default function DropNeoBanks() {
 
   const selectedPlatform = platforms?.items.find((p: Platform) => p.id === formData.platformId);
 
-  if (isLoading) {
-    return <div className="loading">{t('common.loading')}</div>;
-  }
-
   const providerOptions = Array.from(
     new Set(
       (neoBanks?.items ?? [])
@@ -573,6 +593,31 @@ export default function DropNeoBanks() {
         return digits.endsWith(accountIdLastDigitsFilter);
       })
     : allNeoBankItems;
+
+  useEffect(() => {
+    if (!highlightNeoBankId) return;
+    let raf = 0;
+    const tryScroll = () => {
+      const row = neoBankRowRefs.current.get(highlightNeoBankId);
+      if (!row) {
+        raf = window.requestAnimationFrame(tryScroll);
+        return;
+      }
+
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    raf = window.requestAnimationFrame(tryScroll);
+    const timeout = window.setTimeout(() => setHighlightNeoBankId(null), 2600);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
+  }, [highlightNeoBankId, activeTab, visibleNeoBankItems.length]);
+
+  if (isLoading) {
+    return <div className="loading">{t('common.loading')}</div>;
+  }
 
   return (
     <div className="drop-neo-banks-page">
@@ -814,6 +859,11 @@ export default function DropNeoBanks() {
             {visibleNeoBankItems.map((neoBank: DropNeoBank) => (
               <Fragment key={neoBank.id}>
                 <tr
+                  ref={(el) => {
+                    if (el) neoBankRowRefs.current.set(neoBank.id, el);
+                    else neoBankRowRefs.current.delete(neoBank.id);
+                  }}
+                  className={highlightNeoBankId === neoBank.id ? 'neo-bank-row-highlight' : undefined}
                   onClick={() => {
                     if (activeTab === 'limits') {
                       setExpandedNeoBankId((prev) => (prev === neoBank.id ? null : neoBank.id));

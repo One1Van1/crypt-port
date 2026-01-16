@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   operatorService,
@@ -25,6 +25,7 @@ const Drops = () => {
 
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((state) => state.user);
 
   const [drops, setDrops] = useState<DropsListItem[]>([]);
@@ -38,6 +39,9 @@ const Drops = () => {
   const [createComment, setCreateComment] = useState('');
   const [creating, setCreating] = useState(false);
 
+  const [highlightDropId, setHighlightDropId] = useState<number | null>(null);
+  const dropCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
   const createNameInputRef = useRef<HTMLInputElement | null>(null);
 
   const isAdminOrTeamlead = user?.role === 'admin' || user?.role === 'teamlead';
@@ -45,6 +49,34 @@ const Drops = () => {
   useEffect(() => {
     fetchDrops();
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { focusDropId?: unknown } | null;
+    const raw = state?.focusDropId;
+    const id =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && /^[0-9]+$/.test(raw.trim())
+          ? Number(raw)
+          : null;
+
+    if (!id || !Number.isFinite(id)) return;
+    if (drops.length === 0) return;
+
+    void handleDropClick(id);
+    setHighlightDropId(id);
+    window.history.replaceState({}, document.title);
+  }, [location.state, drops.length]);
+
+  useEffect(() => {
+    if (!highlightDropId) return;
+    const el = dropCardRefs.current.get(highlightDropId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timeout = window.setTimeout(() => setHighlightDropId(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [highlightDropId, drops.length]);
 
   useEffect(() => {
     if (!isCreateModalOpen) return;
@@ -357,7 +389,13 @@ const Drops = () => {
             {drops.map((drop) => (
               <div
                 key={drop.id}
-                className={`drop-card ${selectedDropId === drop.id ? 'selected' : ''}`}
+                ref={(el) => {
+                  if (el) dropCardRefs.current.set(drop.id, el);
+                  else dropCardRefs.current.delete(drop.id);
+                }}
+                className={`drop-card ${selectedDropId === drop.id ? 'selected' : ''} ${
+                  highlightDropId === drop.id ? 'drop-card-highlight' : ''
+                }`}
                 onClick={() => handleDropClick(drop.id)}
               >
                 <div className="drop-header">

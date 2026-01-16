@@ -251,7 +251,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .bank-icon {
@@ -270,28 +270,55 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 0.25rem 0;
+  margin: 0;
 }
 
 .bank-details {
   display: flex;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+/* Scoped detail rows inside transaction cards (avoid global CSS collisions) */
+.tx-detail-line {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+.tx-detail-label {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tx-detail-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tx-detail-value-link {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 .operator-info {
   display: flex;
   gap: 0.5rem;
   font-size: 0.85rem;
-  margin-top: 0.5rem;
+  line-height: 1.35;
+  margin-top: 0;
 }
 
 .platform-info {
   display: flex;
   gap: 0.5rem;
   font-size: 0.85rem;
-  margin-top: 0.5rem;
+  line-height: 1.35;
+  margin-top: 0;
 }
 
 .operator-label {

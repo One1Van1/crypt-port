@@ -134,6 +134,28 @@
   border-color: var(--primary);
 }
 
+.operator-card.operator-card-highlight {
+  outline: 3px solid rgba(99, 102, 241, 0.9);
+  outline-offset: 2px;
+  will-change: outline-color, background-color;
+  animation: operatorCardHighlight 2.6s ease-out;
+}
+
+@keyframes operatorCardHighlight {
+  0% {
+    outline-color: rgba(99, 102, 241, 0.9);
+    background-color: rgba(99, 102, 241, 0.12);
+  }
+  20% {
+    outline-color: rgba(99, 102, 241, 0.6);
+    background-color: rgba(99, 102, 241, 0.08);
+  }
+  100% {
+    outline-color: rgba(99, 102, 241, 0);
+    background-color: rgba(99, 102, 241, 0);
+  }
+}
+
 .operator-card-header {
   display: flex;
   justify-content: space-between;

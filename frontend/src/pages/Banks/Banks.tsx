@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
@@ -15,6 +15,7 @@ import './Banks.css';
 const Banks = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const [banks, setBanks] = useState<OperatorBank[]>([]);
   const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
@@ -31,6 +32,9 @@ const Banks = () => {
   const [createCode, setCreateCode] = useState('');
   const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const [highlightBankId, setHighlightBankId] = useState<number | null>(null);
+  const bankCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const createNameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -74,6 +78,34 @@ const Banks = () => {
   useEffect(() => {
     fetchBanks();
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { focusBankId?: unknown } | null;
+    const raw = state?.focusBankId;
+    const id =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && /^[0-9]+$/.test(raw.trim())
+          ? Number(raw)
+          : null;
+
+    if (!id || !Number.isFinite(id)) return;
+    if (banks.length === 0) return;
+
+    void handleBankClick(id);
+    setHighlightBankId(id);
+    window.history.replaceState({}, document.title);
+  }, [location.state, banks.length]);
+
+  useEffect(() => {
+    if (!highlightBankId) return;
+    const el = bankCardRefs.current.get(highlightBankId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timeout = window.setTimeout(() => setHighlightBankId(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [highlightBankId, banks.length]);
 
   const fetchBanks = async () => {
     try {
@@ -357,7 +389,14 @@ const Banks = () => {
             {banks.map((bank) => (
               <div
                 key={bank.id}
-                className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''}`}
+                ref={(el) => {
+                  if (el) bankCardRefs.current.set(bank.id, el);
+                  else bankCardRefs.current.delete(bank.id);
+                }}
+                className={`bank-card ${selectedBankId === bank.id ? 'selected' : ''} ${
+                  highlightBankId === bank.id ? 'bank-card-highlight' : ''
+                }`}
+                data-highlight={highlightBankId === bank.id ? 'true' : 'false'}
                 onClick={() => handleBankClick(bank.id)}
               >
                 <div className="bank-header">

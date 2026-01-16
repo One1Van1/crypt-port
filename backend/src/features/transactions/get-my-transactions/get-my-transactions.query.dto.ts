@@ -1,9 +1,24 @@
-import { IsOptional, IsString, IsEnum, IsInt } from 'class-validator';
+import { IsOptional, IsString, IsEnum, IsInt, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { TransactionStatus } from '../../../common/enums/transaction.enum';
 
 export class GetMyTransactionsQueryDto {
+  @ApiProperty({ description: 'Page number', example: 1, minimum: 1, required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @ApiProperty({ description: 'Items per page', example: 10, minimum: 1, maximum: 100, required: false })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number;
+
   @ApiProperty({
     enum: TransactionStatus,
     enumName: 'TransactionStatus',

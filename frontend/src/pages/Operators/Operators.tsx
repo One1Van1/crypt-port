@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -30,9 +30,13 @@ interface Operator extends User {
 export default function Operators() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useAuthStore((state) => state.user);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
+  const [focusUserId, setFocusUserId] = useState<number | null>(null);
+  const [highlightUserId, setHighlightUserId] = useState<number | null>(null);
+  const operatorCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   // Check if user is admin
   useEffect(() => {
@@ -40,6 +44,24 @@ export default function Operators() {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    const state = location.state as { focusUserId?: unknown } | null;
+    const raw = state?.focusUserId;
+    const id =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && /^[0-9]+$/.test(raw.trim())
+          ? Number(raw)
+          : null;
+
+    if (!id || !Number.isFinite(id)) return;
+    setFocusUserId(id);
+    setHighlightUserId(id);
+    setSearchQuery('');
+    setStatusFilter('All');
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
 
   // Fetch all shifts to determine user status
   const { data: shiftsData } = useQuery({
@@ -126,6 +148,16 @@ export default function Operators() {
     return matchesSearch && matchesStatus;
   });
 
+  useEffect(() => {
+    if (!highlightUserId) return;
+    const el = operatorCardRefs.current.get(highlightUserId);
+    if (!el) return;
+
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const timeout = window.setTimeout(() => setHighlightUserId(null), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [highlightUserId, filteredOperators.length]);
+
   const activeCount = operators.filter(op => op.status === 'Active').length;
   const inactiveCount = operators.filter(op => op.status === 'Inactive').length;
 
@@ -189,7 +221,16 @@ export default function Operators() {
 
       <div className="operators-grid">
         {filteredOperators.map((operator) => (
-          <div key={operator.id} className="operator-card">
+          <div
+            key={operator.id}
+            ref={(el) => {
+              if (el) operatorCardRefs.current.set(Number(operator.id), el);
+              else operatorCardRefs.current.delete(Number(operator.id));
+            }}
+            className={`operator-card ${
+              highlightUserId && Number(operator.id) === highlightUserId ? 'operator-card-highlight' : ''
+            }`}
+          >
             <div className="operator-card-header">
               <div className="operator-info">
                 <div 

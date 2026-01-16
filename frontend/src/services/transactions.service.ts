@@ -43,6 +43,11 @@ export interface Transaction {
   bankAccount: {
     cbu: string;
   };
+  // Drop (requisite owner)
+  drop?: {
+    id: number;
+    name: string;
+  };
   createdAt: string;
 }
 
@@ -118,6 +123,8 @@ class TransactionsService {
     shiftId?: string;
     startDate?: string;
     endDate?: string;
+    page?: number;
+    limit?: number;
   }): Promise<GetTransactionsResponse> {
     console.log('🔍 transactionsService.getMyTransactions called');
     const response = await apiClient.get<GetTransactionsResponse>('/transactions/my-transactions', { params });

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit3, Trash2, Save, X, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import { platformsService } from '../../services/platforms.service';
 import { platformExchangesService } from '../../services/platform-exchanges.service';
 import { useAuthStore } from '../../store/authStore';
@@ -19,6 +20,10 @@ export default function Platforms() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const location = useLocation();
+
+  const [focusPlatformId, setFocusPlatformId] = useState<number | null>(null);
+  const platformCardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -28,6 +33,42 @@ export default function Platforms() {
     exchangeRate: '' as any,
     balance: '' as any,
   });
+
+  useEffect(() => {
+    const state = location.state as { focusPlatformId?: unknown } | null;
+    const raw = state?.focusPlatformId;
+    const id =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && /^[0-9]+$/.test(raw.trim())
+          ? Number(raw)
+          : null;
+
+    if (!id || !Number.isFinite(id)) return;
+    setFocusPlatformId(id);
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
+  useEffect(() => {
+    if (!focusPlatformId) return;
+    let raf = 0;
+    const tryScroll = () => {
+      const el = platformCardRefs.current.get(focusPlatformId);
+      if (!el) {
+        raf = window.requestAnimationFrame(tryScroll);
+        return;
+      }
+
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    raf = window.requestAnimationFrame(tryScroll);
+    const timeout = window.setTimeout(() => setFocusPlatformId(null), 2600);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(timeout);
+    };
+  }, [focusPlatformId]);
 
   // Fetch platforms
   const { data, isLoading, refetch } = useQuery({
@@ -170,7 +211,16 @@ export default function Platforms() {
 
       <div className="platforms-list">
         {data?.items.map((platform) => (
-          <div key={platform.id} className="platform-card">
+          <div
+            key={platform.id}
+            ref={(el) => {
+              if (el) platformCardRefs.current.set(Number(platform.id), el);
+              else platformCardRefs.current.delete(Number(platform.id));
+            }}
+            className={`platform-card ${
+              focusPlatformId && Number(platform.id) === focusPlatformId ? 'platform-card-highlight' : ''
+            }`}
+          >
             {editingId === platform.id ? (
               <div className="platform-edit-form">
                 <div className="form-group">

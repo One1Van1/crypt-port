@@ -105,9 +105,10 @@
     "operatorsTransactions": "Все операции",
     "operator": "Оператор",
     "physicalBank": "Физ. банк:",
-    "withdrawalBank": "Банк вывода:",
+    "withdrawalBank": "Нео-банк:",
     "employee": "Сотрудник:",
-    "platform": "Площадка:"
+    "platform": "Площадка:",
+    "drop": "Дроп:"
   },
   "dashboard": {
     "title": "Главная",
