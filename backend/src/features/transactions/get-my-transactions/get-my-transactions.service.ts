@@ -63,19 +63,24 @@ export class GetMyTransactionsService {
 
     const transactionItems = items.map((transaction) => {
       const item = new TransactionItemDto();
-      item.id = String(transaction.id);
-      item.amount = transaction.amount;
-      item.currency = 'ARS'; // Default currency
+      item.id = transaction.id;
+      item.amount = Number(transaction.amount);
       item.status = transaction.status;
-      item.userId = String(transaction.userId);
-      item.username = transaction.user?.username || null;
-      item.platformId = transaction.shift?.platform?.id || null;
-      item.platformName = transaction.shift?.platform?.name || null;
-      item.shiftId = String(transaction.shiftId);
-      item.bankAccountId = String(transaction.bankAccountId);
-      item.bankAccountNumber = transaction.bankAccount?.cbu || null;
-      item.bankName = transaction.bankAccount?.bank?.name || null;
-      item.dropName = transaction.bankAccount?.drop?.name || null;
+      item.bank = transaction.bankAccount?.bank
+        ? { id: transaction.bankAccount.bank.id, name: transaction.bankAccount.bank.name }
+        : null;
+      item.user = transaction.user
+        ? { id: transaction.user.id, username: transaction.user.username }
+        : null;
+      item.platform = transaction.shift?.platform
+        ? { id: transaction.shift.platform.id, name: transaction.shift.platform.name }
+        : null;
+      item.bankAccount = transaction.bankAccount
+        ? { cbu: transaction.bankAccount.cbu }
+        : null;
+      item.drop = transaction.bankAccount?.drop
+        ? { id: transaction.bankAccount.drop.id, name: transaction.bankAccount.drop.name }
+        : null;
       item.createdAt = transaction.createdAt;
       item.updatedAt = transaction.updatedAt;
       return item;
