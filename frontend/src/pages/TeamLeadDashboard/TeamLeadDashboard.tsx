@@ -502,7 +502,10 @@ function RequisitesSection({
   const handlePriorityChange = async (accountId: number, newPriority: number) => {
     if (isNaN(newPriority)) return;
 
-    await reorderAndPersistPriorities(accountId, newPriority);
+    // Always reorder based on fresh server priorities.
+    // Otherwise the local input draft can overwrite `account.priority` and break diffing,
+    // causing the wrong rows to be updated.
+    await reorderAndPersistPriorities(accountId, newPriority, { fetchFresh: true });
   };
 
   const handlePriorityInput = (accountId: number, newValue: string) => {
