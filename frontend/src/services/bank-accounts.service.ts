@@ -74,6 +74,25 @@ export interface GetRequisiteV2Response {
   neoBanks: GetRequisiteV2NeoBank[];
 }
 
+export interface ReserveRequisiteV3Response {
+  bankAccountId: number;
+  reservationToken: string;
+  expiresAt: string;
+}
+
+export interface ReleaseRequisiteV3Response {
+  released: boolean;
+}
+
+export interface GetReservationStatusV3Response {
+  bankAccountId: number;
+  reserved: boolean;
+  reservedByUserId?: number | null;
+  reservedByUsername?: string | null;
+  reservedByEmail?: string | null;
+  expiresAt?: string | null;
+}
+
 class BankAccountsService {
   async getAll(params?: {
     page?: number;
@@ -140,6 +159,25 @@ class BankAccountsService {
   }): Promise<SearchNeoBanksV3Response> {
     const response = await apiClient.get<SearchNeoBanksV3Response>('/bank-accounts/requisite-v3/neo-banks', {
       params,
+    });
+    return response.data;
+  }
+
+  async reserveRequisiteV3(bankAccountId: number): Promise<ReserveRequisiteV3Response> {
+    const response = await apiClient.post<ReserveRequisiteV3Response>('/bank-accounts/requisite-v3/reserve', {
+      bankAccountId,
+    });
+    return response.data;
+  }
+
+  async releaseRequisiteV3(params: { bankAccountId: number; reservationToken: string }): Promise<ReleaseRequisiteV3Response> {
+    const response = await apiClient.post<ReleaseRequisiteV3Response>('/bank-accounts/requisite-v3/release', params);
+    return response.data;
+  }
+
+  async getReservationStatusV3(bankAccountId: number): Promise<GetReservationStatusV3Response> {
+    const response = await apiClient.get<GetReservationStatusV3Response>('/bank-accounts/requisite-v3/reservation-status', {
+      params: { bankAccountId },
     });
     return response.data;
   }

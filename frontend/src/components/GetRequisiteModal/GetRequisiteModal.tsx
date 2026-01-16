@@ -44,6 +44,9 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const [neoBankDropFilter, setNeoBankDropFilter] = useState<string>('all');
   const [neoBankAccountFilter, setNeoBankAccountFilter] = useState<string>('all');
   const [neoBanksUi, setNeoBanksUi] = useState<GetRequisiteV2NeoBank[]>([]);
+  const [requisiteReservationToken, setRequisiteReservationToken] = useState<string>('');
+  const [reservingRequisite, setReservingRequisite] = useState<boolean>(false);
+  const [waitingForRequisiteRelease, setWaitingForRequisiteRelease] = useState<boolean>(false);
   const [amount, setAmount] = useState<string>('');
   const [comment, setComment] = useState<string>('');
   const [copiedField, setCopiedField] = useState<'cbu' | 'alias' | null>(null);
@@ -102,9 +105,86 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     }
   }, [isOpen]);
 
+  // Auto-refresh bank account limit + reservation status while modal is open.
+  // This prevents manual refresh when another operator changes the requisite.
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!requisite) return;
+    if (step !== 'select-source' && step !== 'amount') return;
+
+    const bankAccountId = requisite.id;
+    let cancelled = false;
+
+    const formatReservedMsg = (status: any) => {
+      const who =
+        status?.reservedByUsername ||
+        status?.reservedByEmail ||
+        (status?.reservedByUserId ? `ID ${status.reservedByUserId}` : 'другим оператором');
+
+      const until = status?.expiresAt
+        ? new Date(status.expiresAt).toLocaleTimeString('ru-RU', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : null;
+
+      return until
+        ? `Реквизит сейчас занят: ${who} (до ${until}). Возьмите следующий.`
+        : `Реквизит сейчас занят: ${who}. Возьмите следующий.`;
+    };
+
+    const tick = async () => {
+      // 1) Refresh bank account (limit) regardless of reservation state
+      try {
+        const fresh = await bankAccountsService.getById(String(bankAccountId));
+        if (cancelled) return;
+        setRequisite((prev) => {
+          if (!prev || prev.id !== bankAccountId) return prev;
+          return {
+            ...prev,
+            ...fresh,
+            bankName: fresh.bankName ?? prev.bankName,
+            dropName: fresh.dropName ?? prev.dropName,
+            bank: fresh.bank ?? prev.bank,
+            drop: fresh.drop ?? prev.drop,
+          };
+        });
+      } catch {
+        // ignore
+      }
+
+      // 2) If we're waiting for release, refresh reservation status
+      if (!waitingForRequisiteRelease) return;
+
+      try {
+        const status = await bankAccountsService.getReservationStatusV3(bankAccountId);
+        if (cancelled) return;
+
+        if (!status?.reserved) {
+          setWaitingForRequisiteRelease(false);
+          setError('');
+          toast.success('Реквизит снова доступен');
+          return;
+        }
+
+        // Update message without spamming toast
+        setError(formatReservedMsg(status));
+      } catch {
+        // ignore
+      }
+    };
+
+    tick();
+    const intervalId = window.setInterval(tick, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [isOpen, requisite, step, waitingForRequisiteRelease]);
+
   // Создать транзакцию
   const createTransaction = useMutation({
-    mutationFn: (data: CreateTransactionRequest) => transactionsService.createV3(data),
+    mutationFn: (data: CreateTransactionRequest) => transactionsService.createV4(data),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['current-shift'] });
       queryClient.invalidateQueries({ queryKey: ['my-transactions'] });
@@ -139,6 +219,7 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
 
   const handleGetRequisite = async () => {
     setError('');
+    setWaitingForRequisiteRelease(false);
     setStep('loading');
     
     try {
@@ -178,6 +259,11 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
   const handleSubmitAmount = () => {
     if (!requisite) return;
 
+    if (!requisiteReservationToken) {
+      setError('Реквизит не зарезервирован. Нажмите "Далее" ещё раз.');
+      return;
+    }
+
     const amountNum = parseFloat(amount);
     const availableAmount = requisite.currentLimitAmount || 0;
 
@@ -201,11 +287,20 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
       amount: amountNum,
       sourceDropNeoBankId: Number(selectedNeoBank),
       bankAccountId: requisite.id,
+      reservationToken: requisiteReservationToken,
       comment: comment?.trim() || undefined,
     });
   };
 
   const handleClose = () => {
+    // Best-effort release reservation
+    if (requisite && requisiteReservationToken) {
+      bankAccountsService.releaseRequisiteV3({
+        bankAccountId: requisite.id,
+        reservationToken: requisiteReservationToken,
+      }).catch(() => undefined);
+    }
+
     setStep('loading');
     setSelectedNeoBank(null);
     setRequisite(null);
@@ -216,6 +311,9 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
     setNeoBankDropFilter('all');
     setNeoBankAccountFilter('all');
     setNeoBanksUi([]);
+    setRequisiteReservationToken('');
+    setReservingRequisite(false);
+    setWaitingForRequisiteRelease(false);
     setAmount('');
     setComment('');
     setError('');
@@ -579,7 +677,22 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
               )}
 
               <div className="modal-footer">
-                <button className="btn-secondary" onClick={() => setStep('select-source')}>
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    if (requisite && requisiteReservationToken) {
+                      bankAccountsService
+                        .releaseRequisiteV3({
+                          bankAccountId: requisite.id,
+                          reservationToken: requisiteReservationToken,
+                        })
+                        .catch(() => undefined);
+                    }
+                    setRequisiteReservationToken('');
+                    setWaitingForRequisiteRelease(false);
+                    setStep('select-source');
+                  }}
+                >
                   Назад
                 </button>
                 <button 
@@ -632,6 +745,8 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   setStep('select-source');
                   setSelectedNeoBank(null);
                   setRequisite(null);
+                  setRequisiteReservationToken('');
+                  setReservingRequisite(false);
                   handleGetRequisite();
                 }}>
                   Получить следующий реквизит →
@@ -658,11 +773,57 @@ export default function GetRequisiteModal({ isOpen, onClose }: GetRequisiteModal
                   toast.error('Выберите нео-банк');
                   return;
                 }
-                setStep('amount');
+                if (!requisite) return;
+
+                setReservingRequisite(true);
+                setError('');
+                setWaitingForRequisiteRelease(false);
+                bankAccountsService
+                  .reserveRequisiteV3(requisite.id)
+                  .then((resp) => {
+                    setRequisiteReservationToken(resp.reservationToken);
+                    setStep('amount');
+                  })
+                  .catch((err: any) => {
+                    const baseMsg = err?.response?.data?.message || 'Реквизит сейчас занят другим оператором';
+
+                    bankAccountsService
+                      .getReservationStatusV3(requisite.id)
+                      .then((status) => {
+                        if (!status?.reserved) {
+                          setError(String(baseMsg));
+                          toast.error(String(baseMsg));
+                          return;
+                        }
+
+                        const who =
+                          status.reservedByUsername || status.reservedByEmail || (status.reservedByUserId ? `ID ${status.reservedByUserId}` : 'другим оператором');
+
+                        const until = status.expiresAt
+                          ? new Date(status.expiresAt).toLocaleTimeString('ru-RU', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : null;
+
+                        const msg = until
+                          ? `Реквизит сейчас занят: ${who} (до ${until}). Возьмите следующий.`
+                          : `Реквизит сейчас занят: ${who}. Возьмите следующий.`;
+
+                        setWaitingForRequisiteRelease(true);
+                        setError(msg);
+                        toast.error(msg);
+                      })
+                      .catch(() => {
+                        setError(String(baseMsg));
+                        toast.error(String(baseMsg));
+                      });
+                  })
+                  .finally(() => setReservingRequisite(false));
               }}
-              disabled={!selectedNeoBank}
+              disabled={!selectedNeoBank || reservingRequisite}
             >
-              Далее - Ввести сумму →
+              {reservingRequisite ? 'Проверяем...' : 'Далее - Ввести сумму →'}
             </button>
           </div>
         )}

@@ -52,6 +52,16 @@ import { GetRequisiteV3Service } from '../features/bank-accounts/get-requisite-v
 import { SearchNeoBanksV3Controller } from '../features/bank-accounts/search-neo-banks-v3/search-neo-banks-v3.controller';
 import { SearchNeoBanksV3Service } from '../features/bank-accounts/search-neo-banks-v3/search-neo-banks-v3.service';
 
+// Reserve/Release Requisite V3
+import { ReserveRequisiteV3Controller } from '../features/bank-accounts/reserve-requisite-v3/reserve-requisite-v3.controller';
+import { ReserveRequisiteV3Service } from '../features/bank-accounts/reserve-requisite-v3/reserve-requisite-v3.service';
+import { ReleaseRequisiteV3Controller } from '../features/bank-accounts/release-requisite-v3/release-requisite-v3.controller';
+import { ReleaseRequisiteV3Service } from '../features/bank-accounts/release-requisite-v3/release-requisite-v3.service';
+
+// Get Reservation Status V3
+import { GetReservationStatusV3Controller } from '../features/bank-accounts/get-reservation-status-v3/get-reservation-status-v3.controller';
+import { GetReservationStatusV3Service } from '../features/bank-accounts/get-reservation-status-v3/get-reservation-status-v3.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([BankAccount, Bank, Drop])],
   controllers: [
@@ -60,6 +70,9 @@ import { SearchNeoBanksV3Service } from '../features/bank-accounts/search-neo-ba
     GetAvailableBankAccountController,
     GetRequisiteV2Controller,
     GetRequisiteV3Controller,
+    ReserveRequisiteV3Controller,
+    ReleaseRequisiteV3Controller,
+    GetReservationStatusV3Controller,
     SearchNeoBanksV3Controller,
     GetBankAccountByIdController,
     UpdateBankAccountController,
@@ -79,6 +92,9 @@ import { SearchNeoBanksV3Service } from '../features/bank-accounts/search-neo-ba
     GetAvailableBankAccountService,
     GetRequisiteV2Service,
     GetRequisiteV3Service,
+    ReserveRequisiteV3Service,
+    ReleaseRequisiteV3Service,
+    GetReservationStatusV3Service,
     SearchNeoBanksV3Service,
     DeleteBankAccountService,
   ],

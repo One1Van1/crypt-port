@@ -80,6 +80,7 @@ export interface CreateTransactionRequest {
   amount: number;
   sourceDropNeoBankId: number;
   bankAccountId: number;
+  reservationToken?: string;
   receipt?: string;
   comment?: string;
 }
@@ -223,6 +224,12 @@ class TransactionsService {
   // Создать транзакцию v3 (platform-funded; neo-bank for history)
   async createV3(data: CreateTransactionRequest): Promise<CreateTransactionV3Response> {
     const response = await apiClient.post<CreateTransactionV3Response>('/transactions/v3', data);
+    return response.data;
+  }
+
+  // Создать транзакцию v4 (v3 + concurrency-safe locking)
+  async createV4(data: CreateTransactionRequest): Promise<CreateTransactionV3Response> {
+    const response = await apiClient.post<CreateTransactionV3Response>('/transactions/v4', data);
     return response.data;
   }
 

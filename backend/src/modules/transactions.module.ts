@@ -19,6 +19,10 @@ import { CreateTransactionV2Service } from '../features/transactions/create-v2/c
 import { CreateTransactionV3Controller } from '../features/transactions/create-v3/create-v3.controller';
 import { CreateTransactionV3Service } from '../features/transactions/create-v3/create-v3.service';
 
+// Create Transaction v4 (concurrency-safe locking)
+import { CreateTransactionV4Controller } from '../features/transactions/create-v4/create-v4.controller';
+import { CreateTransactionV4Service } from '../features/transactions/create-v4/create-v4.service';
+
 // Get My Transactions
 import { GetMyTransactionsController } from '../features/transactions/get-my/get-my.controller';
 import { GetMyTransactionsService } from '../features/transactions/get-my/get-my.service';
@@ -65,6 +69,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     CreateTransactionController,
     CreateTransactionV2Controller,
     CreateTransactionV3Controller,
+    CreateTransactionV4Controller,
     GetMyTransactionsController,
     GetMyRecentTransactionsController,
     GetMyBanksController,
@@ -80,6 +85,7 @@ import { GetTransactionsStatsService } from '../features/transactions/stats/stat
     CreateTransactionService,
     CreateTransactionV2Service,
     CreateTransactionV3Service,
+    CreateTransactionV4Service,
     GetMyTransactionsService,
     GetMyRecentTransactionsService,
     GetMyBanksService,
