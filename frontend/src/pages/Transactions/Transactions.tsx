@@ -654,6 +654,10 @@ export default function Transactions() {
           <div className="transactions-list">
             {transactions.map((transaction: any) => {
               const txId = String(transaction.id);
+              const neoBankId = Number(transaction.dropNeoBank?.id);
+              const neoBankDropName = Number.isFinite(neoBankId)
+                ? (neoBanks.find((nb: any) => Number(nb.id) === neoBankId)?.drop?.name as string | undefined)
+                : undefined;
               return (
               <div
                 key={txId}
@@ -699,7 +703,7 @@ export default function Transactions() {
                           }}
                           style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
                         >
-                          {t('transactions.drop')} {transaction.drop.name}
+                          {t('transactions.dropRequisite')} {transaction.drop.name}
                         </span>
                       </div>
                     )}
@@ -713,6 +717,20 @@ export default function Transactions() {
                           style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
                         >
                           {t('transactions.withdrawalBank')} {transaction.dropNeoBank.provider} - {transaction.dropNeoBank.accountId}
+                        </span>
+                      </div>
+                    )}
+
+                    {neoBankDropName && (
+                      <div className="bank-details">
+                        <span
+                          onDoubleClick={() => {
+                            const id = Number(neoBanks.find((nb: any) => Number(nb.id) === neoBankId)?.drop?.id);
+                            if (Number.isFinite(id) && id > 0) goToDrop(id);
+                          }}
+                          style={{ cursor: isTeamLeadOrAdmin ? 'pointer' : undefined }}
+                        >
+                          {t('transactions.dropNeoBank')} {neoBankDropName}
                         </span>
                       </div>
                     )}

@@ -86,7 +86,9 @@
     "withdrawalBank": "Neo-bank:",
     "employee": "Employee:",
     "platform": "Platform:",
-    "drop": "Drop:"
+    "drop": "Drop:",
+    "dropRequisite": "Requisite drop:",
+    "dropNeoBank": "Neo-bank drop:"
   },
   "dashboard": {
     "title": "Home",

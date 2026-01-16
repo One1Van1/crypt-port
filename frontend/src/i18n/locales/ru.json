@@ -108,7 +108,9 @@
     "withdrawalBank": "Нео-банк:",
     "employee": "Сотрудник:",
     "platform": "Площадка:",
-    "drop": "Дроп:"
+    "drop": "Дроп:",
+    "dropRequisite": "Дроп реквизита:",
+    "dropNeoBank": "Дроп нео-банка:"
   },
   "dashboard": {
     "title": "Главная",
