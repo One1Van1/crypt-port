@@ -104,6 +104,21 @@ export interface ProfitHistory {
   history: DailyProfitPoint[];
 }
 
+export type PesosAccountsDetailsKind = 'unpaid' | 'blocked';
+
+export interface PesosAccountDetailsV1Item {
+  id: number;
+  type: string;
+  identifier: string;
+  bankName: string;
+  dropName: string;
+  balanceUsdt: number;
+}
+
+export interface GetPesosAccountsDetailsV1Response {
+  items: PesosAccountDetailsV1Item[];
+}
+
 export const workingDepositService = {
   getSections: async (): Promise<WorkingDepositSections> => {
     const response = await apiClient.get('/working-deposit/sections-ledger');
@@ -112,6 +127,13 @@ export const workingDepositService = {
 
   getSectionsV2: async (): Promise<WorkingDepositSections> => {
     const response = await apiClient.get('/working-deposit/sections-ledger-v3');
+    return response.data;
+  },
+
+  getPesosAccountsDetailsV1: async (kind: PesosAccountsDetailsKind): Promise<GetPesosAccountsDetailsV1Response> => {
+    const response = await apiClient.get('/working-deposit/pesos-accounts-details-v1', {
+      params: { kind },
+    });
     return response.data;
   },
 

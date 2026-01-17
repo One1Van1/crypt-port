@@ -51,6 +51,10 @@ import { ReserveProfitService } from '../features/working-deposit/reserve-profit
 import { ReserveProfitV2Controller } from '../features/working-deposit/reserve-profit-v2/reserve-profit-v2.controller';
 import { ReserveProfitV2Service } from '../features/working-deposit/reserve-profit-v2/reserve-profit-v2.service';
 
+// Pesos accounts details (bank + drop)
+import { GetPesosAccountsDetailsV1Controller } from '../features/working-deposit/get-pesos-accounts-details-v1/get-pesos-accounts-details-v1.controller';
+import { GetPesosAccountsDetailsV1Service } from '../features/working-deposit/get-pesos-accounts-details-v1/get-pesos-accounts-details-v1.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -83,6 +87,7 @@ import { ReserveProfitV2Service } from '../features/working-deposit/reserve-prof
     GetProfitHistoryController,
     ReserveProfitController,
     ReserveProfitV2Controller,
+    GetPesosAccountsDetailsV1Controller,
   ],
   providers: [
     GetWorkingDepositSectionsService,
@@ -93,6 +98,7 @@ import { ReserveProfitV2Service } from '../features/working-deposit/reserve-prof
     GetProfitHistoryService,
     ReserveProfitService,
     ReserveProfitV2Service,
+    GetPesosAccountsDetailsV1Service,
   ],
 })
 export class WorkingDepositModule {}

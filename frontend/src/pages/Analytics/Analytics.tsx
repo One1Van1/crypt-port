@@ -176,6 +176,15 @@ export default function Analytics() {
     queryFn: () => workingDepositService.getSectionsV2(),
   });
 
+  const { data: pesosAccountsDetailsData, isLoading: isPesosAccountsDetailsLoading } = useQuery({
+    queryKey: ['workingDepositPesosAccountsDetailsV1', selectedSection],
+    queryFn: () => {
+      const kind = selectedSection === 'blocked' ? 'blocked' : 'unpaid';
+      return workingDepositService.getPesosAccountsDetailsV1(kind);
+    },
+    enabled: !!workingDepositData && (selectedSection === 'blocked' || selectedSection === 'unpaid'),
+  });
+
   const { data: profitWithdrawalsHistory, isLoading: isProfitHistoryLoading } = useQuery({
     queryKey: ['profitWithdrawalsHistory'],
     queryFn: () => profitsService.getHistory(),
@@ -1319,15 +1328,20 @@ export default function Analytics() {
 
                     if (selectedSection === 'blocked' || selectedSection === 'unpaid') {
                       const title = selectedSection === 'blocked' ? '🔒 Заблокированные песо' : '⏳ Неоплаченные песо';
-                      const accounts = selectedSection === 'blocked' ? workingDepositData.blockedPesos.accounts : workingDepositData.unpaidPesos.accounts;
-                      const rows = accounts || [];
+                      const legacyAccounts = selectedSection === 'blocked' ? workingDepositData.blockedPesos.accounts : workingDepositData.unpaidPesos.accounts;
+                      const rows = (pesosAccountsDetailsData?.items?.length ? pesosAccountsDetailsData.items : legacyAccounts) || [];
                       return (
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>{title}</div>
+                          {isPesosAccountsDetailsLoading ? (
+                            <div style={{ color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>Загрузка...</div>
+                          ) : null}
                           {rows.length ? (
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                               <thead>
                                 <tr style={{ backgroundColor: 'rgba(100, 116, 139, 0.08)' }}>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Дроп</th>
+                                  <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Физ. банк</th>
                                   <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-secondary)' }}>Счёт</th>
                                   <th style={{ textAlign: 'right', padding: '8px', color: 'var(--text-secondary)' }}>USDT</th>
                                 </tr>
@@ -1335,6 +1349,8 @@ export default function Analytics() {
                               <tbody>
                                 {rows.map((a: any) => (
                                   <tr key={`${a.type}-${a.id}`} style={{ borderTop: '1px solid var(--border-color)' }}>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{a.dropName ?? '—'}</td>
+                                    <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{a.bankName ?? '—'}</td>
                                     <td style={{ padding: '8px', color: 'var(--text-primary)' }}>{a.identifier}</td>
                                     <td style={{ padding: '8px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: 600 }}>{Number(a.balanceUsdt || 0).toFixed(2)}</td>
                                   </tr>
