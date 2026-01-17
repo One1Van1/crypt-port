@@ -5,6 +5,7 @@ import { ProfitReserve } from './profit-reserve.entity';
 
 export enum FreeUsdtAdjustmentReason {
   RESERVE_PROFIT = 'RESERVE_PROFIT',
+  ADMIN_MINT = 'ADMIN_MINT',
 }
 
 @Entity('free_usdt_adjustments')

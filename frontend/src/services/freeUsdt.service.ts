@@ -31,9 +31,26 @@ export interface GetFreeUsdtDistributionsResponse {
   total: number;
 }
 
+export interface MintFreeUsdtRequest {
+  amountUsdt: number;
+}
+
+export interface MintFreeUsdtResponse {
+  adjustmentId: number;
+  amountUsdt: number;
+  reason: string;
+  createdByUserId: number;
+  createdAt: string;
+}
+
 class FreeUsdtService {
   async distribute(dto: DistributeFreeUsdtRequest): Promise<DistributeFreeUsdtResponse> {
     const response = await apiClient.post<DistributeFreeUsdtResponse>('/free-usdt/distribute', dto);
+    return response.data;
+  }
+
+  async mint(dto: MintFreeUsdtRequest): Promise<MintFreeUsdtResponse> {
+    const response = await apiClient.post<MintFreeUsdtResponse>('/free-usdt/mint', dto);
     return response.data;
   }
 

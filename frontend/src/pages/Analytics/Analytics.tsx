@@ -117,6 +117,8 @@ export default function Analytics() {
   const [freeUsdtDistributeAmountDraft, setFreeUsdtDistributeAmountDraft] = useState<string>('');
   const [freeUsdtDistributeCommentDraft, setFreeUsdtDistributeCommentDraft] = useState<string>('');
 
+  const [freeUsdtMintAmountDraft, setFreeUsdtMintAmountDraft] = useState<string>('');
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['analytics', dateFilter, platformFilter, operatorFilter],
     queryFn: analyticsService.getGeneral,
@@ -240,6 +242,19 @@ export default function Analytics() {
     onError: (e: any) => {
       const msg = e?.response?.data?.message;
       toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка распределения USDT');
+    },
+  });
+
+  const mintFreeUsdtMutation = useMutation({
+    mutationFn: (dto: { amountUsdt: number }) => freeUsdtService.mint(dto),
+    onSuccess: () => {
+      toast.success('Свободные USDT добавлены');
+      queryClient.invalidateQueries({ queryKey: ['workingDepositSections'] });
+      setFreeUsdtMintAmountDraft('');
+    },
+    onError: (e: any) => {
+      const msg = e?.response?.data?.message;
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg || 'Ошибка добавления USDT');
     },
   });
 
@@ -1336,6 +1351,7 @@ export default function Analytics() {
                     if (selectedSection === 'free') {
                       const conversions = workingDepositData.freeUsdt.conversions || [];
                       const parsedDistributeAmount = Number(String(freeUsdtDistributeAmountDraft).replace(',', '.'));
+                      const parsedMintAmount = Number(String(freeUsdtMintAmountDraft).replace(',', '.'));
                       return (
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: 10 }}>✨ Свободные USDT</div>
@@ -1347,6 +1363,62 @@ export default function Analytics() {
                             <div>Зарезервированный профит</div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{Number(workingDepositData.profitReserve?.totalUsdt || 0).toFixed(2)} USDT</div>
                           </div>
+
+                          {(user?.role === UserRole.ADMIN) && (
+                            <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 4, marginBottom: 14 }}>
+                              <div style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: 10, fontSize: '0.95rem' }}>
+                                Добавить свободные USDT
+                              </div>
+                              <div style={{ display: 'grid', gap: 10 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Сумма (USDT)</span>
+                                  <input
+                                    value={freeUsdtMintAmountDraft}
+                                    onChange={(e) => setFreeUsdtMintAmountDraft(e.target.value)}
+                                    inputMode="decimal"
+                                    placeholder="0"
+                                    style={{
+                                      width: 140,
+                                      padding: '8px 10px',
+                                      borderRadius: 10,
+                                      border: '1px solid var(--border-color)',
+                                      background: 'transparent',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.95rem',
+                                      textAlign: 'right',
+                                    }}
+                                  />
+                                </div>
+
+                                <button
+                                  type="button"
+                                  disabled={mintFreeUsdtMutation.isPending}
+                                  onClick={() => {
+                                    if (!Number.isFinite(parsedMintAmount) || parsedMintAmount <= 0) {
+                                      toast.error('Введите сумму в USDT');
+                                      return;
+                                    }
+
+                                    mintFreeUsdtMutation.mutate({ amountUsdt: parsedMintAmount });
+                                  }}
+                                  style={{
+                                    marginTop: 4,
+                                    padding: '10px 12px',
+                                    borderRadius: 12,
+                                    border: '1px solid var(--border-color)',
+                                    background: 'transparent',
+                                    color: 'var(--text-primary)',
+                                    fontWeight: 800,
+                                    fontSize: '0.95rem',
+                                    cursor: mintFreeUsdtMutation.isPending ? 'not-allowed' : 'pointer',
+                                    opacity: mintFreeUsdtMutation.isPending ? 0.6 : 1,
+                                  }}
+                                >
+                                  {mintFreeUsdtMutation.isPending ? 'Добавление...' : 'Добавить'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
 
                           {(user?.role === UserRole.ADMIN) && (
                             <div style={{ paddingTop: 12, borderTop: '1px solid var(--border-color)', marginTop: 4, marginBottom: 14 }}>

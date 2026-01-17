@@ -6,6 +6,7 @@ import { SystemSetting } from '../entities/system-setting.entity';
 import { Platform } from '../entities/platform.entity';
 import { FreeUsdtEntry } from '../entities/free-usdt-entry.entity';
 import { FreeUsdtDistribution } from '../entities/free-usdt-distribution.entity';
+import { FreeUsdtAdjustment } from '../entities/free-usdt-adjustment.entity';
 import { GetFreeUsdtLedgerController } from '../features/free-usdt/get-ledger/get-ledger.controller';
 import { GetFreeUsdtLedgerService } from '../features/free-usdt/get-ledger/get-ledger.service';
 import { DistributeFreeUsdtController } from '../features/free-usdt/distribute/distribute.controller';
@@ -14,6 +15,8 @@ import { DistributeFreeUsdtBatchController } from '../features/free-usdt/distrib
 import { DistributeFreeUsdtBatchService } from '../features/free-usdt/distribute-batch/distribute-batch.service';
 import { GetFreeUsdtDistributionsController } from '../features/free-usdt/get-distributions/get-distributions.controller';
 import { GetFreeUsdtDistributionsService } from '../features/free-usdt/get-distributions/get-distributions.service';
+import { MintFreeUsdtController } from '../features/free-usdt/mint/mint.controller';
+import { MintFreeUsdtService } from '../features/free-usdt/mint/mint.service';
 
 @Module({
   imports: [
@@ -24,6 +27,7 @@ import { GetFreeUsdtDistributionsService } from '../features/free-usdt/get-distr
       Platform,
       FreeUsdtEntry,
       FreeUsdtDistribution,
+      FreeUsdtAdjustment,
     ]),
   ],
   controllers: [
@@ -31,12 +35,14 @@ import { GetFreeUsdtDistributionsService } from '../features/free-usdt/get-distr
     DistributeFreeUsdtController,
     DistributeFreeUsdtBatchController,
     GetFreeUsdtDistributionsController,
+    MintFreeUsdtController,
   ],
   providers: [
     GetFreeUsdtLedgerService,
     DistributeFreeUsdtService,
     DistributeFreeUsdtBatchService,
     GetFreeUsdtDistributionsService,
+    MintFreeUsdtService,
   ],
 })
 export class FreeUsdtModule {}
