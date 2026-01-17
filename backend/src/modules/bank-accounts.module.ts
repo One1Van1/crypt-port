@@ -62,6 +62,10 @@ import { ReleaseRequisiteV3Service } from '../features/bank-accounts/release-req
 import { GetReservationStatusV3Controller } from '../features/bank-accounts/get-reservation-status-v3/get-reservation-status-v3.controller';
 import { GetReservationStatusV3Service } from '../features/bank-accounts/get-reservation-status-v3/get-reservation-status-v3.service';
 
+// Update Withdrawn Amount
+import { UpdateWithdrawnAmountController } from '../features/bank-accounts/update-withdrawn-amount/update-withdrawn-amount.controller';
+import { UpdateWithdrawnAmountService } from '../features/bank-accounts/update-withdrawn-amount/update-withdrawn-amount.service';
+
 @Module({
   imports: [TypeOrmModule.forFeature([BankAccount, Bank, Drop])],
   controllers: [
@@ -76,6 +80,7 @@ import { GetReservationStatusV3Service } from '../features/bank-accounts/get-res
     SearchNeoBanksV3Controller,
     GetBankAccountByIdController,
     UpdateBankAccountController,
+    UpdateWithdrawnAmountController,
     UpdateBankAccountStatusController,
     UpdateBankAccountPriorityController,
     BlockBankAccountController,
@@ -86,6 +91,7 @@ import { GetReservationStatusV3Service } from '../features/bank-accounts/get-res
     GetAllBankAccountsService,
     GetBankAccountByIdService,
     UpdateBankAccountService,
+    UpdateWithdrawnAmountService,
     UpdateBankAccountStatusService,
     UpdateBankAccountPriorityService,
     BlockBankAccountService,

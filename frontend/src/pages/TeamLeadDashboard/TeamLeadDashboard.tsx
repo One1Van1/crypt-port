@@ -135,6 +135,9 @@ function RequisitesSection({
   const [limitUpdatingId, setLimitUpdatingId] = useState<number | null>(null);
   const [editingLimitId, setEditingLimitId] = useState<number | null>(null);
   const [limitDraft, setLimitDraft] = useState<Record<number, string>>({});
+  const [withdrawnUpdatingId, setWithdrawnUpdatingId] = useState<number | null>(null);
+  const [editingWithdrawnId, setEditingWithdrawnId] = useState<number | null>(null);
+  const [withdrawnDraft, setWithdrawnDraft] = useState<Record<number, string>>({});
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [banks, setBanks] = useState<Bank[]>([]);
@@ -339,7 +342,13 @@ function RequisitesSection({
   const startEditAvailable = (account: any) => {
     const id = Number(account?.id);
     if (!Number.isFinite(id)) return;
-    if (limitUpdatingId === id || updating === id || statusUpdatingId === id) return;
+    if (
+      limitUpdatingId === id ||
+      withdrawnUpdatingId === id ||
+      updating === id ||
+      statusUpdatingId === id
+    )
+      return;
     setLimitDraft((prev) => ({
       ...prev,
       [id]: String(Number(account?.currentLimitAmount ?? 0)),
@@ -349,6 +358,75 @@ function RequisitesSection({
 
   const cancelEditAvailable = () => {
     setEditingLimitId(null);
+  };
+
+  const startEditWithdrawn = (account: any) => {
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+    if (
+      withdrawnUpdatingId === id ||
+      limitUpdatingId === id ||
+      updating === id ||
+      statusUpdatingId === id
+    )
+      return;
+    setWithdrawnDraft((prev) => ({
+      ...prev,
+      [id]: String(Number(account?.withdrawnAmount ?? 0)),
+    }));
+    setEditingWithdrawnId(id);
+  };
+
+  const cancelEditWithdrawn = () => {
+    setEditingWithdrawnId(null);
+  };
+
+  const saveWithdrawn = async (account: any) => {
+    const id = Number(account?.id);
+    if (!Number.isFinite(id)) return;
+
+    const raw = (withdrawnDraft[id] ?? '').trim().replace(',', '.');
+    const desiredWithdrawn = Number(raw);
+    if (!Number.isFinite(desiredWithdrawn) || desiredWithdrawn < 0) {
+      toast.error(t('common.fillRequired'));
+      return;
+    }
+
+    const initial = Number(account?.initialLimitAmount ?? 0);
+    if (Number.isFinite(initial) && desiredWithdrawn > initial) {
+      toast.error('Вы превышаете лимит');
+      return;
+    }
+
+    const desiredAvailable = initial - desiredWithdrawn;
+
+    setWithdrawnUpdatingId(id);
+    try {
+      await apiClient.patch(`/bank-accounts/${id}/withdrawn-amount`, {
+        withdrawnAmount: desiredWithdrawn,
+      });
+
+      // If available becomes 0, we treat it as reaching the limit: status=blocked and move to the end.
+      if (desiredAvailable <= 0) {
+        await bankAccountsService.updateStatus(String(id), 'blocked');
+        await reorderAndPersistPriorities(id, Number.MAX_SAFE_INTEGER, { fetchFresh: true });
+        setEditingWithdrawnId(null);
+        return;
+      }
+
+      // If it was blocked due to limit but we increased available again, switch back to working.
+      if (String(account?.status) === 'blocked') {
+        await bankAccountsService.updateStatus(String(id), 'working');
+      }
+
+      await loadAccounts();
+      setEditingWithdrawnId(null);
+    } catch (error: any) {
+      console.error('Failed to update withdrawn amount:', error);
+      toast.error(error?.response?.data?.message || t('common.error'));
+    } finally {
+      setWithdrawnUpdatingId(null);
+    }
   };
 
   const saveAvailable = async (account: any) => {
@@ -548,6 +626,7 @@ function RequisitesSection({
   };
 
   const canEditStatus = user?.role === UserRole.ADMIN || user?.role === UserRole.TEAMLEAD;
+  const canEditWithdrawn = user?.role === UserRole.ADMIN;
 
   const updateAccountStatus = async (accountId: number, status: 'working' | 'not_working') => {
     setStatusUpdatingId(accountId);
@@ -742,7 +821,47 @@ function RequisitesSection({
                       )}
                     </td>
                     <td className="amount-cell">
-                      ${withdrawn.toFixed(2)} /
+                      {canEditWithdrawn ? (
+                        editingWithdrawnId === account.id ? (
+                          <input
+                            className="available-edit-input"
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="0.01"
+                            value={withdrawnDraft[account.id] ?? ''}
+                            disabled={withdrawnUpdatingId === account.id}
+                            autoFocus
+                            onChange={(e) =>
+                              setWithdrawnDraft((prev) => ({
+                                ...prev,
+                                [account.id]: e.target.value,
+                              }))
+                            }
+                            onBlur={() => saveWithdrawn(account)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.currentTarget.blur();
+                              }
+                              if (e.key === 'Escape') {
+                                cancelEditWithdrawn();
+                              }
+                            }}
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            className="available-edit-button"
+                            disabled={withdrawnUpdatingId === account.id}
+                            onClick={() => startEditWithdrawn(account)}
+                          >
+                            ${withdrawn.toFixed(2)}
+                          </button>
+                        )
+                      ) : (
+                        <span>${withdrawn.toFixed(2)}</span>
+                      )}{' '}
+                      /
                       {editingLimitId === account.id ? (
                         <input
                           className="available-edit-input"
@@ -751,7 +870,7 @@ function RequisitesSection({
                           min="0"
                           step="0.01"
                           value={limitDraft[account.id] ?? ''}
-                          disabled={limitUpdatingId === account.id}
+                          disabled={limitUpdatingId === account.id || withdrawnUpdatingId === account.id}
                           autoFocus
                           onChange={(e) =>
                             setLimitDraft((prev) => ({ ...prev, [account.id]: e.target.value }))
@@ -770,13 +889,13 @@ function RequisitesSection({
                         <button
                           type="button"
                           className="available-edit-button"
-                          disabled={limitUpdatingId === account.id}
+                          disabled={limitUpdatingId === account.id || withdrawnUpdatingId === account.id}
                           onClick={() => startEditAvailable(account)}
                         >
                           ${available.toFixed(2)}
                         </button>
                       )}
-                      {(updating === account.id || limitUpdatingId === account.id) && (
+                      {(updating === account.id || limitUpdatingId === account.id || withdrawnUpdatingId === account.id) && (
                         <span className="saving-indicator"> (сохранение...)</span>
                       )}
                     </td>
