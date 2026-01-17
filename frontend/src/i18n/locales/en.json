@@ -377,6 +377,7 @@
     "convert": "Convert",
     "convertToUsdt": "Convert to USDT",
     "exchangeRate": "Exchange Rate",
+    "withdrawalRateManualHint": "Enter the rate manually — it is not pulled from the platform",
     "willReceive": "Will receive",
     "noPendingWithdrawals": "No pending withdrawals to convert",
     "conversionCreated": "Conversion completed successfully",

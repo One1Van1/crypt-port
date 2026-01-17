@@ -18,6 +18,8 @@ import { Debt } from '../entities/debt.entity';
 import { DebtOperation } from '../entities/debt-operation.entity';
 import { WithdrawCashController } from '../features/cash-withdrawals/withdraw/withdraw-cash.controller';
 import { WithdrawCashService } from '../features/cash-withdrawals/withdraw/withdraw-cash.service';
+import { WithdrawCashV2Controller } from '../features/cash-withdrawals/withdraw-v2/withdraw-cash-v2.controller';
+import { WithdrawCashV2Service } from '../features/cash-withdrawals/withdraw-v2/withdraw-cash-v2.service';
 import { ConvertToUsdtController } from '../features/cash-withdrawals/convert-to-usdt/convert-to-usdt.controller';
 import { ConvertToUsdtService } from '../features/cash-withdrawals/convert-to-usdt/convert-to-usdt.service';
 import { DirectConvertController } from '../features/cash-withdrawals/direct-convert/direct-convert.controller';
@@ -56,6 +58,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
   ],
   controllers: [
     WithdrawCashController,
+    WithdrawCashV2Controller,
     ConvertToUsdtController,
     DirectConvertController,
     GetAllConversionsController,
@@ -66,6 +69,7 @@ import { GetAllWithdrawalsService } from '../features/cash-withdrawals/get-all-w
   ],
   providers: [
     WithdrawCashService,
+    WithdrawCashV2Service,
     ConvertToUsdtService,
     DirectConvertService,
     GetAllConversionsService,

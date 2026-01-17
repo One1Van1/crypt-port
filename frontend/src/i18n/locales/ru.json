@@ -400,6 +400,7 @@
     "convert": "Конвертировать",
     "convertToUsdt": "Конвертация в USDT",
     "exchangeRate": "Курс обмена",
+    "withdrawalRateManualHint": "Курс указываем вручную — он не подтягивается с площадки",
     "willReceive": "Получите",
     "noPendingWithdrawals": "Нет ожидающих конвертации заборов",
     "conversionCreated": "Конвертация выполнена успешно",

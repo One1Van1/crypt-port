@@ -1028,6 +1028,7 @@ function WithdrawalsSection() {
   
   const [formData, setFormData] = useState({
     amountPesos: '',
+    withdrawalRate: '',
     comment: '',
   });
 
@@ -1082,29 +1083,30 @@ function WithdrawalsSection() {
 
   const openWithdrawModal = (account: any) => {
     setSelectedBankAccount(account);
-    setFormData({ amountPesos: '', comment: '' });
+    setFormData({ amountPesos: '', withdrawalRate: '', comment: '' });
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedBankAccount || !formData.amountPesos) {
+    if (!selectedBankAccount || !formData.amountPesos || !formData.withdrawalRate) {
       toast.error(t('common.fillRequired'));
       return;
     }
 
     try {
-      await cashWithdrawalsService.withdraw({
+      await cashWithdrawalsService.withdrawV2({
         bankAccountId: selectedBankAccount.id,
         amountPesos: parseFloat(formData.amountPesos),
+        withdrawalRate: parseFloat(formData.withdrawalRate),
         comment: formData.comment || undefined,
       });
       
       toast.success(t('teamlead.withdrawalCreated'));
       setIsModalOpen(false);
       setSelectedBankAccount(null);
-      setFormData({ amountPesos: '', comment: '' });
+      setFormData({ amountPesos: '', withdrawalRate: '', comment: '' });
       loadData();
     } catch (error: any) {
       console.error('Withdrawal error:', error);
@@ -1297,6 +1299,20 @@ function WithdrawalsSection() {
                 <p className="helper-text">
                   {t('teamlead.maxAmount')}: ${(selectedBankAccount.withdrawnAmount || 0).toLocaleString()} ARS
                 </p>
+              </div>
+
+              <div className="form-group">
+                <label>{t('teamlead.exchangeRate')} *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={formData.withdrawalRate}
+                  onChange={(e) => setFormData({ ...formData, withdrawalRate: e.target.value })}
+                  placeholder="1000.00"
+                  required
+                />
+                <p className="helper-text">{t('teamlead.withdrawalRateManualHint')}</p>
               </div>
 
               <div className="form-group">

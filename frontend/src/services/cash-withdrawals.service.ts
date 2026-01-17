@@ -36,6 +36,13 @@ export interface WithdrawCashDto {
   comment?: string;
 }
 
+export interface WithdrawCashV2Dto {
+  bankAccountId: number;
+  amountPesos: number;
+  withdrawalRate: number;
+  comment?: string;
+}
+
 export interface ConvertToUsdtDto {
   exchangeRate: number;
 }
@@ -96,6 +103,11 @@ export interface GetAllWithdrawalsResponse {
 class CashWithdrawalsService {
   async withdraw(data: WithdrawCashDto): Promise<CashWithdrawal> {
     const response = await apiClient.post('/cash-withdrawals/withdraw', data);
+    return response.data;
+  }
+
+  async withdrawV2(data: WithdrawCashV2Dto): Promise<CashWithdrawal> {
+    const response = await apiClient.post('/cash-withdrawals/withdraw-v2', data);
     return response.data;
   }
 
