@@ -70,7 +70,11 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary) 0%,
+    var(--logo-circle) 100%
+  );
   display: flex;
   align-items: center;
   justify-content: center;
@@ -156,9 +160,9 @@
 }
 
 .input-wrapper:focus-within {
-  border-color: #6366f1;
+  border-color: var(--accent-primary);
   background-color: var(--bg-secondary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px var(--accent-shadow-soft);
 }
 
 .input-wrapper svg {
@@ -188,7 +192,11 @@
   gap: 8px;
   padding: 14px 24px;
   border: none;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: linear-gradient(
+    135deg,
+    var(--accent-primary) 0%,
+    var(--logo-circle) 100%
+  );
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -200,7 +208,7 @@
 
 .btn-login:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 16px var(--accent-shadow-strong);
 }
 
 .btn-login:disabled {
@@ -255,14 +263,14 @@
 }
 
 .link {
-  color: #6366f1;
+  color: var(--accent-primary);
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .link:hover {
-  color: #8b5cf6;
+  color: var(--logo-circle);
 }
 
 .qrcode-container {

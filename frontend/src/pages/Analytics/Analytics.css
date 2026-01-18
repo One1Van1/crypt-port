@@ -171,7 +171,7 @@
 .filter-select-compact:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px var(--accent-shadow-soft);
 }
 
 .btn-icon {

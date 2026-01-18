@@ -47,7 +47,7 @@
 
 .search-box:focus-within {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px var(--accent-shadow-soft);
 }
 
 .search-box svg {
@@ -290,8 +290,8 @@
 }
 
 .role-select-dropdown.role-teamlead {
-  background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  background: var(--accent-shadow-soft);
+  color: var(--accent-primary);
 }
 
 .role-select-dropdown.role-operator {

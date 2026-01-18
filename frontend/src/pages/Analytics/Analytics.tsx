@@ -466,7 +466,7 @@ export default function Analytics() {
                       <span style={{ 
                         fontSize: '0.9rem', 
                         fontWeight: '600', 
-                        color: '#6366f1' 
+                        color: 'var(--accent-primary)' 
                       }}>
                         {platform.exchangeRate.toFixed(2)} ARS
                       </span>
@@ -576,7 +576,7 @@ export default function Analytics() {
                       key: 'platforms',
                       name: '💎 Площадки',
                       rawValue: workingDepositData.platformBalances.total || 0,
-                      color: '#6366f1',
+                      color: 'var(--accent-primary)',
                     },
                     {
                       key: 'profitReserve',
@@ -780,13 +780,13 @@ export default function Analytics() {
                       <tr 
                         onClick={() => setSelectedSection((prev) => (prev === 'platforms' ? null : 'platforms'))}
                         style={{ 
-                          backgroundColor: selectedSection === 'platforms' ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                          backgroundColor: selectedSection === 'platforms' ? 'var(--accent-shadow-soft)' : 'transparent',
                           cursor: 'pointer',
                           transition: 'background-color 0.2s'
                         }}
                         onMouseEnter={(e) => {
                           if (selectedSection !== 'platforms') {
-                            e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.05)';
+                            e.currentTarget.style.backgroundColor = 'var(--accent-shadow-softer)';
                           }
                         }}
                         onMouseLeave={(e) => {
@@ -796,7 +796,7 @@ export default function Analytics() {
                         }}
                       >
                         <td style={{ padding: '8px 12px', paddingLeft: '24px', color: 'var(--text-secondary)', fontSize: '0.8rem' }}>
-                          <span style={{ color: '#6366f1', marginRight: '6px' }}>●</span>
+                          <span style={{ color: 'var(--accent-primary)', marginRight: '6px' }}>●</span>
                           💎 Площадки
                         </td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--text-primary)', fontWeight: '500' }}>

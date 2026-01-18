@@ -104,7 +104,7 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   color: white;
 }
 
@@ -124,7 +124,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent-primary) 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   display: flex;
   align-items: center;
   justify-content: center;

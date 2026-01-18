@@ -120,11 +120,11 @@
 
 .platform-card:hover {
   border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 4px 12px var(--accent-shadow-soft);
 }
 
 .platform-card.platform-card-highlight {
-  outline: 3px solid rgba(99, 102, 241, 0.9);
+  outline: 3px solid var(--accent-outline-strong);
   outline-offset: 2px;
   will-change: outline-color, background-color;
   animation: platformCardHighlight 2.6s ease-out;
@@ -132,16 +132,16 @@
 
 @keyframes platformCardHighlight {
   0% {
-    outline-color: rgba(99, 102, 241, 0.9);
-    background-color: rgba(99, 102, 241, 0.12);
+    outline-color: var(--accent-outline-strong);
+    background-color: var(--accent-shadow-soft);
   }
   20% {
-    outline-color: rgba(99, 102, 241, 0.6);
-    background-color: rgba(99, 102, 241, 0.08);
+    outline-color: var(--accent-outline-medium);
+    background-color: var(--accent-bg-medium);
   }
   100% {
-    outline-color: rgba(99, 102, 241, 0);
-    background-color: rgba(99, 102, 241, 0);
+    outline-color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
   }
 }
 
@@ -180,7 +180,7 @@
 .platform-balance {
   font-size: 1rem;
   font-weight: 600;
-  color: #6366f1;
+  color: var(--accent-primary);
 }
 
 .platform-status {
@@ -226,8 +226,8 @@
 }
 
 .btn-edit:hover {
-  border-color: #6366f1;
-  color: #6366f1;
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .btn-delete:hover {

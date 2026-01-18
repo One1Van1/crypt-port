@@ -17,11 +17,20 @@
   --text-secondary: #4a5568;
   --text-tertiary: #718096;
   --border-color: #e2e8f0;
-  --accent-primary: #5b6cf5;
+  --accent-primary: #f97316;
+  --accent-secondary: #ea580c;
+  --accent-border: rgba(249, 115, 22, 0.3);
+  --accent-shadow-soft: rgba(249, 115, 22, 0.12);
+  --accent-shadow-softer: rgba(249, 115, 22, 0.06);
+  --accent-shadow-strong: rgba(249, 115, 22, 0.28);
+  --accent-bg-medium: rgba(249, 115, 22, 0.08);
+  --accent-bg-badge: rgba(249, 115, 22, 0.15);
+  --accent-outline-strong: rgba(249, 115, 22, 0.9);
+  --accent-outline-medium: rgba(249, 115, 22, 0.6);
   --accent-success: #10b981;
   --accent-error: #ef4444;
-  --logo-circle: #ff7849;
-  --primary: #5b6cf5; /* Alias for --accent-primary */
+  --logo-circle: #fb923c;
+  --primary: #f97316; /* Alias for --accent-primary */
 }
 
 [data-theme='dark'] {
@@ -34,6 +43,15 @@
   --text-tertiary: #a0aec0;
   --border-color: #2d3748;
   --accent-primary: #6366f1;
+  --accent-secondary: #7c3aed;
+  --accent-border: rgba(99, 102, 241, 0.3);
+  --accent-shadow-soft: rgba(99, 102, 241, 0.1);
+  --accent-shadow-softer: rgba(99, 102, 241, 0.05);
+  --accent-shadow-strong: rgba(99, 102, 241, 0.3);
+  --accent-bg-medium: rgba(99, 102, 241, 0.08);
+  --accent-bg-badge: rgba(99, 102, 241, 0.15);
+  --accent-outline-strong: rgba(99, 102, 241, 0.9);
+  --accent-outline-medium: rgba(99, 102, 241, 0.6);
   --accent-success: #10b981;
   --accent-error: #ef4444;
   --logo-circle: #6366f1;
