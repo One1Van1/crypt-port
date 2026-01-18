@@ -25,8 +25,8 @@ export class UpdatePlatformRequestDto {
   exchangeRate?: number;
 
   @ApiProperty({
-    description: 'Platform balance in ARS',
-    example: 50000.00,
+    description: 'Platform balance in USDT',
+    example: 5000.00,
     minimum: 0,
     required: false,
   })

@@ -19,7 +19,7 @@ class PlatformItemDto {
   @ApiProperty({ description: 'Exchange rate (1 USDT = X ARS)', example: 1150.50 })
   exchangeRate: number;
 
-  @ApiProperty({ description: 'Platform balance in ARS', example: 50000.00 })
+  @ApiProperty({ description: 'Platform balance in USDT', example: 5000.00 })
   balance: number;
 
   @ApiProperty({ description: 'Creation date' })

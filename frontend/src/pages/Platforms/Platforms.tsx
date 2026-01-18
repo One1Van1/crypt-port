@@ -246,7 +246,7 @@ export default function Platforms() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Баланс (ARS)</label>
+                  <label>Баланс (USDT)</label>
                   <input
                     type="number"
                     value={formData.balance}
@@ -286,7 +286,11 @@ export default function Platforms() {
                     <div className="platform-detail-item">
                       <span className="platform-detail-label">Баланс:</span>
                       <span className="platform-balance">
-                        {platform.balance.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS
+                        {Number(platform.balance).toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        USDT
                       </span>
                     </div>
                     <span
@@ -415,7 +419,7 @@ export default function Platforms() {
                 />
               </div>
               <div className="form-group">
-                <label>Баланс (ARS)</label>
+                <label>Баланс (USDT)</label>
                 <input
                   type="number"
                   value={formData.balance}
